@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manuscript Viewer - Compilatio</title>
     <link rel="stylesheet" href="css/styles.css">
-    <!-- Mirador CSS -->
-    <link rel="stylesheet" type="text/css" href="https://unpkg.com/mirador@3.3.0/dist/mirador.min.css">
+    <!-- Universal Viewer CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/universalviewer@4.2.1/dist/uv.css">
 </head>
 <body>
     <div class="container viewer-container">
@@ -77,17 +77,17 @@
                         <p>Select a manuscript from the dropdown above to view it.</p>
                     </div>
 
-                    <!-- Mirador IIIF Viewer -->
-                    <div id="mirador-viewer"
+                    <!-- Universal Viewer -->
+                    <div id="uv-viewer"
                          class="viewer-panel"
-                         role="tabpanel"
-                         aria-labelledby="mode-iiif"></div>
+                         role="region"
+                         aria-label="IIIF Viewer"></div>
                 </div>
             </div>
         </main>
     </div>
-    <!-- Mirador JS -->
-    <script src="https://unpkg.com/mirador@3.3.0/dist/mirador.min.js"></script>
+    <!-- Universal Viewer JS -->
+    <script src="https://cdn.jsdelivr.net/npm/universalviewer@4.2.1/dist/umd/UV.js"></script>
     <script src="js/viewer.js"></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-// Mirador viewer with database integration for Compilatio
+// Universal Viewer with database integration for Compilatio
 // Connects to manuscript database and displays IIIF manifests
 
 (function() {
@@ -27,7 +27,7 @@
 
     // State
     let manuscriptsData = null;
-    let miradorInstance = null;
+    let uvInstance = null;
     let currentManuscript = null;
     let allViewableManuscripts = [];  // All manuscripts with IIIF images
     let selectedRepository = '';  // Currently selected repository filter
@@ -52,7 +52,7 @@
     // DOM Elements - Viewer
     const viewerLayout = document.querySelector('.viewer-layout');
     const viewerPlaceholder = document.getElementById('viewer-placeholder');
-    const miradorViewer = document.getElementById('mirador-viewer');
+    const uvViewer = document.getElementById('uv-viewer');
 
     /**
      * Initialize the viewer on page load
@@ -80,8 +80,7 @@
             loadManuscriptById(msParam);
         } else if (manifestParam) {
             // Direct manifest URL provided (legacy support)
-            initMirador();
-            loadManifestByUrl(manifestParam);
+            initUniversalViewer(manifestParam);
         }
         // If no deep link, wait for user to select a manuscript
     });
@@ -461,7 +460,7 @@
 
         // Load IIIF viewer
         if (manifestUrl) {
-            loadManifest(manifestUrl, manuscriptId);
+            loadManifest(manifestUrl);
             updateUrl(manifestUrl, manuscriptId);
         } else {
             // No IIIF - show placeholder
@@ -469,7 +468,7 @@
                 viewerPlaceholder.innerHTML = '<p>This manuscript does not have IIIF images available.</p>';
                 viewerPlaceholder.classList.remove('hidden');
             }
-            if (miradorViewer) miradorViewer.classList.add('hidden');
+            if (uvViewer) uvViewer.classList.add('hidden');
             updateUrl(null, manuscriptId);
         }
     }
@@ -482,10 +481,10 @@
     }
 
     /**
-     * Initialize Mirador viewer
+     * Initialize Universal Viewer
      */
-    function initMirador() {
-        console.log('Initializing Mirador viewer...');
+    function initUniversalViewer(manifestUrl) {
+        console.log('Initializing Universal Viewer...');
 
         // Hide placeholder
         const placeholder = document.getElementById('viewer-placeholder');
@@ -493,69 +492,65 @@
             placeholder.classList.add('hidden');
         }
 
-        // Build catalog from manuscript data
-        const catalog = manuscriptsData?.iiif_catalog || [];
+        // Show viewer container
+        if (uvViewer) {
+            uvViewer.classList.remove('hidden');
+        }
 
-        miradorInstance = Mirador.viewer({
-            id: 'mirador-viewer',
-            windows: [],
-            catalog: catalog,
-            config: {
-                id: 'mirador-viewer',
-                window: {
-                    allowFullscreen: false,
-                    allowMaximize: false,
-                    allowTopMenuButton: true,
-                    hideWindowTitle: false,
-                    sideBarPanel: 'info',
-                    defaultSidebarPanelWidth: 300,
-                    panels: {
-                        info: true,
-                        attribution: true,
-                        canvas: true,
-                        search: true,
-                    },
-                },
-                workspace: {
-                    type: 'mosaic',
-                    isWorkspaceAddVisible: false,
-                    allowNewWindows: false,
-                },
-                workspaceControlPanel: {
-                    enabled: false,
-                },
-            },
+        // Initialize UV with manifest
+        const data = {
+            manifest: manifestUrl,
+            embedded: true
+        };
+
+        uvInstance = UV.init('uv-viewer', data);
+
+        // Configure UV options
+        uvInstance.on('configure', function({ config, cb }) {
+            cb({
+                options: {
+                    footerPanelEnabled: true,
+                    headerPanelEnabled: true,
+                    leftPanelEnabled: true,
+                    rightPanelEnabled: false
+                }
+            });
         });
 
-        console.log('Mirador initialized');
+        // Handle viewer creation
+        uvInstance.on('created', function() {
+            console.log('Universal Viewer created');
+        });
+
+        // Handle errors
+        uvInstance.on('error', function(message) {
+            console.error('UV error:', message);
+        });
+
+        console.log('Universal Viewer initialized');
     }
 
     /**
-     * Load a manifest into Mirador by URL
+     * Load a manifest into Universal Viewer
      */
-    function loadManifest(manifestUrl, manuscriptId = null) {
-        // Initialize Mirador on first use if not already done
-        if (!miradorInstance) {
-            initMirador();
-        }
-
+    function loadManifest(manifestUrl) {
         console.log(`Loading manifest: ${manifestUrl}`);
 
-        // Close existing windows
-        const state = miradorInstance.store.getState();
-        const windowIds = Object.keys(state.windows || {});
-        windowIds.forEach(id => {
-            miradorInstance.store.dispatch(
-                Mirador.actions.removeWindow(id)
-            );
-        });
+        // Initialize UV on first use, or update existing instance
+        if (!uvInstance) {
+            initUniversalViewer(manifestUrl);
+        } else {
+            // UV is already initialized - load new manifest
+            uvInstance.set({ manifest: manifestUrl });
+        }
 
-        // Add new window with manifest
-        miradorInstance.store.dispatch(
-            Mirador.actions.addWindow({
-                manifestId: manifestUrl,
-            })
-        );
+        // Show viewer, hide placeholder
+        if (viewerPlaceholder) {
+            viewerPlaceholder.classList.add('hidden');
+        }
+        if (uvViewer) {
+            uvViewer.classList.remove('hidden');
+        }
     }
 
     /**
@@ -570,7 +565,7 @@
         }
 
         // Not in our data - load manifest directly (external manifest)
-        loadManifest(manifestUrl);
+        initUniversalViewer(manifestUrl);
     }
 
     /**
@@ -602,15 +597,14 @@
 
         // Load IIIF viewer
         if (ms.iiif_manifest_url) {
-            initMirador();
-            loadManifest(ms.iiif_manifest_url, manuscriptId);
+            loadManifest(ms.iiif_manifest_url);
         } else {
             // No IIIF - show placeholder
             if (viewerPlaceholder) {
                 viewerPlaceholder.innerHTML = '<p>This manuscript does not have IIIF images available.</p>';
                 viewerPlaceholder.classList.remove('hidden');
             }
-            if (miradorViewer) miradorViewer.classList.add('hidden');
+            if (uvViewer) uvViewer.classList.add('hidden');
         }
     }
 

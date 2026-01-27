@@ -2,6 +2,10 @@
 
 IIIF manuscript aggregator for medieval manuscripts from British repositories (Bodleian, British Library) and eventually Huntington.
 
+## Project Status
+
+See [Compilatio_Project_Status.md](Compilatio_Project_Status.md) for current implementation status and next steps.
+
 ## Core Concept
 
 - **Browse by Repository → Collection → Manuscript** (not search-first)
@@ -14,7 +18,7 @@ IIIF manuscript aggregator for medieval manuscripts from British repositories (B
 - **Backend**: Python/Starlette
 - **Database**: SQLite
 - **Frontend**: Vanilla JS with ES modules
-- **Viewer**: Universal Viewer
+- **Viewer**: Universal Viewer v4.2.1 (via CDN)
 
 ## Project Structure
 
@@ -25,11 +29,11 @@ database/
   compilatio.db        # Database
 src/
   index.html           # Landing page
-  viewer.html          # Manuscript viewer
+  viewer.html          # Manuscript viewer (loads UV from CDN)
   css/styles.css
   js/
     script.js          # Main functionality
-    viewer.js          # UV setup + metadata
+    viewer.js          # Universal Viewer setup + metadata
 ```
 
 ## Database Schema

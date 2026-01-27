@@ -178,7 +178,7 @@ Dark, warm charcoal background. Manuscripts are the star. Minimal chrome.
 - **Backend**: Python/Starlette (simplified from Connundra)
 - **Database**: SQLite
 - **Frontend**: Vanilla JS with ES modules
-- **Viewer**: Universal Viewer (not Mirador)
+- **Viewer**: Universal Viewer v4.x (via CDN)
 - **Hosting**: UCLA (oldbooks.humspace.ucla.edu)
 
 ### Project Structure
