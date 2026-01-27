@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manuscript Viewer - Compilatio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/styles.css">
     <!-- Universal Viewer CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/universalviewer@4.2.1/dist/uv.css">
@@ -14,7 +17,7 @@
             <h1>Compilatio</h1>
             <p class="subtitle">Manuscript Viewer</p>
             <nav class="viewer-nav">
-                <a href="index.html" class="nav-link-back">← Back to Home</a>
+                <a href="browse.html" class="nav-link-back">&larr; Browse Manuscripts</a>
             </nav>
         </header>
 
@@ -67,11 +70,19 @@
                     <button class="sidebar-collapse"
                             aria-label="Collapse sidebar"
                             aria-expanded="true"
-                            id="sidebar-collapse-btn">«</button>
+                            id="sidebar-collapse-btn">&laquo;</button>
                 </aside>
 
                 <!-- Main Viewer Area -->
                 <div class="main-viewer">
+                    <!-- Mobile sidebar toggle -->
+                    <button class="sidebar-toggle-mobile"
+                            aria-label="Toggle sidebar"
+                            id="sidebar-toggle-mobile">&#9776;</button>
+
+                    <!-- Overlay for mobile sidebar -->
+                    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
                     <!-- Viewer Placeholder (shown when no manuscript selected) -->
                     <div id="viewer-placeholder" class="viewer-placeholder">
                         <p>Select a manuscript from the dropdown above to view it.</p>
@@ -79,7 +90,7 @@
 
                     <!-- Universal Viewer -->
                     <div id="uv-viewer"
-                         class="viewer-panel"
+                         class="viewer-panel hidden"
                          role="region"
                          aria-label="IIIF Viewer"></div>
                 </div>

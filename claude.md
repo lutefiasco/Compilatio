@@ -29,10 +29,15 @@ database/
   compilatio.db        # Database
 src/
   index.html           # Landing page
+  browse.html          # Repository/collection/manuscript browser
   viewer.html          # Manuscript viewer (loads UV from CDN)
-  css/styles.css
+  css/styles.css       # Main stylesheet
+  images/
+    border-top.jpg     # Decoration from MS. Ashmole 764
+    border-right.jpg   # Right margin decoration
   js/
-    script.js          # Main functionality
+    script.js          # Landing page functionality
+    browse.js          # Browse page navigation
     viewer.js          # Universal Viewer setup + metadata
 ```
 
@@ -44,10 +49,13 @@ Key tables:
 
 ## Design Principles
 
-- Dark charcoal background (#2a2a2a)
+- Dark background (#1a1a1a) with ghosted manuscript border decoration
+- Elegant serif headings (Cormorant Garamond) + clean sans body (Inter)
+- Ivory accent color (#e8e4dc) - no gold
 - Manuscripts are the visual focus
-- Minimal chrome, clean sans-serif typography
+- Minimal chrome, refined typography
 - Always show source institution attribution with link to original catalogue
+- Background decoration: vine scrollwork from Bodleian MS. Ashmole 764 (top + right edges, inverted with warm sepia tint)
 
 ## Navigation Flow
 

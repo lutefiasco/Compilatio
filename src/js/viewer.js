@@ -48,6 +48,8 @@
     const infoPanel = document.getElementById('info-panel');
     const infoContent = document.getElementById('info-content');
     const sidebarCollapseBtn = document.getElementById('sidebar-collapse-btn');
+    const sidebarToggleMobile = document.getElementById('sidebar-toggle-mobile');
+    const sidebarOverlay = document.getElementById('sidebar-overlay');
 
     // DOM Elements - Viewer
     const viewerLayout = document.querySelector('.viewer-layout');
@@ -66,24 +68,85 @@
         // Initialize keyboard shortcuts
         initKeyboardShortcuts();
 
-        // Load manuscript data
-        await loadManuscriptData();
-
         // Check URL parameters for deep linking
         const urlParams = new URLSearchParams(window.location.search);
         const manifestParam = urlParams.get('manifest');
         const msParam = urlParams.get('ms');
 
-        // Handle deep linking
-        if (msParam) {
-            // Manuscript ID provided - load by ID
-            loadManuscriptById(msParam);
-        } else if (manifestParam) {
-            // Direct manifest URL provided (legacy support)
+        // If direct manifest URL provided, load it immediately (standalone mode)
+        if (manifestParam && !msParam) {
+            console.log('Standalone mode: loading manifest directly');
             initUniversalViewer(manifestParam);
+            renderStandaloneInfo(manifestParam);
+            // Still try to load manuscript data in background for selector
+            loadManuscriptData().catch(() => {});
+            return;
+        }
+
+        // Load manuscript data for selector-based navigation
+        await loadManuscriptData();
+
+        // Handle deep linking by manuscript ID
+        if (msParam) {
+            loadManuscriptById(msParam);
         }
         // If no deep link, wait for user to select a manuscript
     });
+
+    /**
+     * Render info panel for standalone manifest (no database record)
+     */
+    function renderStandaloneInfo(manifestUrl) {
+        if (!infoContent) return;
+
+        // Fetch manifest metadata
+        fetch(manifestUrl)
+            .then(response => response.json())
+            .then(manifest => {
+                const label = manifest.label || manifest['@label'] || 'Unknown Manuscript';
+                const description = manifest.description || manifest['@description'] || '';
+                const attribution = manifest.attribution || '';
+
+                let html = `
+                    <div class="info-primary">
+                        <h3 class="info-shelfmark">${escapeHtml(typeof label === 'string' ? label : label['@value'] || label.en?.[0] || 'Manuscript')}</h3>
+                        ${description ? `<p class="info-date">${escapeHtml(typeof description === 'string' ? description : description['@value'] || '')}</p>` : ''}
+                    </div>
+                `;
+
+                // Extract metadata from manifest
+                if (manifest.metadata && Array.isArray(manifest.metadata)) {
+                    html += `
+                        <details class="info-section" open>
+                            <summary>Metadata</summary>
+                            <dl class="info-list">
+                    `;
+                    manifest.metadata.forEach(item => {
+                        const labelText = typeof item.label === 'string' ? item.label : item.label?.['@value'] || item.label?.en?.[0] || '';
+                        const valueText = typeof item.value === 'string' ? item.value : item.value?.['@value'] || item.value?.en?.[0] || '';
+                        if (labelText && valueText) {
+                            html += `<dt>${escapeHtml(labelText)}</dt><dd>${escapeHtml(valueText)}</dd>`;
+                        }
+                    });
+                    html += `</dl></details>`;
+                }
+
+                if (attribution) {
+                    html += `
+                        <details class="info-section">
+                            <summary>Attribution</summary>
+                            <p class="info-text">${escapeHtml(typeof attribution === 'string' ? attribution : attribution['@value'] || '')}</p>
+                        </details>
+                    `;
+                }
+
+                infoContent.innerHTML = html;
+            })
+            .catch(err => {
+                console.error('Failed to fetch manifest metadata:', err);
+                infoContent.innerHTML = '<p class="panel-placeholder">Manifest loaded in viewer.</p>';
+            });
+    }
 
     // ========================================
     // SIDEBAR FUNCTIONALITY
@@ -108,6 +171,40 @@
         // Sidebar collapse
         if (sidebarCollapseBtn) {
             sidebarCollapseBtn.addEventListener('click', toggleSidebar);
+        }
+
+        // Mobile sidebar toggle
+        if (sidebarToggleMobile) {
+            sidebarToggleMobile.addEventListener('click', toggleMobileSidebar);
+        }
+
+        // Overlay click to close mobile sidebar
+        if (sidebarOverlay) {
+            sidebarOverlay.addEventListener('click', closeMobileSidebar);
+        }
+    }
+
+    /**
+     * Toggle mobile sidebar
+     */
+    function toggleMobileSidebar() {
+        if (sidebar) {
+            sidebar.classList.toggle('open');
+        }
+        if (sidebarOverlay) {
+            sidebarOverlay.classList.toggle('active');
+        }
+    }
+
+    /**
+     * Close mobile sidebar
+     */
+    function closeMobileSidebar() {
+        if (sidebar) {
+            sidebar.classList.remove('open');
+        }
+        if (sidebarOverlay) {
+            sidebarOverlay.classList.remove('active');
         }
     }
 

@@ -1,0 +1,1 @@
+- Repositories with digital mansucripts and IIIF should be expanded to explore include the National Library of Wales, the National Library of Scotland, Durham University, and Lambeth Palace Library.
