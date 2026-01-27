@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compilatio - Medieval Manuscripts</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Compilatio</h1>
+            <p class="subtitle">Medieval Manuscript Aggregator</p>
+        </header>
+        <main>
+            <section class="content">
+                <p>Discover the art, history, and beauty of illuminated manuscripts from the Middle Ages.</p>
+            </section>
+
+            <section class="nav-cards">
+                <h2 class="section-title">Explore the Collection</h2>
+
+                <div class="card-grid">
+                    <a href="viewer.html" class="nav-card nav-card-primary">
+                        <h3>Manuscript Viewer</h3>
+                        <p>View digitized manuscripts with the IIIF Mirador viewer. Zoom, pan, and explore high-resolution images.</p>
+                    </a>
+                </div>
+            </section>
+
+            <section class="stats-section" id="stats-section">
+                <h2 class="section-title">Collection Statistics</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <span class="stat-number" id="total-manuscripts">--</span>
+                        <span class="stat-label">Total Manuscripts</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number" id="with-iiif">--</span>
+                        <span class="stat-label">With IIIF Images</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number" id="repositories">--</span>
+                        <span class="stat-label">Repositories</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-number" id="date-range">--</span>
+                        <span class="stat-label">Date Range</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="about-section">
+                <h2 class="section-title">About Compilatio</h2>
+                <p>Compilatio is a IIIF manuscript aggregator for exploring medieval manuscripts through high-resolution digital viewers and structured metadata. Browse manuscripts from multiple repositories worldwide.</p>
+                <p class="note">Start the server with: <code>python server.py</code></p>
+            </section>
+        </main>
+    </div>
+    <script src="js/script.js"></script>
+</body>
+</html>
