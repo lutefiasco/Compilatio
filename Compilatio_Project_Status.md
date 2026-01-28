@@ -81,16 +81,20 @@ http://localhost:8000/viewer.html?manifest=https://iiif.bodleian.ox.ac.uk/iiif/m
 - `src/images/border-right.jpg` - Right margin decoration
 
 ## Phase 5: British Library
-**Status: In Progress**
+**Status: Complete**
 
 See [British Library Import Plan](docs/plans/2026-01-27-British-Library-Import.md) for details.
 
 - [x] Create BL importer script (`scripts/importers/british_library.py`)
 - [x] Handle JavaScript rendering (uses Playwright)
 - [x] Add digitized-only filter
-- [ ] Import Cotton Collection (on rabota)
-- [ ] Import Harley Collection (on rabota)
-- [ ] Import Royal Collection (on rabota)
+- [x] Import Cotton Collection (on rabota)
+- [x] Import Harley Collection (on rabota)
+- [x] Import Royal Collection (on rabota)
+
+### Import Results
+- **178 manuscripts** imported (digitized only)
+- Collections: Royal (81), Harley (56), Cotton (41)
 
 ## Phase 6: Polish
 **Status: Partial**
@@ -107,47 +111,47 @@ See [British Library Import Plan](docs/plans/2026-01-27-British-Library-Import.m
 
 ---
 
-## Things to Do on Rabota
+## Data Import Summary
 
-After pushing to git and pulling on rabota:
+All imports completed on rabota:
+
+| Repository | Manuscripts | Collections |
+|------------|-------------|-------------|
+| Bodleian Library | 1,713 | Greek (536), Laud Misc. (289), Barocci (235), ... |
+| British Library | 178 | Royal (81), Harley (56), Cotton (41) |
+| **Total** | **1,891** | |
+
+### To Recreate Database
+
+The `data/` directory and `database/*.db` are in `.gitignore`. To regenerate:
 
 ```bash
-# 1. Clone Bodleian TEI data and initialize database
+# Bodleian
 ./scripts/setup_bodleian.sh
-
-# 2. Import fully digitized Bodleian manuscripts (1,713 manuscripts)
 python scripts/importers/bodleian.py --execute
 
-# 3. Setup for British Library import
-python3 -m venv .venv
-source .venv/bin/activate
-pip install playwright beautifulsoup4
-playwright install chromium
-
-# 4. Import British Library collections (digitized only)
+# British Library (requires Playwright)
+python3 -m venv .venv && source .venv/bin/activate
+pip install playwright beautifulsoup4 && playwright install chromium
 python scripts/importers/british_library.py --collection cotton --execute
 python scripts/importers/british_library.py --collection harley --execute
 python scripts/importers/british_library.py --collection royal --execute
 
-# 5. Start the server
+# Start server
 python server.py
-
-# 6. Visit http://localhost:8000/ to see the dark-themed UI
 ```
-
-The `data/` directory and `database/*.db` are in `.gitignore` - they must be generated on rabota.
 
 ---
 
 ## Next Steps
 
-1. Run British Library imports on rabota (Cotton, Harley, Royal)
-2. Search functionality
-3. Performance optimization for large collections
+1. Search functionality
+2. Performance optimization for large collections
+3. Additional repository importers (Cambridge, Huntington)
 
 ---
 
 ## Current Gaps
 
-1. **British Library** - Importer ready, needs to run on rabota
-2. **Search** - No search functionality yet
+1. **Search** - No search functionality yet
+2. **Additional repositories** - Only Bodleian and British Library imported

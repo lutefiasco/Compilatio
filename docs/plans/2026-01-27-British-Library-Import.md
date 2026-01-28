@@ -98,26 +98,13 @@ python scripts/importers/british_library.py --collection cotton --test    # Test
 
 ## Phase 2: Cotton Collection Import (on rabota)
 
-**Status: Not Started**
+**Status: COMPLETE**
 
 **Goal**: Import all digitized Cotton manuscripts.
 
-### Tasks
+### Results
 
-```bash
-# On rabota
-source .venv/bin/activate
-
-# Test first
-python scripts/importers/british_library.py --collection cotton --test
-
-# Full import
-python scripts/importers/british_library.py --collection cotton --execute
-```
-
-### Expected Output
-
-- Cotton manuscripts added to database
+- **41 manuscripts** imported
 - Repository record for "British Library" created
 - All entries have IIIF manifest URLs
 
@@ -125,40 +112,36 @@ python scripts/importers/british_library.py --collection cotton --execute
 
 ## Phase 3: Harley Collection Import (on rabota)
 
-**Status: Not Started**
+**Status: COMPLETE**
 
 **Goal**: Import all digitized Harley manuscripts.
 
-```bash
-python scripts/importers/british_library.py --collection harley --test
-python scripts/importers/british_library.py --collection harley --execute
-```
+### Results
+
+- **56 manuscripts** imported
 
 ---
 
 ## Phase 4: Royal Collection Import (on rabota)
 
-**Status: Not Started**
+**Status: COMPLETE**
 
 **Goal**: Import all digitized Royal manuscripts.
 
-```bash
-python scripts/importers/british_library.py --collection royal --test
-python scripts/importers/british_library.py --collection royal --execute
-```
+### Results
+
+- **81 manuscripts** imported
 
 ---
 
 ## Phase 5: Documentation and Cleanup
 
-**Status: Not Started**
+**Status: COMPLETE**
 
-**Goal**: Document the import process for future use.
+### Completed
 
-### Tasks
-
-1. Update `Compilatio_Project_Status.md` with import results
-2. Verify manuscripts display correctly in Compilatio UI
+1. Updated `Compilatio_Project_Status.md` with import results
+2. Manuscripts viewable in Compilatio UI
 
 ---
 
@@ -203,8 +186,10 @@ The BL uses Blacklight (Ruby on Rails) for their catalogue. Key observations fro
 
 ## Success Criteria
 
-- [ ] Cotton digitized manuscripts imported with IIIF URLs
-- [ ] Harley digitized manuscripts imported with IIIF URLs
-- [ ] Royal digitized manuscripts imported with IIIF URLs
-- [ ] All manuscripts viewable in Universal Viewer via Compilatio UI
-- [ ] British Library attribution displays correctly on viewer page
+- [x] Cotton digitized manuscripts imported with IIIF URLs (41)
+- [x] Harley digitized manuscripts imported with IIIF URLs (56)
+- [x] Royal digitized manuscripts imported with IIIF URLs (81)
+- [x] All manuscripts viewable in Universal Viewer via Compilatio UI
+- [x] British Library attribution displays correctly on viewer page
+
+**Total: 178 British Library manuscripts imported**
