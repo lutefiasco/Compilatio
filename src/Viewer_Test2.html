@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Viewer Test 2 - External UV Config JSON</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/universalviewer@4.2.1/dist/uv.css">
+    <style>
+        /*
+         * TEST 2: EXTERNAL UV CONFIG JSON APPROACH
+         * =========================================
+         * Strategy: Pass a local uv-config.json to UV.init() for maximum
+         * config-driven control. Minimal CSS - only essential dark theme
+         * and fallback hiding. Let UV's own config handle attribution,
+         * panels, and header behavior.
+         *
+         * Also uses modeOptionsEnabled: false in the config to simplify
+         * the header bar (removes Image/Page radio buttons), which
+         * reduces the content that needs to fit on one line.
+         */
+
+        /* === Base page styles === */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: #1a1a1a;
+            color: #d8d8d8;
+        }
+
+        .test-header {
+            display: flex;
+            align-items: baseline;
+            gap: 1.5rem;
+            padding: 0.5rem 1rem;
+        }
+        .test-header h1 {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-size: 1.4rem;
+            color: #f5f3ef;
+            font-weight: 300;
+            letter-spacing: 0.1em;
+        }
+        .test-header .approach-label {
+            font-size: 0.75rem;
+            color: #c9917a;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        .test-header a {
+            color: #888;
+            font-size: 0.8rem;
+            text-decoration: none;
+        }
+        .test-header a:hover { color: #e8e4dc; }
+
+        .test-nav {
+            display: flex;
+            gap: 1rem;
+            padding: 0 1rem 0.5rem;
+            font-size: 0.8rem;
+        }
+        .test-nav a { color: #888; text-decoration: none; }
+        .test-nav a:hover { color: #e8e4dc; }
+        .test-nav .current { color: #e8e4dc; font-weight: 500; }
+
+        .selector-bar {
+            padding: 0.5rem 1rem;
+            background: #232323;
+            margin: 0 0 0.5rem 0;
+        }
+        .selector-bar select {
+            padding: 0.35rem 0.5rem;
+            font-family: inherit;
+            font-size: 0.85rem;
+            color: #d8d8d8;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 2px;
+            margin-right: 0.5rem;
+        }
+        .selector-bar select:focus {
+            outline: none;
+            border-color: #e8e4dc;
+        }
+        .selector-bar .count {
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        /* === Viewer layout === */
+        .viewer-layout {
+            display: grid;
+            grid-template-columns: 240px 1fr;
+            gap: 0;
+            height: calc(100vh - 120px);
+            background: #141414;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            background: #232323;
+            border-right: 1px solid #2a2a2a;
+            overflow-y: auto;
+            padding: 1rem;
+            font-size: 0.9rem;
+        }
+        .sidebar h3 {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-size: 1.1rem;
+            color: #f5f3ef;
+            font-weight: 400;
+            margin-bottom: 0.5rem;
+        }
+        .sidebar .meta { color: #888; font-size: 0.85rem; margin: 0.25rem 0; }
+
+        .viewer-area {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        #uv-viewer {
+            flex: 1;
+            width: 100%;
+            min-height: 0;
+            background: #141414;
+        }
+        #uv-viewer > div {
+            width: 100% !important;
+            height: 100% !important;
+            max-width: 100% !important;
+            max-height: 100% !important;
+            position: relative !important;
+        }
+        .placeholder {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #555;
+        }
+
+        /* ===================================================
+         * MINIMAL CSS - Only dark theming + safety fallbacks.
+         * The uv-config.json handles panel/attribution config.
+         * =================================================== */
+
+        /* Dark theme for UV header and footer */
+        #uv-viewer .headerPanel .options {
+            background: #1a1a1a !important;
+            border-bottom: 1px solid #2a2a2a !important;
+        }
+
+        #uv-viewer [class*="footerPanel"] {
+            background: #1a1a1a !important;
+            border-top: 1px solid #2a2a2a !important;
+        }
+
+        /* Dark backgrounds for center panel */
+        #uv-viewer .centerPanel,
+        #uv-viewer .centerPanel .content {
+            background: #141414 !important;
+        }
+
+        /* Fallback: hide attribution if config doesn't catch it */
+        #uv-viewer .centerPanel .content .attribution {
+            display: none !important;
+        }
+
+        /* Fallback: hide title/subtitle overlays */
+        #uv-viewer .centerPanel > .title,
+        #uv-viewer .centerPanel > .subtitle {
+            display: none !important;
+        }
+
+        /* Hide navigator minimap */
+        #uv-viewer .navigator,
+        #uv-viewer .openseadragon-navigator {
+            display: none !important;
+        }
+
+        /* Transparent overlays container */
+        #uv-viewer .overlays {
+            background: transparent !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-header">
+        <h1>Compilatio</h1>
+        <span class="approach-label">Test 2: External UV Config JSON</span>
+        <a href="viewer.html">&larr; Production Viewer</a>
+    </div>
+
+    <nav class="test-nav">
+        <a href="Viewer_Test1.html">Test 1 (CSS)</a>
+        <span class="current">Test 2 (Config JSON)</span>
+        <a href="Viewer_Test3.html">Test 3 (No Sidebar)</a>
+    </nav>
+
+    <div class="selector-bar">
+        <select id="repository-select" aria-label="Repository">
+            <option value="">All repositories</option>
+        </select>
+        <select id="manuscript-select" aria-label="Manuscript">
+            <option value="">-- Choose a manuscript --</option>
+        </select>
+        <span class="count" id="manuscript-count"></span>
+    </div>
+
+    <div class="viewer-layout">
+        <aside class="sidebar" id="sidebar">
+            <div id="info-content">
+                <p style="color: #555;">Select a manuscript to view details.</p>
+            </div>
+        </aside>
+        <div class="viewer-area">
+            <div id="viewer-placeholder" class="placeholder">
+                <p>Select a manuscript above to view it.</p>
+            </div>
+            <div id="uv-viewer" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/universalviewer@4.2.1/dist/umd/UV.js"></script>
+    <script>
+    (function() {
+        'use strict';
+
+        const API_BASE = '/api';
+        let allManuscripts = [];
+        let uvInstance = null;
+
+        const repoSelect = document.getElementById('repository-select');
+        const msSelect = document.getElementById('manuscript-select');
+        const msCount = document.getElementById('manuscript-count');
+        const infoContent = document.getElementById('info-content');
+        const placeholder = document.getElementById('viewer-placeholder');
+        const uvViewer = document.getElementById('uv-viewer');
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const resp = await fetch(`${API_BASE}/manuscripts?limit=200`);
+                const data = await resp.json();
+                allManuscripts = (data.manuscripts || data).filter(m => m.iiif_manifest_url);
+                populateRepos();
+                populateManuscripts();
+                msSelect.addEventListener('change', handleSelection);
+                repoSelect.addEventListener('change', () => populateManuscripts());
+
+                const params = new URLSearchParams(window.location.search);
+                const msId = params.get('ms');
+                if (msId) {
+                    msSelect.value = msId;
+                    handleSelection();
+                }
+            } catch (e) {
+                console.error('Failed to load manuscripts:', e);
+            }
+        });
+
+        function populateRepos() {
+            const repos = [...new Set(allManuscripts.map(m => m.repository).filter(Boolean))].sort();
+            repos.forEach(r => {
+                const opt = document.createElement('option');
+                opt.value = r;
+                opt.textContent = r;
+                repoSelect.appendChild(opt);
+            });
+        }
+
+        function populateManuscripts() {
+            const repo = repoSelect.value;
+            const filtered = repo ? allManuscripts.filter(m => m.repository === repo) : allManuscripts;
+            msSelect.innerHTML = '<option value="">-- Choose a manuscript --</option>';
+            filtered.sort((a, b) => (a.shelfmark || '').localeCompare(b.shelfmark || '')).forEach(ms => {
+                const opt = document.createElement('option');
+                opt.value = ms.id;
+                opt.textContent = `${ms.shelfmark || 'MS ' + ms.id}${ms.date_display ? ' (' + ms.date_display + ')' : ''}`;
+                opt.dataset.manifest = ms.iiif_manifest_url || '';
+                msSelect.appendChild(opt);
+            });
+            msCount.textContent = `(${filtered.length} viewable)`;
+        }
+
+        function handleSelection() {
+            const opt = msSelect.selectedOptions[0];
+            const id = opt?.value;
+            if (!id) return;
+
+            const ms = allManuscripts.find(m => m.id == id);
+            if (!ms) return;
+
+            infoContent.innerHTML = `
+                <h3>${esc(ms.shelfmark || '')}</h3>
+                <p class="meta">${esc(ms.repository || '')}</p>
+                <p class="meta">${esc(ms.date_display || '')}</p>
+                ${ms.contents ? '<p style="color:#999;font-size:0.85rem;margin-top:0.75rem;line-height:1.5">' + esc(ms.contents) + '</p>' : ''}
+            `;
+
+            if (ms.iiif_manifest_url) {
+                loadManifest(ms.iiif_manifest_url);
+            }
+        }
+
+        function loadManifest(url) {
+            placeholder.style.display = 'none';
+            uvViewer.style.display = 'block';
+
+            if (!uvInstance) {
+                /*
+                 * TEST 2: Pass config URL to UV.init()
+                 * UV v4 supports loading config from a JSON file.
+                 * This gives more complete control than the configure event.
+                 */
+                uvInstance = UV.init('uv-viewer', {
+                    manifest: url,
+                    embedded: true,
+                    configUri: '/uv-config.json'
+                });
+
+                /*
+                 * Also use configure event as a belt-and-suspenders approach.
+                 * The config JSON is loaded first, then this merges on top.
+                 */
+                uvInstance.on('configure', function({ config, cb }) {
+                    cb({
+                        options: {
+                            headerPanelEnabled: true,
+                            footerPanelEnabled: true,
+                            leftPanelEnabled: false,
+                            rightPanelEnabled: false
+                        },
+                        modules: {
+                            openSeadragonCenterPanel: {
+                                options: {
+                                    requiredStatementEnabled: false,
+                                    titleEnabled: false,
+                                    subtitleEnabled: false
+                                }
+                            },
+                            pagingHeaderPanel: {
+                                options: {
+                                    modeOptionsEnabled: false,
+                                    imageSelectionBoxEnabled: true
+                                }
+                            }
+                        }
+                    });
+                });
+            } else {
+                uvInstance.set({ manifest: url });
+            }
+        }
+
+        function esc(text) {
+            if (!text) return '';
+            const d = document.createElement('div');
+            d.textContent = text;
+            return d.innerHTML;
+        }
+    })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Viewer Test 3 - No Sidebar + Maximum Width</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/universalviewer@4.2.1/dist/uv.css">
+    <style>
+        /*
+         * TEST 3: NO SIDEBAR + MAXIMUM WIDTH APPROACH
+         * =============================================
+         * Strategy: Remove the sidebar entirely to give UV the full viewport
+         * width. This tests whether Issue 1 (header wrapping) is caused by
+         * the sidebar taking up 240-260px of horizontal space.
+         *
+         * Metadata is shown in a collapsible bar ABOVE the viewer instead.
+         * Uses both correct config AND targeted CSS.
+         * Also disables mode options to simplify header further.
+         *
+         * This approach prioritizes the manuscript image viewing experience.
+         */
+
+        /* === Base page styles === */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: #1a1a1a;
+            color: #d8d8d8;
+        }
+
+        .test-header {
+            display: flex;
+            align-items: baseline;
+            gap: 1.5rem;
+            padding: 0.5rem 1rem;
+        }
+        .test-header h1 {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-size: 1.4rem;
+            color: #f5f3ef;
+            font-weight: 300;
+            letter-spacing: 0.1em;
+        }
+        .test-header .approach-label {
+            font-size: 0.75rem;
+            color: #c9917a;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        .test-header a {
+            color: #888;
+            font-size: 0.8rem;
+            text-decoration: none;
+        }
+        .test-header a:hover { color: #e8e4dc; }
+
+        .test-nav {
+            display: flex;
+            gap: 1rem;
+            padding: 0 1rem 0.5rem;
+            font-size: 0.8rem;
+        }
+        .test-nav a { color: #888; text-decoration: none; }
+        .test-nav a:hover { color: #e8e4dc; }
+        .test-nav .current { color: #e8e4dc; font-weight: 500; }
+
+        /* Combined selector + metadata bar */
+        .control-bar {
+            padding: 0.5rem 1rem;
+            background: #232323;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+        .control-bar select {
+            padding: 0.35rem 0.5rem;
+            font-family: inherit;
+            font-size: 0.85rem;
+            color: #d8d8d8;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 2px;
+        }
+        .control-bar select:focus {
+            outline: none;
+            border-color: #e8e4dc;
+        }
+        .control-bar .count {
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        /* Collapsible metadata panel above viewer */
+        .metadata-bar {
+            background: #1e1e1e;
+            border-bottom: 1px solid #2a2a2a;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        .metadata-bar.collapsed {
+            max-height: 0;
+            border-bottom: none;
+        }
+        .metadata-content {
+            padding: 0.75rem 1rem;
+            display: flex;
+            gap: 2rem;
+            align-items: baseline;
+            flex-wrap: wrap;
+        }
+        .metadata-content .ms-title {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-size: 1.1rem;
+            color: #f5f3ef;
+            font-weight: 400;
+        }
+        .metadata-content .ms-meta {
+            font-size: 0.85rem;
+            color: #888;
+        }
+        .metadata-content .ms-contents {
+            font-size: 0.8rem;
+            color: #777;
+            flex-basis: 100%;
+            line-height: 1.5;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .metadata-toggle {
+            background: none;
+            border: none;
+            color: #888;
+            font-size: 0.75rem;
+            cursor: pointer;
+            padding: 0.25rem 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .metadata-toggle:hover { color: #e8e4dc; }
+
+        /* === Full-width viewer === */
+        .viewer-wrapper {
+            height: calc(100vh - 100px);
+            background: #141414;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #uv-viewer {
+            flex: 1;
+            width: 100%;
+            min-height: 0;
+            background: #141414;
+        }
+        #uv-viewer > div {
+            width: 100% !important;
+            height: 100% !important;
+            max-width: 100% !important;
+            max-height: 100% !important;
+            position: relative !important;
+        }
+        .placeholder {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #555;
+        }
+
+        /* ===================================================
+         * UV FIXES - Combination of config + targeted CSS
+         * With full viewport width, header wrapping should
+         * be reduced or eliminated naturally.
+         * =================================================== */
+
+        /* Dark theme for UV panels */
+        #uv-viewer .headerPanel .options {
+            background: #1a1a1a !important;
+            border-bottom: 1px solid #2a2a2a !important;
+        }
+
+        #uv-viewer [class*="footerPanel"] {
+            background: #1a1a1a !important;
+            border-top: 1px solid #2a2a2a !important;
+        }
+
+        /* Flexbox fix for header - belt and suspenders even with full width */
+        #uv-viewer .headerPanel .centerOptions {
+            display: flex !important;
+            align-items: center !important;
+            flex-wrap: nowrap !important;
+            position: static !important;
+        }
+        #uv-viewer .headerPanel .centerOptions > * {
+            float: none !important;
+            flex-shrink: 0 !important;
+        }
+        #uv-viewer .headerPanel .centerOptions .search {
+            float: none !important;
+            display: flex !important;
+            align-items: center !important;
+            flex-wrap: nowrap !important;
+            width: auto !important;
+            margin: 0 4px !important;
+        }
+        #uv-viewer .headerPanel .centerOptions .search > * {
+            float: none !important;
+        }
+        #uv-viewer .headerPanel .prevOptions,
+        #uv-viewer .headerPanel .nextOptions {
+            float: none !important;
+            display: flex !important;
+            align-items: center !important;
+            margin: 0 !important;
+        }
+        #uv-viewer .headerPanel .mode {
+            float: none !important;
+            display: flex !important;
+            align-items: center !important;
+            margin: 0 4px !important;
+        }
+        #uv-viewer .headerPanel .rightOptions {
+            float: none !important;
+            display: flex !important;
+            align-items: center !important;
+            margin-left: auto !important;
+            position: absolute !important;
+            right: 8px !important;
+        }
+        #uv-viewer .headerPanel .rightOptions > * {
+            float: none !important;
+        }
+        #uv-viewer .headerPanel .pagingToggleButtons {
+            float: none !important;
+            display: flex !important;
+            align-items: center !important;
+        }
+
+        /* Dark center panel */
+        #uv-viewer .centerPanel,
+        #uv-viewer .centerPanel .content {
+            background: #141414 !important;
+        }
+
+        /* Hide attribution, title, subtitle overlays */
+        #uv-viewer .centerPanel > .title,
+        #uv-viewer .centerPanel > .subtitle {
+            display: none !important;
+        }
+        #uv-viewer .centerPanel .content .attribution {
+            display: none !important;
+            background: transparent !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+        }
+
+        /* Hide navigator minimap */
+        #uv-viewer .navigator,
+        #uv-viewer .openseadragon-navigator {
+            display: none !important;
+        }
+
+        /* Transparent overlays container */
+        #uv-viewer .overlays {
+            background: transparent !important;
+        }
+
+        /* Hide credit/rights */
+        #uv-viewer .centerPanel .credit,
+        #uv-viewer .centerPanel .rights {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-header">
+        <h1>Compilatio</h1>
+        <span class="approach-label">Test 3: No Sidebar + Full Width</span>
+        <a href="viewer.html">&larr; Production Viewer</a>
+    </div>
+
+    <nav class="test-nav">
+        <a href="Viewer_Test1.html">Test 1 (CSS)</a>
+        <a href="Viewer_Test2.html">Test 2 (Config JSON)</a>
+        <span class="current">Test 3 (No Sidebar)</span>
+    </nav>
+
+    <div class="control-bar">
+        <select id="repository-select" aria-label="Repository">
+            <option value="">All repositories</option>
+        </select>
+        <select id="manuscript-select" aria-label="Manuscript">
+            <option value="">-- Choose a manuscript --</option>
+        </select>
+        <span class="count" id="manuscript-count"></span>
+        <button class="metadata-toggle" id="metadata-toggle" style="display:none;">Show Info</button>
+    </div>
+
+    <div class="metadata-bar collapsed" id="metadata-bar">
+        <div class="metadata-content" id="metadata-content"></div>
+    </div>
+
+    <div class="viewer-wrapper">
+        <div id="viewer-placeholder" class="placeholder">
+            <p>Select a manuscript above to view it.</p>
+        </div>
+        <div id="uv-viewer" style="display: none;"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/universalviewer@4.2.1/dist/umd/UV.js"></script>
+    <script>
+    (function() {
+        'use strict';
+
+        const API_BASE = '/api';
+        let allManuscripts = [];
+        let uvInstance = null;
+        let metadataVisible = false;
+
+        const repoSelect = document.getElementById('repository-select');
+        const msSelect = document.getElementById('manuscript-select');
+        const msCount = document.getElementById('manuscript-count');
+        const metadataBar = document.getElementById('metadata-bar');
+        const metadataContent = document.getElementById('metadata-content');
+        const metadataToggle = document.getElementById('metadata-toggle');
+        const placeholder = document.getElementById('viewer-placeholder');
+        const uvViewer = document.getElementById('uv-viewer');
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const resp = await fetch(`${API_BASE}/manuscripts?limit=200`);
+                const data = await resp.json();
+                allManuscripts = (data.manuscripts || data).filter(m => m.iiif_manifest_url);
+                populateRepos();
+                populateManuscripts();
+                msSelect.addEventListener('change', handleSelection);
+                repoSelect.addEventListener('change', () => populateManuscripts());
+                metadataToggle.addEventListener('click', toggleMetadata);
+
+                const params = new URLSearchParams(window.location.search);
+                const msId = params.get('ms');
+                if (msId) {
+                    msSelect.value = msId;
+                    handleSelection();
+                }
+            } catch (e) {
+                console.error('Failed to load manuscripts:', e);
+            }
+        });
+
+        function toggleMetadata() {
+            metadataVisible = !metadataVisible;
+            metadataBar.classList.toggle('collapsed', !metadataVisible);
+            metadataToggle.textContent = metadataVisible ? 'Hide Info' : 'Show Info';
+        }
+
+        function populateRepos() {
+            const repos = [...new Set(allManuscripts.map(m => m.repository).filter(Boolean))].sort();
+            repos.forEach(r => {
+                const opt = document.createElement('option');
+                opt.value = r;
+                opt.textContent = r;
+                repoSelect.appendChild(opt);
+            });
+        }
+
+        function populateManuscripts() {
+            const repo = repoSelect.value;
+            const filtered = repo ? allManuscripts.filter(m => m.repository === repo) : allManuscripts;
+            msSelect.innerHTML = '<option value="">-- Choose a manuscript --</option>';
+            filtered.sort((a, b) => (a.shelfmark || '').localeCompare(b.shelfmark || '')).forEach(ms => {
+                const opt = document.createElement('option');
+                opt.value = ms.id;
+                opt.textContent = `${ms.shelfmark || 'MS ' + ms.id}${ms.date_display ? ' (' + ms.date_display + ')' : ''}`;
+                opt.dataset.manifest = ms.iiif_manifest_url || '';
+                msSelect.appendChild(opt);
+            });
+            msCount.textContent = `(${filtered.length} viewable)`;
+        }
+
+        function handleSelection() {
+            const opt = msSelect.selectedOptions[0];
+            const id = opt?.value;
+            if (!id) return;
+
+            const ms = allManuscripts.find(m => m.id == id);
+            if (!ms) return;
+
+            // Update metadata bar
+            metadataContent.innerHTML = `
+                <span class="ms-title">${esc(ms.shelfmark || '')}</span>
+                <span class="ms-meta">${esc(ms.repository || '')}</span>
+                <span class="ms-meta">${esc(ms.date_display || '')}</span>
+                ${ms.contents ? '<span class="ms-contents">' + esc(ms.contents) + '</span>' : ''}
+            `;
+            metadataToggle.style.display = '';
+
+            // Auto-show metadata briefly, then let user toggle
+            if (!metadataVisible) {
+                metadataVisible = true;
+                metadataBar.classList.remove('collapsed');
+                metadataToggle.textContent = 'Hide Info';
+            }
+
+            if (ms.iiif_manifest_url) {
+                loadManifest(ms.iiif_manifest_url);
+            }
+        }
+
+        function loadManifest(url) {
+            placeholder.style.display = 'none';
+            uvViewer.style.display = 'block';
+
+            if (!uvInstance) {
+                uvInstance = UV.init('uv-viewer', {
+                    manifest: url,
+                    embedded: true
+                });
+
+                /*
+                 * TEST 3: Full config with mode options disabled.
+                 * Removes the Image/Page radio toggle to further simplify
+                 * the header bar.
+                 */
+                uvInstance.on('configure', function({ config, cb }) {
+                    cb({
+                        options: {
+                            headerPanelEnabled: true,
+                            footerPanelEnabled: true,
+                            leftPanelEnabled: false,
+                            rightPanelEnabled: false
+                        },
+                        modules: {
+                            openSeadragonCenterPanel: {
+                                options: {
+                                    requiredStatementEnabled: false,
+                                    titleEnabled: false,
+                                    subtitleEnabled: false
+                                }
+                            },
+                            contentLeftPanel: {
+                                options: {
+                                    panelOpen: false
+                                }
+                            },
+                            moreInfoRightPanel: {
+                                options: {
+                                    panelOpen: false
+                                }
+                            },
+                            pagingHeaderPanel: {
+                                options: {
+                                    modeOptionsEnabled: false
+                                }
+                            }
+                        }
+                    });
+                });
+            } else {
+                uvInstance.set({ manifest: url });
+            }
+        }
+
+        function esc(text) {
+            if (!text) return '';
+            const d = document.createElement('div');
+            d.textContent = text;
+            return d.innerHTML;
+        }
+    })();
+    </script>
+</body>
+</html>

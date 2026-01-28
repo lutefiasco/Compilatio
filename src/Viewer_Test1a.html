@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Viewer Test 1a - Three Columns (Sidebar + UV Thumbnails + Image)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/universalviewer@4.2.1/dist/uv.css">
+    <style>
+        /*
+         * TEST 1a: THREE-COLUMN LAYOUT
+         * =============================
+         * Layout: Compilatio metadata sidebar | UV thumbnails | Image
+         *
+         * Approach: Keep Compilatio's sidebar for metadata (shelfmark, date,
+         * contents, provenance, source link) AND re-enable UV's left panel
+         * for thumbnail navigation. UV handles its own resize between
+         * thumbnails and image.
+         *
+         * Fixes applied from Round 1:
+         * - Correct config (requiredStatementEnabled, titleEnabled, subtitleEnabled)
+         * - Float-to-flex on header bar
+         * - Dark backgrounds on UV containers
+         *
+         * New in Round 2:
+         * - leftPanelEnabled: true with contentLeftPanel.panelOpen: true
+         * - defaultToTreeEnabled: false (thumbnails, not tree)
+         * - autoHideControls: false (show OSD zoom/rotate on image)
+         * - showHomeControl: true
+         * - Careful not to break folio text input
+         */
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: #1a1a1a;
+            color: #d8d8d8;
+        }
+
+        .test-header {
+            display: flex;
+            align-items: baseline;
+            gap: 1.5rem;
+            padding: 0.5rem 1rem;
+        }
+        .test-header h1 {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-size: 1.4rem;
+            color: #f5f3ef;
+            font-weight: 300;
+            letter-spacing: 0.1em;
+        }
+        .test-header .approach-label {
+            font-size: 0.75rem;
+            color: #c9917a;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        .test-header a {
+            color: #888;
+            font-size: 0.8rem;
+            text-decoration: none;
+        }
+        .test-header a:hover { color: #e8e4dc; }
+
+        .test-nav {
+            display: flex;
+            gap: 1rem;
+            padding: 0 1rem 0.5rem;
+            font-size: 0.8rem;
+        }
+        .test-nav a { color: #888; text-decoration: none; }
+        .test-nav a:hover { color: #e8e4dc; }
+        .test-nav .current { color: #e8e4dc; font-weight: 500; }
+
+        .selector-bar {
+            padding: 0.5rem 1rem;
+            background: #232323;
+            margin: 0 0 0.5rem 0;
+        }
+        .selector-bar select {
+            padding: 0.35rem 0.5rem;
+            font-family: inherit;
+            font-size: 0.85rem;
+            color: #d8d8d8;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 2px;
+            margin-right: 0.5rem;
+        }
+        .selector-bar select:focus {
+            outline: none;
+            border-color: #e8e4dc;
+        }
+        .selector-bar .count {
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        /* === Three-column layout: Compilatio sidebar + UV viewer (with its own left panel) === */
+        .viewer-layout {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 0;
+            height: calc(100vh - 120px);
+            background: #141414;
+            overflow: hidden;
+        }
+
+        /* Compilatio metadata sidebar - narrower to make room for UV thumbnails */
+        .sidebar {
+            background: #232323;
+            border-right: 1px solid #2a2a2a;
+            overflow-y: auto;
+            padding: 0.75rem;
+            font-size: 0.85rem;
+        }
+        .sidebar h3 {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-size: 1rem;
+            color: #f5f3ef;
+            font-weight: 400;
+            margin-bottom: 0.4rem;
+        }
+        .sidebar .meta { color: #888; font-size: 0.8rem; margin: 0.2rem 0; }
+        .sidebar .contents {
+            color: #999;
+            font-size: 0.8rem;
+            margin-top: 0.5rem;
+            line-height: 1.4;
+        }
+        .sidebar .source-link {
+            display: inline-block;
+            margin-top: 0.75rem;
+            padding: 0.35rem 0.75rem;
+            background: #e8e4dc;
+            color: #1a1a1a;
+            text-decoration: none;
+            border-radius: 2px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        .sidebar .source-link:hover {
+            background: #fff;
+            color: #1a1a1a;
+        }
+
+        /* UV container - takes remaining space, UV manages its own left panel internally */
+        .viewer-area {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        #uv-viewer {
+            flex: 1;
+            width: 100%;
+            min-height: 0;
+            background: #141414;
+        }
+        #uv-viewer > div {
+            width: 100% !important;
+            height: 100% !important;
+            max-width: 100% !important;
+            max-height: 100% !important;
+            position: relative !important;
+        }
+        .placeholder {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #555;
+        }
+
+        /* ===================================================
+         * UV HEADER: Float-to-flex conversion (from Test 1)
+         * =================================================== */
+        #uv-viewer .headerPanel .options {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            overflow: hidden !important;
+            height: 40px !important;
+            background: #1a1a1a !important;
+            border-bottom: 1px solid #2a2a2a !important;
+        }
+        #uv-viewer .headerPanel .centerOptions {
+            display: flex !important;
+            align-items: center !important;
+            flex-wrap: nowrap !important;
+            position: static !important;
+            width: auto !important;
+            gap: 2px !important;
+        }
+        #uv-viewer .headerPanel .centerOptions > * {
+            float: none !important;
+            flex-shrink: 0 !important;
+        }
+        #uv-viewer .headerPanel .centerOptions .search {
+            float: none !important;
+            display: flex !important;
+            align-items: center !important;
+            flex-wrap: nowrap !important;
+            width: auto !important;
+            margin: 0 4px !important;
+        }
+        #uv-viewer .headerPanel .centerOptions .search > * {
+            float: none !important;
+        }
+        /* Ensure the folio text input is visible and usable */
+        #uv-viewer .headerPanel .centerOptions .search .searchText,
+        #uv-viewer .headerPanel .centerOptions .search .autocompleteText {
+            width: 80px !important;
+            min-width: 60px !important;
+            height: 24px !important;
+            padding: 2px 4px !important;
+            background: #2a2a2a !important;
+            border: 1px solid #444 !important;
+            color: #d8d8d8 !important;
+            font-size: 0.8rem !important;
+        }
+        #uv-viewer .headerPanel .centerOptions .search .total {
+            color: #888 !important;
+            font-size: 0.8rem !important;
+            white-space: nowrap !important;
+        }
+        #uv-viewer .headerPanel .prevOptions,
+        #uv-viewer .headerPanel .nextOptions {
+            float: none !important;
+            display: flex !important;
+            align-items: center !important;
+            margin: 0 !important;
+        }
+        #uv-viewer .headerPanel .mode {
+            float: none !important;
+            display: flex !important;
+            align-items: center !important;
+            margin: 0 4px !important;
+        }
+        #uv-viewer .headerPanel .rightOptions {
+            float: none !important;
+            display: flex !important;
+            align-items: center !important;
+            margin-left: auto !important;
+            position: absolute !important;
+            right: 8px !important;
+        }
+        #uv-viewer .headerPanel .rightOptions > * {
+            float: none !important;
+        }
+        #uv-viewer .headerPanel .pagingToggleButtons {
+            float: none !important;
+            display: flex !important;
+            align-items: center !important;
+        }
+
+        /* ===================================================
+         * UV LEFT PANEL (THUMBNAILS): Dark theme
+         * UV manages this panel internally with its own resize handle.
+         * =================================================== */
+        #uv-viewer .leftPanel {
+            background: #1e1e1e !important;
+            border-right: 1px solid #2a2a2a !important;
+        }
+        #uv-viewer .leftPanel .tabsContent {
+            background: #1e1e1e !important;
+        }
+        #uv-viewer .leftPanel .tabs {
+            background: #232323 !important;
+            border-bottom: 1px solid #2a2a2a !important;
+        }
+        #uv-viewer .leftPanel .tabs a {
+            color: #888 !important;
+        }
+        #uv-viewer .leftPanel .tabs a.on {
+            color: #d8d8d8 !important;
+            background: #2a2a2a !important;
+        }
+        /* Thumbnail items */
+        #uv-viewer .leftPanel .thumbs .thumb {
+            background: transparent !important;
+        }
+        #uv-viewer .leftPanel .thumbs .thumb .label {
+            color: #999 !important;
+            font-size: 0.75rem !important;
+        }
+        #uv-viewer .leftPanel .thumbs .thumb.selected {
+            background: #2a2a2a !important;
+        }
+        #uv-viewer .leftPanel .thumbs .thumb.selected .label {
+            color: #e8e4dc !important;
+        }
+        /* Resize handle between left panel and center */
+        #uv-viewer .leftPanel .splitter {
+            background: #2a2a2a !important;
+        }
+        #uv-viewer .leftPanel .splitter:hover {
+            background: #e8e4dc !important;
+        }
+
+        /* ===================================================
+         * UV CENTER PANEL: Dark theme + show OSD controls
+         * =================================================== */
+        #uv-viewer .centerPanel,
+        #uv-viewer .centerPanel .content {
+            background: #141414 !important;
+        }
+        /* Hide attribution, title, subtitle */
+        #uv-viewer .centerPanel > .title,
+        #uv-viewer .centerPanel > .subtitle {
+            display: none !important;
+        }
+        #uv-viewer .centerPanel .content .attribution {
+            display: none !important;
+            background: transparent !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+        }
+        /* Transparent overlays container */
+        #uv-viewer .overlays {
+            background: transparent !important;
+        }
+
+        /* ===================================================
+         * OpenSeadragon overlay controls - ensure visible
+         * These are the zoom/rotate buttons at top-left of image
+         * =================================================== */
+        #uv-viewer .openseadragon-container .navigator {
+            display: none !important;
+        }
+        /* Make OSD controls visible with dark theme */
+        #uv-viewer .openseadragon-container [id*="controls"] {
+            opacity: 1 !important;
+        }
+
+        /* ===================================================
+         * UV FOOTER: Dark theme
+         * =================================================== */
+        #uv-viewer [class*="footerPanel"] {
+            background: #1a1a1a !important;
+            border-top: 1px solid #2a2a2a !important;
+        }
+
+        /* Hide credit/rights */
+        #uv-viewer .centerPanel .credit,
+        #uv-viewer .centerPanel .rights {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-header">
+        <h1>Compilatio</h1>
+        <span class="approach-label">Test 1a: Sidebar + UV Thumbnails</span>
+        <a href="viewer.html">&larr; Production Viewer</a>
+    </div>
+
+    <nav class="test-nav">
+        <a href="Viewer_Test1.html">Test 1 (orig)</a>
+        <span class="current">Test 1a (3-col)</span>
+        <a href="Viewer_Test1b.html">Test 1b (Bodleian-style)</a>
+        <a href="Viewer_Test1c.html">Test 1c (collapsed thumbs)</a>
+    </nav>
+
+    <div class="selector-bar">
+        <select id="repository-select" aria-label="Repository">
+            <option value="">All repositories</option>
+        </select>
+        <select id="manuscript-select" aria-label="Manuscript">
+            <option value="">-- Choose a manuscript --</option>
+        </select>
+        <span class="count" id="manuscript-count"></span>
+    </div>
+
+    <div class="viewer-layout">
+        <aside class="sidebar" id="sidebar">
+            <div id="info-content">
+                <p style="color: #555;">Select a manuscript to view details.</p>
+            </div>
+        </aside>
+        <div class="viewer-area">
+            <div id="viewer-placeholder" class="placeholder">
+                <p>Select a manuscript above to view it.</p>
+            </div>
+            <div id="uv-viewer" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/universalviewer@4.2.1/dist/umd/UV.js"></script>
+    <script>
+    (function() {
+        'use strict';
+
+        const API_BASE = '/api';
+        let allManuscripts = [];
+        let uvInstance = null;
+
+        const repoSelect = document.getElementById('repository-select');
+        const msSelect = document.getElementById('manuscript-select');
+        const msCount = document.getElementById('manuscript-count');
+        const infoContent = document.getElementById('info-content');
+        const placeholder = document.getElementById('viewer-placeholder');
+        const uvViewer = document.getElementById('uv-viewer');
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const resp = await fetch(`${API_BASE}/manuscripts?limit=200`);
+                const data = await resp.json();
+                allManuscripts = (data.manuscripts || data).filter(m => m.iiif_manifest_url);
+                populateRepos();
+                populateManuscripts();
+                msSelect.addEventListener('change', handleSelection);
+                repoSelect.addEventListener('change', () => populateManuscripts());
+
+                const params = new URLSearchParams(window.location.search);
+                const msId = params.get('ms');
+                if (msId) {
+                    msSelect.value = msId;
+                    handleSelection();
+                }
+            } catch (e) {
+                console.error('Failed to load manuscripts:', e);
+            }
+        });
+
+        function populateRepos() {
+            const repos = [...new Set(allManuscripts.map(m => m.repository).filter(Boolean))].sort();
+            repos.forEach(r => {
+                const opt = document.createElement('option');
+                opt.value = r;
+                opt.textContent = r;
+                repoSelect.appendChild(opt);
+            });
+        }
+
+        function populateManuscripts() {
+            const repo = repoSelect.value;
+            const filtered = repo ? allManuscripts.filter(m => m.repository === repo) : allManuscripts;
+            msSelect.innerHTML = '<option value="">-- Choose a manuscript --</option>';
+            filtered.sort((a, b) => (a.shelfmark || '').localeCompare(b.shelfmark || '')).forEach(ms => {
+                const opt = document.createElement('option');
+                opt.value = ms.id;
+                opt.textContent = `${ms.shelfmark || 'MS ' + ms.id}${ms.date_display ? ' (' + ms.date_display + ')' : ''}`;
+                opt.dataset.manifest = ms.iiif_manifest_url || '';
+                msSelect.appendChild(opt);
+            });
+            msCount.textContent = `(${filtered.length} viewable)`;
+        }
+
+        function handleSelection() {
+            const opt = msSelect.selectedOptions[0];
+            const id = opt?.value;
+            if (!id) return;
+
+            const ms = allManuscripts.find(m => m.id == id);
+            if (!ms) return;
+
+            infoContent.innerHTML = `
+                <h3>${esc(ms.shelfmark || '')}</h3>
+                <p class="meta">${esc(ms.repository || '')}</p>
+                <p class="meta">${esc(ms.date_display || '')}</p>
+                ${ms.contents ? '<p class="contents">' + esc(ms.contents) + '</p>' : ''}
+            `;
+
+            if (ms.iiif_manifest_url) {
+                loadManifest(ms.iiif_manifest_url);
+            }
+        }
+
+        function loadManifest(url) {
+            placeholder.style.display = 'none';
+            uvViewer.style.display = 'block';
+
+            if (!uvInstance) {
+                uvInstance = UV.init('uv-viewer', {
+                    manifest: url,
+                    embedded: true
+                });
+
+                uvInstance.on('configure', function({ config, cb }) {
+                    cb({
+                        options: {
+                            headerPanelEnabled: true,
+                            footerPanelEnabled: true,
+                            leftPanelEnabled: true,        // ENABLE UV thumbnails
+                            rightPanelEnabled: false,
+                            pagingEnabled: true,
+                            navigatorEnabled: false         // hide minimap
+                        },
+                        modules: {
+                            openSeadragonCenterPanel: {
+                                options: {
+                                    requiredStatementEnabled: false,
+                                    titleEnabled: false,
+                                    subtitleEnabled: false,
+                                    autoHideControls: false,        // SHOW OSD controls
+                                    showHomeControl: true,          // SHOW home/reset button
+                                    controlsFadeAfterInactive: false // keep controls visible
+                                }
+                            },
+                            contentLeftPanel: {
+                                options: {
+                                    panelOpen: true,                // open thumbnails by default
+                                    defaultToTreeEnabled: false,    // show thumbs, not tree
+                                    thumbsEnabled: true,
+                                    twoColThumbHeight: 120,
+                                    twoColThumbWidth: 80
+                                }
+                            },
+                            pagingHeaderPanel: {
+                                options: {
+                                    pagingToggleEnabled: true,
+                                    galleryButtonEnabled: true,
+                                    modeOptionsEnabled: false       // hide Image/Page radio
+                                }
+                            },
+                            footerPanel: {
+                                options: {
+                                    downloadEnabled: false,
+                                    shareEnabled: false,
+                                    fullscreenEnabled: true
+                                }
+                            }
+                        }
+                    });
+                });
+            } else {
+                uvInstance.set({ manifest: url });
+            }
+        }
+
+        function esc(text) {
+            if (!text) return '';
+            const d = document.createElement('div');
+            d.textContent = text;
+            return d.innerHTML;
+        }
+    })();
+    </script>
+</body>
+</html>

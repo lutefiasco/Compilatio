@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Viewer Test 1b - Bodleian-Style (UV Thumbnails, No Sidebar)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/universalviewer@4.2.1/dist/uv.css">
+    <style>
+        /*
+         * TEST 1b: BODLEIAN-STYLE LAYOUT
+         * ================================
+         * Layout: UV thumbnails | Image (full width, no Compilatio sidebar)
+         *
+         * Closest match to Digital Bodleian's viewer. Compilatio's metadata
+         * (shelfmark, date, contents) shown in a collapsible bar between
+         * the selector and the viewer. UV handles the entire viewer area
+         * including its own resizable left panel for thumbnails.
+         *
+         * This gives UV maximum space to manage its own layout, which
+         * means resize handles, panel sizing, and header bar should all
+         * work as UV intended them to.
+         */
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: #1a1a1a;
+            color: #d8d8d8;
+        }
+
+        .test-header {
+            display: flex;
+            align-items: baseline;
+            gap: 1.5rem;
+            padding: 0.5rem 1rem;
+        }
+        .test-header h1 {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-size: 1.4rem;
+            color: #f5f3ef;
+            font-weight: 300;
+            letter-spacing: 0.1em;
+        }
+        .test-header .approach-label {
+            font-size: 0.75rem;
+            color: #c9917a;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        .test-header a {
+            color: #888;
+            font-size: 0.8rem;
+            text-decoration: none;
+        }
+        .test-header a:hover { color: #e8e4dc; }
+
+        .test-nav {
+            display: flex;
+            gap: 1rem;
+            padding: 0 1rem 0.5rem;
+            font-size: 0.8rem;
+        }
+        .test-nav a { color: #888; text-decoration: none; }
+        .test-nav a:hover { color: #e8e4dc; }
+        .test-nav .current { color: #e8e4dc; font-weight: 500; }
+
+        /* Selector + metadata combined bar */
+        .control-bar {
+            padding: 0.5rem 1rem;
+            background: #232323;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+        .control-bar select {
+            padding: 0.35rem 0.5rem;
+            font-family: inherit;
+            font-size: 0.85rem;
+            color: #d8d8d8;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 2px;
+        }
+        .control-bar select:focus {
+            outline: none;
+            border-color: #e8e4dc;
+        }
+        .control-bar .count {
+            font-size: 0.8rem;
+            color: #888;
+        }
+        .control-bar .info-toggle {
+            margin-left: auto;
+            background: none;
+            border: 1px solid #444;
+            color: #888;
+            font-family: inherit;
+            font-size: 0.75rem;
+            padding: 0.25rem 0.6rem;
+            cursor: pointer;
+            border-radius: 2px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .control-bar .info-toggle:hover {
+            color: #e8e4dc;
+            border-color: #e8e4dc;
+        }
+
+        /* Collapsible metadata bar */
+        .metadata-bar {
+            max-height: 0;
+            overflow: hidden;
+            background: #1e1e1e;
+            border-bottom: 1px solid transparent;
+            transition: max-height 0.3s ease, border-color 0.2s ease;
+        }
+        .metadata-bar.open {
+            max-height: 200px;
+            border-bottom-color: #2a2a2a;
+        }
+        .metadata-content {
+            padding: 0.6rem 1rem;
+            display: flex;
+            gap: 1.5rem;
+            align-items: baseline;
+            flex-wrap: wrap;
+        }
+        .metadata-content .ms-title {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-size: 1.05rem;
+            color: #f5f3ef;
+            font-weight: 400;
+        }
+        .metadata-content .ms-meta {
+            font-size: 0.8rem;
+            color: #888;
+        }
+        .metadata-content .ms-contents {
+            font-size: 0.8rem;
+            color: #777;
+            flex-basis: 100%;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .metadata-content .ms-source {
+            font-size: 0.8rem;
+            color: #e8e4dc;
+            text-decoration: none;
+        }
+        .metadata-content .ms-source:hover {
+            color: #fff;
+        }
+
+        /* === Full-width UV viewer === */
+        .viewer-wrapper {
+            height: calc(100vh - 100px);
+            background: #141414;
+            overflow: hidden;
+        }
+        /* Adjust when metadata bar is open */
+        .viewer-wrapper.with-metadata {
+            height: calc(100vh - 160px);
+        }
+
+        #uv-viewer {
+            width: 100%;
+            height: 100%;
+            background: #141414;
+        }
+        #uv-viewer > div {
+            width: 100% !important;
+            height: 100% !important;
+            max-width: 100% !important;
+            max-height: 100% !important;
+            position: relative !important;
+        }
+        .placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #555;
+        }
+
+        /* ===================================================
+         * UV HEADER: Float-to-flex conversion
+         * =================================================== */
+        #uv-viewer .headerPanel .options {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            overflow: hidden !important;
+            height: 40px !important;
+            background: #1a1a1a !important;
+            border-bottom: 1px solid #2a2a2a !important;
+        }
+        #uv-viewer .headerPanel .centerOptions {
+            display: flex !important;
+            align-items: center !important;
+            flex-wrap: nowrap !important;
+            position: static !important;
+            width: auto !important;
+            gap: 2px !important;
+        }
+        #uv-viewer .headerPanel .centerOptions > * {
+            float: none !important;
+            flex-shrink: 0 !important;
+        }
+        #uv-viewer .headerPanel .centerOptions .search {
+            float: none !important;
+            display: flex !important;
+            align-items: center !important;
+            flex-wrap: nowrap !important;
+            width: auto !important;
+            margin: 0 4px !important;
+        }
+        #uv-viewer .headerPanel .centerOptions .search > * {
+            float: none !important;
+        }
+        /* Folio text input - ensure visible and styled */
+        #uv-viewer .headerPanel .centerOptions .search .searchText,
+        #uv-viewer .headerPanel .centerOptions .search .autocompleteText {
+            width: 80px !important;
+            min-width: 60px !important;
+            height: 24px !important;
+            padding: 2px 4px !important;
+            background: #2a2a2a !important;
+            border: 1px solid #444 !important;
+            color: #d8d8d8 !important;
+            font-size: 0.8rem !important;
+        }
+        #uv-viewer .headerPanel .centerOptions .search .total {
+            color: #888 !important;
+            font-size: 0.8rem !important;
+            white-space: nowrap !important;
+        }
+        #uv-viewer .headerPanel .prevOptions,
+        #uv-viewer .headerPanel .nextOptions {
+            float: none !important;
+            display: flex !important;
+            align-items: center !important;
+            margin: 0 !important;
+        }
+        #uv-viewer .headerPanel .mode {
+            float: none !important;
+            display: flex !important;
+            align-items: center !important;
+            margin: 0 4px !important;
+        }
+        #uv-viewer .headerPanel .rightOptions {
+            float: none !important;
+            display: flex !important;
+            align-items: center !important;
+            margin-left: auto !important;
+            position: absolute !important;
+            right: 8px !important;
+        }
+        #uv-viewer .headerPanel .rightOptions > * {
+            float: none !important;
+        }
+        #uv-viewer .headerPanel .pagingToggleButtons {
+            float: none !important;
+            display: flex !important;
+            align-items: center !important;
+        }
+
+        /* ===================================================
+         * UV LEFT PANEL (THUMBNAILS): Dark theme
+         * =================================================== */
+        #uv-viewer .leftPanel {
+            background: #1e1e1e !important;
+            border-right: 1px solid #2a2a2a !important;
+        }
+        #uv-viewer .leftPanel .tabsContent {
+            background: #1e1e1e !important;
+        }
+        #uv-viewer .leftPanel .tabs {
+            background: #232323 !important;
+            border-bottom: 1px solid #2a2a2a !important;
+        }
+        #uv-viewer .leftPanel .tabs a {
+            color: #888 !important;
+        }
+        #uv-viewer .leftPanel .tabs a.on {
+            color: #d8d8d8 !important;
+            background: #2a2a2a !important;
+        }
+        #uv-viewer .leftPanel .thumbs .thumb {
+            background: transparent !important;
+        }
+        #uv-viewer .leftPanel .thumbs .thumb .label {
+            color: #999 !important;
+            font-size: 0.75rem !important;
+        }
+        #uv-viewer .leftPanel .thumbs .thumb.selected {
+            background: #2a2a2a !important;
+        }
+        #uv-viewer .leftPanel .thumbs .thumb.selected .label {
+            color: #e8e4dc !important;
+        }
+        /* Resize handle */
+        #uv-viewer .leftPanel .splitter,
+        #uv-viewer .splitter {
+            background: #2a2a2a !important;
+        }
+        #uv-viewer .leftPanel .splitter:hover,
+        #uv-viewer .splitter:hover {
+            background: #e8e4dc !important;
+        }
+
+        /* ===================================================
+         * UV CENTER PANEL + OSD controls
+         * =================================================== */
+        #uv-viewer .centerPanel,
+        #uv-viewer .centerPanel .content {
+            background: #141414 !important;
+        }
+        #uv-viewer .centerPanel > .title,
+        #uv-viewer .centerPanel > .subtitle {
+            display: none !important;
+        }
+        #uv-viewer .centerPanel .content .attribution {
+            display: none !important;
+            background: transparent !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+        }
+        #uv-viewer .overlays {
+            background: transparent !important;
+        }
+        /* Hide minimap navigator */
+        #uv-viewer .openseadragon-container .navigator,
+        #uv-viewer .openseadragon-navigator {
+            display: none !important;
+        }
+
+        /* ===================================================
+         * UV FOOTER: Dark theme
+         * =================================================== */
+        #uv-viewer [class*="footerPanel"] {
+            background: #1a1a1a !important;
+            border-top: 1px solid #2a2a2a !important;
+        }
+
+        #uv-viewer .centerPanel .credit,
+        #uv-viewer .centerPanel .rights {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-header">
+        <h1>Compilatio</h1>
+        <span class="approach-label">Test 1b: Bodleian-Style Layout</span>
+        <a href="viewer.html">&larr; Production Viewer</a>
+    </div>
+
+    <nav class="test-nav">
+        <a href="Viewer_Test1.html">Test 1 (orig)</a>
+        <a href="Viewer_Test1a.html">Test 1a (3-col)</a>
+        <span class="current">Test 1b (Bodleian-style)</span>
+        <a href="Viewer_Test1c.html">Test 1c (collapsed thumbs)</a>
+    </nav>
+
+    <div class="control-bar">
+        <select id="repository-select" aria-label="Repository">
+            <option value="">All repositories</option>
+        </select>
+        <select id="manuscript-select" aria-label="Manuscript">
+            <option value="">-- Choose a manuscript --</option>
+        </select>
+        <span class="count" id="manuscript-count"></span>
+        <button class="info-toggle" id="info-toggle" style="display:none;">Info</button>
+    </div>
+
+    <div class="metadata-bar" id="metadata-bar">
+        <div class="metadata-content" id="metadata-content"></div>
+    </div>
+
+    <div class="viewer-wrapper" id="viewer-wrapper">
+        <div id="viewer-placeholder" class="placeholder">
+            <p>Select a manuscript above to view it.</p>
+        </div>
+        <div id="uv-viewer" style="display: none;"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/universalviewer@4.2.1/dist/umd/UV.js"></script>
+    <script>
+    (function() {
+        'use strict';
+
+        const API_BASE = '/api';
+        let allManuscripts = [];
+        let uvInstance = null;
+        let metadataOpen = false;
+
+        const repoSelect = document.getElementById('repository-select');
+        const msSelect = document.getElementById('manuscript-select');
+        const msCount = document.getElementById('manuscript-count');
+        const metadataBar = document.getElementById('metadata-bar');
+        const metadataContent = document.getElementById('metadata-content');
+        const infoToggle = document.getElementById('info-toggle');
+        const viewerWrapper = document.getElementById('viewer-wrapper');
+        const placeholder = document.getElementById('viewer-placeholder');
+        const uvViewer = document.getElementById('uv-viewer');
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                const resp = await fetch(`${API_BASE}/manuscripts?limit=200`);
+                const data = await resp.json();
+                allManuscripts = (data.manuscripts || data).filter(m => m.iiif_manifest_url);
+                populateRepos();
+                populateManuscripts();
+                msSelect.addEventListener('change', handleSelection);
+                repoSelect.addEventListener('change', () => populateManuscripts());
+                infoToggle.addEventListener('click', toggleMetadata);
+
+                const params = new URLSearchParams(window.location.search);
+                const msId = params.get('ms');
+                if (msId) {
+                    msSelect.value = msId;
+                    handleSelection();
+                }
+            } catch (e) {
+                console.error('Failed to load manuscripts:', e);
+            }
+        });
+
+        function toggleMetadata() {
+            metadataOpen = !metadataOpen;
+            metadataBar.classList.toggle('open', metadataOpen);
+            viewerWrapper.classList.toggle('with-metadata', metadataOpen);
+            infoToggle.textContent = metadataOpen ? 'Hide Info' : 'Info';
+        }
+
+        function populateRepos() {
+            const repos = [...new Set(allManuscripts.map(m => m.repository).filter(Boolean))].sort();
+            repos.forEach(r => {
+                const opt = document.createElement('option');
+                opt.value = r;
+                opt.textContent = r;
+                repoSelect.appendChild(opt);
+            });
+        }
+
+        function populateManuscripts() {
+            const repo = repoSelect.value;
+            const filtered = repo ? allManuscripts.filter(m => m.repository === repo) : allManuscripts;
+            msSelect.innerHTML = '<option value="">-- Choose a manuscript --</option>';
+            filtered.sort((a, b) => (a.shelfmark || '').localeCompare(b.shelfmark || '')).forEach(ms => {
+                const opt = document.createElement('option');
+                opt.value = ms.id;
+                opt.textContent = `${ms.shelfmark || 'MS ' + ms.id}${ms.date_display ? ' (' + ms.date_display + ')' : ''}`;
+                opt.dataset.manifest = ms.iiif_manifest_url || '';
+                msSelect.appendChild(opt);
+            });
+            msCount.textContent = `(${filtered.length} viewable)`;
+        }
+
+        function handleSelection() {
+            const opt = msSelect.selectedOptions[0];
+            const id = opt?.value;
+            if (!id) return;
+
+            const ms = allManuscripts.find(m => m.id == id);
+            if (!ms) return;
+
+            // Update metadata
+            metadataContent.innerHTML = `
+                <span class="ms-title">${esc(ms.shelfmark || '')}</span>
+                <span class="ms-meta">${esc(ms.repository || '')}</span>
+                <span class="ms-meta">${esc(ms.date_display || '')}</span>
+                ${ms.contents ? '<span class="ms-contents">' + esc(ms.contents) + '</span>' : ''}
+            `;
+            infoToggle.style.display = '';
+
+            // Auto-show metadata on first selection
+            if (!metadataOpen) {
+                metadataOpen = true;
+                metadataBar.classList.add('open');
+                viewerWrapper.classList.add('with-metadata');
+                infoToggle.textContent = 'Hide Info';
+            }
+
+            if (ms.iiif_manifest_url) {
+                loadManifest(ms.iiif_manifest_url);
+            }
+        }
+
+        function loadManifest(url) {
+            placeholder.style.display = 'none';
+            uvViewer.style.display = 'block';
+
+            if (!uvInstance) {
+                uvInstance = UV.init('uv-viewer', {
+                    manifest: url,
+                    embedded: true
+                });
+
+                uvInstance.on('configure', function({ config, cb }) {
+                    cb({
+                        options: {
+                            headerPanelEnabled: true,
+                            footerPanelEnabled: true,
+                            leftPanelEnabled: true,        // UV thumbnails panel
+                            rightPanelEnabled: false,
+                            pagingEnabled: true,
+                            navigatorEnabled: false
+                        },
+                        modules: {
+                            openSeadragonCenterPanel: {
+                                options: {
+                                    requiredStatementEnabled: false,
+                                    titleEnabled: false,
+                                    subtitleEnabled: false,
+                                    autoHideControls: false,
+                                    showHomeControl: true,
+                                    controlsFadeAfterInactive: false
+                                }
+                            },
+                            contentLeftPanel: {
+                                options: {
+                                    panelOpen: true,
+                                    defaultToTreeEnabled: false,
+                                    thumbsEnabled: true,
+                                    twoColThumbHeight: 120,
+                                    twoColThumbWidth: 80,
+                                    panelExpandedWidth: 255
+                                }
+                            },
+                            pagingHeaderPanel: {
+                                options: {
+                                    pagingToggleEnabled: true,
+                                    galleryButtonEnabled: true,
+                                    modeOptionsEnabled: false
+                                }
+                            },
+                            footerPanel: {
+                                options: {
+                                    downloadEnabled: false,
+                                    shareEnabled: false,
+                                    fullscreenEnabled: true
+                                }
+                            }
+                        }
+                    });
+                });
+            } else {
+                uvInstance.set({ manifest: url });
+            }
+        }
+
+        function esc(text) {
+            if (!text) return '';
+            const d = document.createElement('div');
+            d.textContent = text;
+            return d.innerHTML;
+        }
+    })();
+    </script>
+</body>
+</html>

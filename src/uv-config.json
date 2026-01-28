@@ -1,0 +1,46 @@
+{
+    "options": {
+        "headerPanelEnabled": true,
+        "footerPanelEnabled": true,
+        "leftPanelEnabled": false,
+        "rightPanelEnabled": false,
+        "theme": "dark"
+    },
+    "modules": {
+        "openSeadragonCenterPanel": {
+            "options": {
+                "requiredStatementEnabled": false,
+                "titleEnabled": false,
+                "subtitleEnabled": false,
+                "mostSpecificRequiredStatement": false,
+                "autoHideControls": false,
+                "showHomeControl": false
+            }
+        },
+        "contentLeftPanel": {
+            "options": {
+                "panelOpen": false
+            }
+        },
+        "moreInfoRightPanel": {
+            "options": {
+                "panelOpen": false
+            }
+        },
+        "pagingHeaderPanel": {
+            "options": {
+                "pagingToggleEnabled": true,
+                "galleryButtonEnabled": true,
+                "modeOptionsEnabled": false,
+                "imageSelectionBoxEnabled": true
+            }
+        },
+        "footerPanel": {
+            "options": {
+                "downloadEnabled": false,
+                "shareEnabled": false,
+                "fullscreenEnabled": true
+            }
+        }
+    }
+}
