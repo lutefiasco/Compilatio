@@ -9,6 +9,7 @@ Integrate four new manuscript repositories into Compilatio, prioritised by techn
 2. National Library of Scotland (clean IIIF collection tree)
 3. National Library of Wales (large IIIF estate, PID discovery needed)
 4. Lambeth Palace Library (CUDL subset only)
+5. Cambridge University Library
 
 Each repository is a self-contained chunk. Complete one before starting the next.
 
@@ -161,6 +162,9 @@ Cambridge Digital Library provides clean IIIF manifests for the Scriptorium subs
 - Verify browse page and viewer
 
 ---
+
+## Repository 5: Cambridge University Library
+-Plan needs developing for CUL, use model of Repositories 1-4 to create a new plan.
 
 ## Common Patterns Across All Importers
 
