@@ -155,3 +155,7 @@ python server.py
 
 1. **Search** - No search functionality yet
 2. **Additional repositories** - Only Bodleian and British Library imported
+
+## Known Bugs
+
+*All resolved*

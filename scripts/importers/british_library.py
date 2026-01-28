@@ -342,9 +342,47 @@ def build_thumbnail_url(manifest_url: str) -> Optional[str]:
     """
     Build thumbnail URL from IIIF manifest URL.
 
-    Returns None for now - the frontend can handle thumbnails.
+    Note: This returns None because we can't derive the thumbnail URL
+    from just the manifest URL - the thumbnail uses a different ARK ID
+    (the first canvas/image). We fetch it from the manifest in
+    fetch_thumbnail_from_manifest() instead.
     """
     return None
+
+
+async def fetch_thumbnail_from_manifest(scraper: BLScraper, manifest_url: str) -> Optional[str]:
+    """
+    Fetch the thumbnail URL from a IIIF manifest.
+
+    BL manifests include a thumbnail array with direct URLs.
+    """
+    import json
+    try:
+        html = await scraper.get_page(manifest_url, wait_for="body")
+        if not html:
+            return None
+
+        # The page content is JSON
+        soup = BeautifulSoup(html, "html.parser")
+        # Extract text content (the JSON)
+        text = soup.get_text()
+
+        try:
+            manifest = json.loads(text)
+        except json.JSONDecodeError:
+            return None
+
+        # IIIF Presentation 3.0 format
+        thumbnails = manifest.get("thumbnail", [])
+        if thumbnails and isinstance(thumbnails, list) and len(thumbnails) > 0:
+            thumb = thumbnails[0]
+            if isinstance(thumb, dict) and "id" in thumb:
+                return thumb["id"]
+
+        return None
+    except Exception as e:
+        logger.debug(f"Error fetching thumbnail from {manifest_url}: {e}")
+        return None
 
 
 # =============================================================================

@@ -83,12 +83,22 @@
             return;
         }
 
-        // Load manuscript data for selector-based navigation
+        // Handle deep linking by manuscript ID - load specific manuscript first
+        if (msParam) {
+            await loadManuscriptDirectly(msParam);
+        }
+
+        // Load full manuscript data for selector-based navigation
         await loadManuscriptData();
 
-        // Handle deep linking by manuscript ID
-        if (msParam) {
-            loadManuscriptById(msParam);
+        // If we loaded a manuscript via deep link, select it in the dropdown now
+        if (msParam && currentManuscript && manuscriptSelect) {
+            for (let option of manuscriptSelect.options) {
+                if (option.value == msParam) {
+                    option.selected = true;
+                    break;
+                }
+            }
         }
         // If no deep link, wait for user to select a manuscript
     });
@@ -602,14 +612,19 @@
 
         uvInstance = UV.init('uv-viewer', data);
 
-        // Configure UV options
+        // Configure UV options - disable panels that duplicate Compilatio's UI
         uvInstance.on('configure', function({ config, cb }) {
             cb({
                 options: {
+                    // Keep footer for essential image controls (zoom, navigation)
                     footerPanelEnabled: true,
-                    headerPanelEnabled: true,
-                    leftPanelEnabled: true,
-                    rightPanelEnabled: false
+                    // Disable header - Compilatio has its own navigation
+                    headerPanelEnabled: false,
+                    // Disable left panel - Compilatio's sidebar provides metadata
+                    leftPanelEnabled: false,
+                    rightPanelEnabled: false,
+                    // Suppress attribution overlay on manuscript image
+                    attributionEnabled: false
                 }
             });
         });
@@ -666,14 +681,58 @@
     }
 
     /**
-     * Load a manuscript by its ID (for deep linking)
+     * Load a manuscript directly by ID from the API (for deep linking)
+     * This fetches the specific manuscript without needing the full list
+     */
+    async function loadManuscriptDirectly(manuscriptId) {
+        try {
+            const response = await fetch(`${API_BASE}/manuscripts/${manuscriptId}`);
+            if (!response.ok) {
+                console.error('Failed to fetch manuscript:', manuscriptId);
+                return;
+            }
+
+            const ms = await response.json();
+            if (!ms || ms.error) {
+                console.error('Manuscript not found:', manuscriptId);
+                return;
+            }
+
+            // Map repository fields to match the list endpoint format
+            ms.repository = ms.repository_short || ms.repository_name;
+
+            currentManuscript = ms;
+
+            // Render info panel
+            renderInfoPanel(ms);
+
+            // Load IIIF viewer
+            if (ms.iiif_manifest_url) {
+                loadManifest(ms.iiif_manifest_url);
+                updateUrl(ms.iiif_manifest_url, manuscriptId);
+            } else {
+                // No IIIF - show placeholder
+                if (viewerPlaceholder) {
+                    viewerPlaceholder.innerHTML = '<p>This manuscript does not have IIIF images available.</p>';
+                    viewerPlaceholder.classList.remove('hidden');
+                }
+                if (uvViewer) uvViewer.classList.add('hidden');
+                updateUrl(null, manuscriptId);
+            }
+        } catch (err) {
+            console.error('Error loading manuscript:', err);
+        }
+    }
+
+    /**
+     * Load a manuscript by its ID from the cached list (for dropdown selection)
      */
     function loadManuscriptById(manuscriptId) {
         if (!allViewableManuscripts.length) return;
 
         const ms = allViewableManuscripts.find(m => m.id == manuscriptId);
         if (!ms) {
-            console.log('Manuscript not found:', manuscriptId);
+            console.log('Manuscript not found in list:', manuscriptId);
             return;
         }
 
