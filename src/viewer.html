@@ -10,15 +10,16 @@
     <link rel="stylesheet" href="css/styles.css">
     <!-- Universal Viewer CSS -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/universalviewer@4.2.1/dist/uv.css">
+    <style>
+        /* Hide ghosted border decoration on viewer page */
+        body::before, body::after { display: none !important; }
+    </style>
 </head>
 <body>
     <div class="container viewer-container">
-        <header>
-            <h1><a href="index.html">Compilatio</a></h1>
-            <p class="subtitle">Manuscript Viewer</p>
-            <nav class="viewer-nav">
-                <a href="browse.html" class="nav-link-back">&larr; Browse Manuscripts</a>
-            </nav>
+        <header class="viewer-header">
+            <a href="index.html" class="viewer-title">Compilatio</a>
+            <a href="browse.html" class="nav-link-back">&larr; Browse</a>
         </header>
 
         <main>
@@ -26,22 +27,18 @@
             <section class="manuscript-selector-section">
                 <div class="selector-wrapper">
                     <div class="selector-group">
-                        <label for="repository-select">Repository</label>
-                        <select id="repository-select" class="repository-select">
+                        <select id="repository-select" class="repository-select" aria-label="Repository">
                             <option value="">All repositories</option>
                         </select>
                     </div>
                     <div class="selector-group">
-                        <label for="manuscript-select">Manuscript</label>
-                        <select id="manuscript-select" class="manuscript-select">
+                        <select id="manuscript-select" class="manuscript-select" aria-label="Manuscript">
                             <option value="">-- Choose a manuscript --</option>
                         </select>
                     </div>
                     <span class="manuscript-count" id="manuscript-count"></span>
                 </div>
-                <div class="selector-info" id="selector-info">
-                    <p>Select a manuscript from the dropdown to view it in the IIIF viewer.</p>
-                </div>
+                <div class="selector-info hidden" id="selector-info"></div>
             </section>
 
             <!-- Two-column layout: Sidebar + Main Viewer -->

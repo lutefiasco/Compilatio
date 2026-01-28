@@ -512,22 +512,37 @@ h1 a:hover {
 
 .viewer-container {
     max-width: 100%;
-    padding: 1.5rem;
+    padding: 0.75rem 1rem;
 }
 
-.viewer-container header {
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
+
+/* Compact viewer header - single line */
+.viewer-header {
+    display: flex;
+    align-items: baseline;
+    gap: 1.5rem;
+    margin-bottom: 0.5rem;
+    padding-bottom: 0;
+    text-align: left;
 }
 
-.viewer-nav {
-    margin-top: 0.75rem;
+.viewer-header .viewer-title {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 1.4rem;
+    color: #f5f3ef;
+    font-weight: 300;
+    letter-spacing: 0.1em;
+    text-decoration: none;
+}
+
+.viewer-header .viewer-title:hover {
+    color: #fff;
 }
 
 .nav-link-back {
     display: inline-block;
     color: #888;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     transition: color 0.2s ease;
 }
 
@@ -535,40 +550,34 @@ h1 a:hover {
     color: #e8e4dc;
 }
 
-/* Manuscript Selector */
+/* Manuscript Selector - compact */
 .manuscript-selector-section {
-    margin-bottom: 1.5rem;
-    padding: 1.25rem;
+    margin-bottom: 0.5rem;
+    padding: 0.5rem 0.75rem;
     background: #232323;
     border-radius: 2px;
 }
 
 .selector-wrapper {
     display: flex;
-    align-items: flex-end;
-    gap: 1rem;
+    align-items: center;
+    gap: 0.75rem;
     flex-wrap: wrap;
 }
 
 .selector-group {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
+    align-items: center;
     gap: 0.25rem;
-}
-
-.selector-group label {
-    font-size: 0.8rem;
-    color: #888;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
 }
 
 .repository-select,
 .manuscript-select {
-    min-width: 180px;
-    padding: 0.6rem 0.75rem;
+    min-width: 150px;
+    padding: 0.35rem 0.5rem;
     font-family: inherit;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: #d8d8d8;
     background: #1a1a1a;
     border: 1px solid #333;
@@ -584,27 +593,73 @@ h1 a:hover {
 
 .manuscript-select {
     flex: 1;
-    min-width: 300px;
+    min-width: 250px;
     max-width: 600px;
 }
 
 .manuscript-count {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: #888;
 }
 
 .selector-info {
-    margin-top: 0.75rem;
+    margin-top: 0.5rem;
 }
 
 .selector-info p {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: #888;
     margin: 0;
 }
 
 .no-iiif-warning {
     color: #c9917a;
+}
+
+/* ============================================
+   UV OVERRIDES
+   ============================================ */
+
+/* Hide attribution watermark overlay (the large title text over the image) */
+#uv-viewer [class*="overlay"],
+#uv-viewer [class*="Overlay"],
+#uv-viewer [class*="attribution"],
+#uv-viewer [class*="Attribution"] {
+    display: none !important;
+}
+
+/* Hide OpenSeadragon navigator minimap (bottom-right thumbnail) */
+#uv-viewer .navigator,
+#uv-viewer [id*="navigator"],
+#uv-viewer .openseadragon-navigator {
+    display: none !important;
+}
+
+/* Hide credit/rights boxes */
+#uv-viewer [class*="credit"],
+#uv-viewer [class*="rights"] {
+    display: none !important;
+}
+
+/* UV header panel - compact single line */
+#uv-viewer [class*="headerPanel"] {
+    background: #1a1a1a !important;
+    border-bottom: 1px solid #2a2a2a !important;
+}
+
+/* Force the search/navigation bar to stay on one line */
+#uv-viewer .search {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+}
+
+/* UV footer panel */
+#uv-viewer [class*="footerPanel"] {
+    background: #1a1a1a !important;
+    border-top: 1px solid #2a2a2a !important;
 }
 
 /* ============================================
@@ -616,7 +671,7 @@ h1 a:hover {
     grid-template-columns: 260px 1fr;
     gap: 0;
     min-height: 600px;
-    height: calc(100vh - 280px);
+    height: calc(100vh - 140px);
     background: #141414;
     border-radius: 2px;
     overflow: hidden;

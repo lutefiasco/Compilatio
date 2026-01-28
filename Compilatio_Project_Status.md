@@ -104,6 +104,18 @@ See [British Library Import Plan](docs/plans/2026-01-27-British-Library-Import.m
 - [x] Featured manuscript rotation (random selection via `/api/featured`)
 - [ ] Performance optimization
 
+## Phase 7: Additional Repositories
+**Status: Planned**
+
+See [Additional Repositories Import Plan](docs/plans/2026-01-28-Additional-Repositories-Import.md) for full details.
+
+Priority order (one at a time, each complete before starting next):
+
+1. [ ] **Durham University Library** (~300 MSS) - IIIF collection tree crawl, no browser needed
+2. [ ] **National Library of Scotland** (~240 MSS) - IIIF collection tree crawl, no browser needed
+3. [ ] **National Library of Wales** (~200-300 MSS) - Catalogue scrape + IIIF manifest fetch
+4. [ ] **Lambeth Palace Library** (~20-50 MSS) - CUDL IIIF subset only (LUNA portal is reCAPTCHA-blocked)
+
 ## Deferred
 
 - Cambridge University Library importer
@@ -143,19 +155,47 @@ python server.py
 
 ---
 
+## TOP PRIORITY: Viewer Design Issues
+
+**Status: In Progress — Blocking all other work**
+
+The viewer page has unresolved visual/layout issues with Universal Viewer integration. The goal is to match the look of the Digital Bodleian viewer while keeping Compilatio's own sidebar and selector.
+
+See **[Ongoing Design Issues](docs/plans/Ongoing_Design_Issues.md)** for full details and attempted fixes.
+
+### Open Issues
+1. **UV header bar wrapping** — folio selector, nav arrows, and view controls wrap onto 4 lines instead of 1
+2. **White box artifact** — light-coloured rectangle appears in the viewer area
+3. **Attribution watermark** — manifest title renders as large overlay text on the manuscript image
+
+### Completed Fixes
+- Removed duplicate UV sidebar (leftPanelEnabled: false)
+- Removed stray OpenSeadragon minimap thumbnail
+- Compacted Compilatio header and selector bar
+- Increased viewer height
+- Re-enabled UV header panel for folio selector
+
+---
+
 ## Next Steps
 
-1. Search functionality
-2. Performance optimization for large collections
-3. Additional repository importers (Cambridge, Huntington)
+1. **Resolve viewer design issues** (see above — top priority)
+2. Fix duplicate shelfmarks in British Library data
+3. Fix missing thumbnails in browse page
+4. Search functionality
+5. Performance optimization for large collections
+6. Additional repository importers — Phase 7 (Durham, NLS, NLW, Lambeth)
 
 ---
 
 ## Current Gaps
 
-1. **Search** - No search functionality yet
-2. **Additional repositories** - Only Bodleian and British Library imported
+1. **Viewer design** - UV integration needs visual fixes (top priority)
+2. **Search** - No search functionality yet
+3. **Additional repositories** - Phase 7 planned: Durham, NLS, NLW, Lambeth (CUDL subset)
 
 ## Known Bugs
 
-*All resolved*
+1. **Duplicate BL shelfmarks** — British Library manuscripts show shelfmark twice (e.g. "Royal MS 1 D III\n\nRoyal MS 1 D III") — importer bug
+2. **Missing thumbnails** — Browse page manuscript grid shows "No image" for all thumbnails
+3. **favicon.ico 404** — No favicon configured

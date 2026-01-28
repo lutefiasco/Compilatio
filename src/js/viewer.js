@@ -75,7 +75,6 @@
 
         // If direct manifest URL provided, load it immediately (standalone mode)
         if (manifestParam && !msParam) {
-            console.log('Standalone mode: loading manifest directly');
             initUniversalViewer(manifestParam);
             renderStandaloneInfo(manifestParam);
             // Still try to load manuscript data in background for selector
@@ -612,19 +611,18 @@
 
         uvInstance = UV.init('uv-viewer', data);
 
-        // Configure UV options - disable panels that duplicate Compilatio's UI
+        // Configure UV options - keep header (folio selector) and footer (zoom)
+        // Disable left/right panels (Compilatio's sidebar handles metadata)
         uvInstance.on('configure', function({ config, cb }) {
             cb({
                 options: {
-                    // Keep footer for essential image controls (zoom, navigation)
+                    headerPanelEnabled: true,
                     footerPanelEnabled: true,
-                    // Disable header - Compilatio has its own navigation
-                    headerPanelEnabled: false,
-                    // Disable left panel - Compilatio's sidebar provides metadata
                     leftPanelEnabled: false,
                     rightPanelEnabled: false,
-                    // Suppress attribution overlay on manuscript image
-                    attributionEnabled: false
+                    attributionEnabled: false,
+                    contentLeftPanel: { panelOpen: false },
+                    contentRightPanel: { panelOpen: false }
                 }
             });
         });
