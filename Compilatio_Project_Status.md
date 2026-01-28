@@ -8,17 +8,21 @@
 - [x] Basic Starlette server (`server.py`)
 - [x] Project structure established
 
-## Phase 2: Universal Viewer Migration
-**Status: Complete**
+## Phase 2: Viewer
+**Status: Complete (v3 - OpenSeadragon)**
 
-Using Universal Viewer v4.2.1 via jsDelivr CDN.
+Replaced Universal Viewer with OpenSeadragon used directly. UV's internal CSS Grid layout was fundamentally incompatible with embedded use (see `docs/plans/Ongoing_Design_Issues.md`). Old UV-based viewer and test files archived to `src/archive/`.
 
-- [x] Replace Mirador with Universal Viewer in `viewer.html`
-- [x] Rewrite `src/js/viewer.js` for UV initialization and config
-- [x] Update CSS for UV (selectors, containment styles)
-- [x] Test with sample IIIF manifests (Bodleian)
-- [x] Verify keyboard shortcuts and deep linking work with UV
-- [x] Add standalone mode for direct manifest URL loading
+- [x] Replace Mirador with Universal Viewer (v1-v2, archived)
+- [x] Replace UV with OpenSeadragon direct integration (v3)
+- [x] IIIF manifest parser (Presentation API v2 and v3)
+- [x] Three-panel layout: metadata sidebar | thumbnail grid | OSD image
+- [x] Resizable thumbnail panel (1-2 columns via drag handle)
+- [x] Custom SVG overlay controls (zoom, rotate, fit)
+- [x] Header bar with folio navigation centered over viewer pane
+- [x] Manuscript selector from API (repository filter + manuscript dropdown)
+- [x] Deep linking support (?ms=ID)
+- [x] Dark theme with Compilatio design language
 
 ### Test URL
 ```
@@ -26,8 +30,9 @@ http://localhost:8000/viewer.html?manifest=https://iiif.bodleian.ox.ac.uk/iiif/m
 ```
 
 ### Keyboard Shortcuts
-- `i` - Show info panel
-- `[` - Toggle sidebar
+- Left/Right arrows - Previous/next page
+- Home/End - First/last page
+- `f` - Toggle fullscreen
 
 ## Phase 3: Bodleian Import
 **Status: Complete**
@@ -177,31 +182,25 @@ python server.py
 
 ---
 
-## TOP PRIORITY: Viewer Design Issues
+## Viewer Design Issues
 
-**Status: In Progress — Blocking all other work**
+**Status: RESOLVED — UV replaced with OpenSeadragon**
 
-The viewer page has unresolved visual/layout issues with Universal Viewer integration. The goal is to match the look of the Digital Bodleian viewer while keeping Compilatio's own sidebar and selector.
+All UV integration issues (header wrapping, white box, attribution watermark, thumbnail panel at bottom) were resolved by replacing UV entirely with OpenSeadragon used directly. See `docs/plans/Viewer_Design_v3.md` for the design document and `docs/plans/Ongoing_Design_Issues.md` for historical UV issues.
 
-See **[Ongoing Design Issues](docs/plans/Ongoing_Design_Issues.md)** for full details and attempted fixes.
+### Open Design Questions
 
-### Open Issues
-1. **UV header bar wrapping** — folio selector, nav arrows, and view controls wrap onto 4 lines instead of 1
-2. **White box artifact** — light-coloured rectangle appears in the viewer area
-3. **Attribution watermark** — manifest title renders as large overlay text on the manuscript image
-
-### Completed Fixes
-- Removed duplicate UV sidebar (leftPanelEnabled: false)
-- Removed stray OpenSeadragon minimap thumbnail
-- Compacted Compilatio header and selector bar
-- Increased viewer height
-- Re-enabled UV header panel for folio selector
+**Dropdown menus at viewer level**: The viewer currently includes repository and manuscript dropdown selectors populated from `/api/manuscripts`. Questions to consider:
+- Are these dropdowns the right UX at the viewer level, or should the viewer only display a single manuscript (navigated to from the browse page)?
+- If kept, should they load all 2,588+ manuscripts at once, or paginate/search?
+- Should the viewer URL deep link (`?ms=ID`) be the primary entry point, with the dropdowns as a convenience fallback?
+- The browse page already provides repository/collection/manuscript navigation — having a second selector in the viewer may be redundant.
 
 ---
 
 ## Next Steps
 
-1. **Resolve viewer design issues** (see above — top priority)
+1. **Decide on viewer dropdown UX** (see design question above)
 2. Fix duplicate shelfmarks in British Library data
 3. Fix missing thumbnails in browse page
 4. Search functionality
@@ -212,7 +211,7 @@ See **[Ongoing Design Issues](docs/plans/Ongoing_Design_Issues.md)** for full de
 
 ## Current Gaps
 
-1. **Viewer design** - UV integration needs visual fixes (top priority)
+1. **Viewer UX** - Dropdown selector design question (see above)
 2. **Search** - No search functionality yet
 3. **Additional repositories** - Phase 7 in progress: CUL, Durham, NLS, Lambeth complete; NLW remaining
 

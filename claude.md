@@ -10,7 +10,7 @@ See [Compilatio_Project_Status.md](Compilatio_Project_Status.md) for current imp
 
 - **Browse by Repository → Collection → Manuscript** (not search-first)
 - Visual attribution to source institutions always visible
-- Universal Viewer embedded directly
+- OpenSeadragon viewer with custom controls
 - Dark theme, manuscript-forward design
 
 ## Tech Stack
@@ -18,7 +18,7 @@ See [Compilatio_Project_Status.md](Compilatio_Project_Status.md) for current imp
 - **Backend**: Python/Starlette
 - **Database**: SQLite
 - **Frontend**: Vanilla JS with ES modules
-- **Viewer**: Universal Viewer v4.2.1 (via CDN)
+- **Viewer**: OpenSeadragon 4.1.1 (via CDN) with custom IIIF manifest parser
 
 ## Project Structure
 
@@ -30,7 +30,7 @@ database/
 src/
   index.html           # Landing page
   browse.html          # Repository/collection/manuscript browser
-  viewer.html          # Manuscript viewer (loads UV from CDN)
+  viewer.html          # Manuscript viewer (OpenSeadragon, self-contained)
   css/styles.css       # Main stylesheet
   images/
     border-top.jpg     # Decoration from MS. Ashmole 764
@@ -38,7 +38,7 @@ src/
   js/
     script.js          # Landing page functionality
     browse.js          # Browse page navigation
-    viewer.js          # Universal Viewer setup + metadata
+  archive/             # Old UV-based viewer and test files
 ```
 
 ## Database Schema
@@ -62,4 +62,4 @@ Key tables:
 1. Landing: featured manuscript + repository cards with counts
 2. Repository: see collections with manuscript counts
 3. Collection: see manuscripts
-4. Manuscript: Universal Viewer (~75% width) + collapsible metadata sidebar
+4. Manuscript: OpenSeadragon viewer with metadata sidebar + thumbnail grid

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manuscript Viewer - Compilatio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Universal Viewer CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/universalviewer@4.2.1/dist/uv.css">
+    <style>
+        /* Hide ghosted border decoration on viewer page */
+        body::before, body::after { display: none !important; }
+    </style>
+</head>
+<body>
+    <div class="container viewer-container">
+        <header class="viewer-header">
+            <a href="index.html" class="viewer-title">Compilatio</a>
+            <a href="browse.html" class="nav-link-back">&larr; Browse</a>
+        </header>
+
+        <main>
+            <!-- Manuscript Selector -->
+            <section class="manuscript-selector-section">
+                <div class="selector-wrapper">
+                    <div class="selector-group">
+                        <select id="repository-select" class="repository-select" aria-label="Repository">
+                            <option value="">All repositories</option>
+                        </select>
+                    </div>
+                    <div class="selector-group">
+                        <select id="manuscript-select" class="manuscript-select" aria-label="Manuscript">
+                            <option value="">-- Choose a manuscript --</option>
+                        </select>
+                    </div>
+                    <span class="manuscript-count" id="manuscript-count"></span>
+                </div>
+                <div class="selector-info hidden" id="selector-info"></div>
+            </section>
+
+            <!-- Two-column layout: Sidebar + Main Viewer -->
+            <div class="viewer-layout">
+                <!-- Sidebar -->
+                <aside id="manuscript-sidebar" class="manuscript-sidebar" role="complementary">
+                    <nav class="sidebar-tabs" role="tablist" aria-label="Sidebar panels">
+                        <button class="sidebar-tab active"
+                                data-tab="info"
+                                role="tab"
+                                aria-selected="true"
+                                aria-controls="info-panel"
+                                id="tab-info">Info</button>
+                    </nav>
+
+                    <!-- Info Panel (Metadata) -->
+                    <div class="sidebar-panel"
+                         id="info-panel"
+                         role="tabpanel"
+                         aria-labelledby="tab-info">
+                        <div class="info-content" id="info-content">
+                            <p class="panel-placeholder">Select a manuscript to view details.</p>
+                        </div>
+                    </div>
+
+                    <button class="sidebar-collapse"
+                            aria-label="Collapse sidebar"
+                            aria-expanded="true"
+                            id="sidebar-collapse-btn">&laquo;</button>
+                </aside>
+
+                <!-- Main Viewer Area -->
+                <div class="main-viewer">
+                    <!-- Mobile sidebar toggle -->
+                    <button class="sidebar-toggle-mobile"
+                            aria-label="Toggle sidebar"
+                            id="sidebar-toggle-mobile">&#9776;</button>
+
+                    <!-- Overlay for mobile sidebar -->
+                    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+                    <!-- Viewer Placeholder (shown when no manuscript selected) -->
+                    <div id="viewer-placeholder" class="viewer-placeholder">
+                        <p>Select a manuscript from the dropdown above to view it.</p>
+                    </div>
+
+                    <!-- Universal Viewer -->
+                    <div id="uv-viewer"
+                         class="viewer-panel hidden"
+                         role="region"
+                         aria-label="IIIF Viewer"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <!-- Universal Viewer JS -->
+    <script src="https://cdn.jsdelivr.net/npm/universalviewer@4.2.1/dist/umd/UV.js"></script>
+    <script src="js/viewer.js"></script>
+</body>
+</html>
