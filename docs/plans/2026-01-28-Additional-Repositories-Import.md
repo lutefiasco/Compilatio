@@ -2,14 +2,14 @@
 
 ## Overview
 
-Integrate four new manuscript repositories into Compilatio, prioritised by technical feasibility. Each repository is implemented as an independent importer script following the existing pattern (`scripts/importers/*.py`), with dry-run and execute modes.
+Integrate five new manuscript repositories into Compilatio, prioritised by technical feasibility. Each repository is implemented as an independent importer script following the existing pattern (`scripts/importers/*.py`), with dry-run and execute modes.
 
 **Priority order:**
-1. Durham University Library (best IIIF infrastructure)
-2. National Library of Scotland (clean IIIF collection tree)
-3. National Library of Wales (large IIIF estate, PID discovery needed)
-4. Lambeth Palace Library (CUDL subset only)
-5. Cambridge University Library
+1. Cambridge University Library (CUDL IIIF collection, 304 MSS) — **imported**
+2. Durham University Library (IIIF collection tree, 287 MSS) — **imported**
+3. National Library of Scotland (IIIF collection tree, 104 MSS) — **imported**
+4. National Library of Wales (large IIIF estate, PID discovery needed) — **pending**
+5. Lambeth Palace Library (CUDL subset, 2 MSS) — **imported**
 
 Each repository is a self-contained chunk. Complete one before starting the next.
 
@@ -73,6 +73,7 @@ Similar to Durham. The top-level collection JSON contains sub-collections that c
 - Identify the manuscript-related sub-collections (filter out maps, printed books, etc.)
 - Crawl into sub-collections to find individual manifests
 - Document manifest URL pattern and available metadata
+- **Revisit**: `https://digital.nls.uk/early-manuscripts/browse/archive/235248514` lists manuscripts with IIIF manifests — investigate whether this browse archive provides a more complete or alternative source of manuscript data than the IIIF collection tree alone
 
 #### 2b. Write NLS importer script
 - `scripts/importers/nls.py`
@@ -164,7 +165,68 @@ Cambridge Digital Library provides clean IIIF manifests for the Scriptorium subs
 ---
 
 ## Repository 5: Cambridge University Library
--Plan needs developing for CUL, use model of Repositories 1-4 to create a new plan.
+
+### Source Data
+- **IIIF collection**: `https://cudl.lib.cam.ac.uk/iiif/collection/medieval` (Western Medieval Manuscripts, 324 manifests)
+- **Viewer**: `https://cudl.lib.cam.ac.uk/view/{ID}`
+- **Image service**: `https://images.lib.cam.ac.uk/iiif/`
+- **Est. manuscripts**: ~324 (all digitized, IIIF Presentation v2)
+
+### Approach: IIIF Collection Crawl (no browser needed)
+
+CUDL provides a clean IIIF Presentation 2.0 collection endpoint listing all Western Medieval Manuscripts. Each manifest contains rich metadata including classmark, title, date, language, provenance, extent, and more.
+
+### Manifest Metadata Mapping
+
+| CUDL Metadata Field | Compilatio Field |
+|---|---|
+| `Classmark` (strip "Cambridge, University Library, " prefix) | `shelfmark` |
+| Derived from shelfmark prefix | `collection` |
+| `Title` | `contents` |
+| `Date of Creation` | `date_display` (+ parsed `date_start`/`date_end`) |
+| `Language(s)` | `language` |
+| `Provenance` / `Origin Place` | `provenance` |
+| `Extent` | `folios` |
+| First canvas image service + `/full/200,/0/default.jpg` | `thumbnail_url` |
+| `https://cudl.lib.cam.ac.uk/view/{ID}` | `source_url` |
+
+### Collection Breakdown (from IIIF IDs)
+
+| Prefix | Collection | Count |
+|---|---|---|
+| MS-ADD- | Additional | ~122 |
+| MS-DD- | Dd | ~50 |
+| MS-FF- | Ff | ~32 |
+| MS-KK- | Kk | ~29 |
+| MS-II- | Ii | ~22 |
+| MS-NN- | Nn | ~20 |
+| MS-GG- | Gg | ~17 |
+| MS-EE- | Ee | ~12 |
+| MS-MM- | Mm | ~8 |
+| MS-LL- | Ll | ~7 |
+| MS-HH- | Hh | ~4 |
+| MS-PETERBOROUGH- | Peterborough | 1 |
+
+### Steps
+
+#### 5a. Importer script — **Complete**
+- `scripts/importers/cambridge.py`
+- Fetches IIIF collection, iterates manifests, parses metadata
+- Pure HTTP/JSON (no Playwright needed)
+- Rate limit: 0.5s between manifest fetches
+- Handles multi-part manuscripts (e.g. MS Add. 1879.1–1879.24)
+- Handles deposited collections (Peterborough Cathedral)
+- Standard dry-run / --execute / --test / --limit modes
+
+#### 5b. Run CUL import
+- Dry-run to verify mapping
+- Execute import
+- Verify browse page thumbnails and viewer deep links
+
+### Notes
+- Some manifests return HTTP 500 (importer handles gracefully, skips and continues)
+- Repository registered as short_name "CUL"
+- Classmark prefixes Dd–Nn correspond to CUL's traditional shelf-location system
 
 ## Common Patterns Across All Importers
 
@@ -196,13 +258,14 @@ Each importer follows the established pattern from `bodleian.py` and `british_li
 
 ---
 
-## Expected Results
+## Results
 
-| Repository | Est. Manuscripts | Method |
-|---|---|---|
-| Durham University Library | ~300 | IIIF collection tree crawl |
-| National Library of Scotland | ~240 | IIIF collection tree crawl |
-| National Library of Wales | ~200-300 | Catalogue scrape + IIIF fetch |
-| Lambeth Palace Library | ~20-50 | CUDL IIIF subset |
-| **Total new** | **~760-890** | |
-| **Grand total** (with existing 1,891) | **~2,650-2,780** | |
+| Repository | Manuscripts | Method | Status |
+|---|---|---|---|
+| Cambridge University Library | 304 | CUDL IIIF collection crawl | Complete |
+| Durham University Library | 287 | IIIF collection tree crawl | Complete |
+| National Library of Scotland | 104 | IIIF collection tree crawl | Complete |
+| National Library of Wales | ~200-300 | Catalogue scrape + IIIF fetch | Pending |
+| Lambeth Palace Library | 2 | CUDL IIIF subset | Complete |
+| **Total new (so far)** | **697** | | |
+| **Grand total** (with existing 1,891) | **2,588** | | |

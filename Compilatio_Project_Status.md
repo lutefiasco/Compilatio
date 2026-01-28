@@ -105,20 +105,26 @@ See [British Library Import Plan](docs/plans/2026-01-27-British-Library-Import.m
 - [ ] Performance optimization
 
 ## Phase 7: Additional Repositories
-**Status: Planned**
+**Status: In Progress**
 
 See [Additional Repositories Import Plan](docs/plans/2026-01-28-Additional-Repositories-Import.md) for full details.
 
 Priority order (one at a time, each complete before starting next):
 
-1. [ ] **Durham University Library** (~300 MSS) - IIIF collection tree crawl, no browser needed
-2. [ ] **National Library of Scotland** (~240 MSS) - IIIF collection tree crawl, no browser needed
-3. [ ] **National Library of Wales** (~200-300 MSS) - Catalogue scrape + IIIF manifest fetch
-4. [ ] **Lambeth Palace Library** (~20-50 MSS) - CUDL IIIF subset only (LUNA portal is reCAPTCHA-blocked)
+1. [x] **Cambridge University Library** (304 MSS) - CUDL IIIF API, no browser needed
+2. [x] **Durham University Library** (287 MSS) - IIIF collection tree crawl, no browser needed
+3. [x] **National Library of Scotland** (104 MSS) - IIIF collection tree crawl, no browser needed
+4. [ ] **National Library of Wales** (~200-300 MSS) - Catalogue scrape + IIIF manifest fetch
+5. [x] **Lambeth Palace Library** (2 MSS) - CUDL IIIF subset only (LUNA portal is reCAPTCHA-blocked)
+
+### Import Results
+- **Cambridge University Library**: 304 manuscripts (324 manifests, 20 HTTP errors)
+- **Durham University Library**: 287 manuscripts (298 manifests, 11 parse errors)
+- **National Library of Scotland**: 104 manuscripts (3 collections: Gaelic 93, Early Scottish 8, Middle English 3)
+- **Lambeth Palace Library**: 2 manuscripts (CUDL Scriptorium subset only)
 
 ## Deferred
 
-- Cambridge University Library importer
 - Huntington Library importer
 
 ---
@@ -130,8 +136,12 @@ All imports completed on rabota:
 | Repository | Manuscripts | Collections |
 |------------|-------------|-------------|
 | Bodleian Library | 1,713 | Greek (536), Laud Misc. (289), Barocci (235), ... |
+| Cambridge University Library | 304 | Additional (122), Dd (50), Ff (32), Kk (29), ... |
+| Durham University Library | 287 | Cathedral A/B/C, Cosin, Hunter, Bamburgh, ... |
 | British Library | 178 | Royal (81), Harley (56), Cotton (41) |
-| **Total** | **1,891** | |
+| National Library of Scotland | 104 | Gaelic (93), Early Scottish (8), Middle English (3) |
+| Lambeth Palace Library | 2 | Lambeth Palace |
+| **Total** | **2,588** | |
 
 ### To Recreate Database
 
@@ -148,6 +158,18 @@ pip install playwright beautifulsoup4 && playwright install chromium
 python scripts/importers/british_library.py --collection cotton --execute
 python scripts/importers/british_library.py --collection harley --execute
 python scripts/importers/british_library.py --collection royal --execute
+
+# Cambridge University Library
+python scripts/importers/cambridge.py --execute
+
+# Durham University Library
+python scripts/importers/durham.py --execute
+
+# National Library of Scotland
+python scripts/importers/nls.py --execute
+
+# Lambeth Palace Library
+python scripts/importers/lambeth.py --execute
 
 # Start server
 python server.py
@@ -184,7 +206,7 @@ See **[Ongoing Design Issues](docs/plans/Ongoing_Design_Issues.md)** for full de
 3. Fix missing thumbnails in browse page
 4. Search functionality
 5. Performance optimization for large collections
-6. Additional repository importers — Phase 7 (Durham, NLS, NLW, Lambeth)
+6. Additional repository importers — Phase 7 (NLW remaining)
 
 ---
 
@@ -192,7 +214,7 @@ See **[Ongoing Design Issues](docs/plans/Ongoing_Design_Issues.md)** for full de
 
 1. **Viewer design** - UV integration needs visual fixes (top priority)
 2. **Search** - No search functionality yet
-3. **Additional repositories** - Phase 7 planned: Durham, NLS, NLW, Lambeth (CUDL subset)
+3. **Additional repositories** - Phase 7 in progress: CUL, Durham, NLS, Lambeth complete; NLW remaining
 
 ## Known Bugs
 
