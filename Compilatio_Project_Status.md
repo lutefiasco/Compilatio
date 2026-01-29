@@ -119,7 +119,7 @@ Priority order (one at a time, each complete before starting next):
 1. [x] **Cambridge University Library** (304 MSS) - CUDL IIIF API, no browser needed
 2. [x] **Durham University Library** (287 MSS) - IIIF collection tree crawl, no browser needed
 3. [x] **National Library of Scotland** (104 MSS) - IIIF collection tree crawl, no browser needed
-4. [ ] **National Library of Wales** (~200-300 MSS) - Catalogue scrape + IIIF manifest fetch
+4. [ ] **National Library of Wales** (249 MSS) - crawl4ai discovery + IIIF manifest fetch (importer ready, not yet run)
 5. [x] **Lambeth Palace Library** (2 MSS) - CUDL IIIF subset only (LUNA portal is reCAPTCHA-blocked)
 
 ### Import Results
@@ -127,6 +127,7 @@ Priority order (one at a time, each complete before starting next):
 - **Durham University Library**: 287 manuscripts (298 manifests, 11 parse errors)
 - **National Library of Scotland**: 104 manuscripts (3 collections: Gaelic 93, Early Scottish 8, Middle English 3)
 - **Lambeth Palace Library**: 2 manuscripts (CUDL Scriptorium subset only)
+- **National Library of Wales**: importer ready (`scripts/importers/nlw.py`), 249 Peniarth MSS with digital objects; not yet imported
 
 ## Deferred
 
@@ -176,6 +177,12 @@ python scripts/importers/nls.py --execute
 # Lambeth Palace Library
 python scripts/importers/lambeth.py --execute
 
+# National Library of Wales (requires crawl4ai — Python 3.12)
+python3.12 -m venv .venv-crawl4ai && source .venv-crawl4ai/bin/activate
+pip install crawl4ai beautifulsoup4 && crawl4ai-setup
+python scripts/importers/nlw.py --discover-only          # slow: ~40 min crawl
+python scripts/importers/nlw.py --skip-discovery --execute  # fast: uses cached PIDs
+
 # Start server
 python server.py
 ```
@@ -205,7 +212,7 @@ All UV integration issues (header wrapping, white box, attribution watermark, th
 3. Fix missing thumbnails in browse page
 4. Search functionality
 5. Performance optimization for large collections
-6. Additional repository importers — Phase 7 (NLW remaining)
+6. Run NLW Peniarth import (`scripts/importers/nlw.py --discover-only` then `--skip-discovery --execute`)
 
 ---
 
@@ -213,7 +220,7 @@ All UV integration issues (header wrapping, white box, attribution watermark, th
 
 1. **Viewer UX** - Dropdown selector design question (see above)
 2. **Search** - No search functionality yet
-3. **Additional repositories** - Phase 7 in progress: CUL, Durham, NLS, Lambeth complete; NLW remaining
+3. **Additional repositories** - Phase 7 in progress: CUL, Durham, NLS, Lambeth complete; NLW importer ready (not yet run)
 
 ## Known Bugs
 
