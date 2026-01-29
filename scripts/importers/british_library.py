@@ -85,8 +85,9 @@ COLLECTIONS = {
 REQUEST_DELAY = 2.5  # seconds between requests
 
 # Field mapping from BL catalogue to Compilatio schema
+# Note: "Reference (shelfmark)" is intentionally omitted - we get the shelfmark
+# from the search results to avoid duplication
 FIELD_MAPPING = {
-    "Reference (shelfmark)": "shelfmark",
     "Title": "title",
     "Date Range": "date_display",
     "Start Date": "date_start",

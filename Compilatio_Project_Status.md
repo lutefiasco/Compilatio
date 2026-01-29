@@ -209,10 +209,9 @@ All UV integration issues (header wrapping, white box, attribution watermark, th
 ## Next Steps
 
 1. **Decide on viewer dropdown UX** (see design question above)
-2. Fix duplicate shelfmarks in British Library data
-3. Fix missing thumbnails in browse page
-4. Search functionality
-5. Performance optimization for large collections
+2. **Run Bodleian thumbnail fix** — `python scripts/fix_bodleian_thumbnails.py --execute` (~15-30 min). See [plan](docs/plans/2026-01-28-Fix-Bodleian-Thumbnails.md)
+3. Search functionality
+4. Performance optimization for large collections
 
 ---
 
@@ -224,6 +223,6 @@ All UV integration issues (header wrapping, white box, attribution watermark, th
 
 ## Known Bugs
 
-1. **Duplicate BL shelfmarks** — British Library manuscripts show shelfmark twice (e.g. "Royal MS 1 D III\n\nRoyal MS 1 D III") — importer bug
-2. **Missing thumbnails** — Browse page manuscript grid shows "No image" for Bodleian manuscripts only
+1. ~~**Duplicate BL shelfmarks**~~ — Fixed: removed "Reference (shelfmark)" from importer field mapping
+2. **Missing Bodleian thumbnails** — Importer uses manifest UUID as image ID, but Bodleian returns placeholder for non-existent image IDs. Fix script written: `scripts/fix_bodleian_thumbnails.py` (needs to be run). See [plan](docs/plans/2026-01-28-Fix-Bodleian-Thumbnails.md).
 3. **favicon.ico 404** — No favicon configured
