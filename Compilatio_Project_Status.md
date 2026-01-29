@@ -196,34 +196,28 @@ python server.py
 
 All UV integration issues (header wrapping, white box, attribution watermark, thumbnail panel at bottom) were resolved by replacing UV entirely with OpenSeadragon used directly. See `docs/plans/Viewer_Design_v3.md` for the design document and `docs/plans/Ongoing_Design_Issues.md` for historical UV issues.
 
-### Open Design Questions
+### Viewer Navigation
 
-**Dropdown menus at viewer level**: The viewer currently includes repository and manuscript dropdown selectors populated from `/api/manuscripts`. Questions to consider:
-- Are these dropdowns the right UX at the viewer level, or should the viewer only display a single manuscript (navigated to from the browse page)?
-- If kept, should they load all 2,588+ manuscripts at once, or paginate/search?
-- Should the viewer URL deep link (`?ms=ID`) be the primary entry point, with the dropdowns as a convenience fallback?
-- The browse page already provides repository/collection/manuscript navigation — having a second selector in the viewer may be redundant.
+**Cascading dropdown selectors**: The viewer uses Repository → Collection → Manuscript dropdowns, each loading only when the previous is selected. This avoids loading all 2800+ manuscripts at once. Deep linking via `?ms=ID` remains supported and auto-populates the dropdowns.
 
 ---
 
 ## Next Steps
 
-1. **Decide on viewer dropdown UX** (see design question above)
-2. **Run Bodleian thumbnail fix** — `python scripts/fix_bodleian_thumbnails.py --execute` (~15-30 min). See [plan](docs/plans/2026-01-28-Fix-Bodleian-Thumbnails.md)
-3. Search functionality
-4. Performance optimization for large collections
+1. **Run Bodleian thumbnail fix** — `python scripts/fix_bodleian_thumbnails.py --execute` (~15-30 min). See [plan](docs/plans/2026-01-28-Fix-Bodleian-Thumbnails.md)
+2. Search functionality
+3. Performance optimization for large collections
 
 ---
 
 ## Current Gaps
 
-1. **Viewer UX** - Dropdown selector design question (see above)
-2. **Search** - No search functionality yet
-3. **Additional repositories** - Phase 7 complete: CUL, Durham, NLS, NLW, Lambeth all imported
+1. **Search** - No search functionality yet
+2. **Additional repositories** - Phase 7 complete: CUL, Durham, NLS, NLW, Lambeth all imported
 
 ## Known Bugs
 
 1. ~~**Duplicate BL shelfmarks**~~ — Fixed: removed "Reference (shelfmark)" from importer field mapping
 2. **Missing Bodleian thumbnails** — Importer uses manifest UUID as image ID, but Bodleian returns placeholder for non-existent image IDs. Fix script written: `scripts/fix_bodleian_thumbnails.py` (needs to be run). See [plan](docs/plans/2026-01-28-Fix-Bodleian-Thumbnails.md).
 3. **favicon.ico 404** — No favicon configured
-4. Dropdown selector shows only CUL, needs a rethink possibly removal.
+4. ~~**Dropdown selector shows only CUL**~~ — Fixed: viewer now uses cascading Repository → Collection → Manuscript dropdowns

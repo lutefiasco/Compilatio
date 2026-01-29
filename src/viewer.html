@@ -475,10 +475,13 @@
     <!-- Manuscript selector -->
     <div class="selector-bar">
         <select id="repo-select" aria-label="Repository">
-            <option value="">All repositories</option>
+            <option value="">-- Select repository --</option>
         </select>
-        <select id="ms-select" aria-label="Manuscript">
-            <option value="">-- Choose a manuscript --</option>
+        <select id="collection-select" aria-label="Collection" disabled>
+            <option value="">-- Select collection --</option>
+        </select>
+        <select id="ms-select" aria-label="Manuscript" disabled>
+            <option value="">-- Select manuscript --</option>
         </select>
         <span class="count" id="ms-count"></span>
     </div>
@@ -567,7 +570,9 @@
         // STATE
         // =============================================
 
-        let allManuscripts = [];
+        let repositories = [];      // All repositories from API
+        let currentRepoId = null;   // Currently selected repository
+        let currentCollection = null; // Currently selected collection
         let osdViewer = null;
         let canvases = [];          // Parsed canvas list from current manifest
         let currentIndex = 0;       // Current canvas index
@@ -578,6 +583,7 @@
         // =============================================
 
         const repoSelect = document.getElementById('repo-select');
+        const collectionSelect = document.getElementById('collection-select');
         const msSelect = document.getElementById('ms-select');
         const msCount = document.getElementById('ms-count');
         const metaContent = document.getElementById('meta-content');
@@ -604,16 +610,16 @@
             initNavigation();
             initKeyboard();
 
-            // Load manuscripts from API
+            // Load repositories from API
             try {
-                const resp = await fetch(`${API_BASE}/manuscripts`);
-                const data = await resp.json();
-                allManuscripts = (data.manuscripts || data).filter(m => m.iiif_manifest_url);
+                const resp = await fetch(`${API_BASE}/repositories`);
+                repositories = await resp.json();
                 populateRepos();
-                populateManuscripts();
+                repoSelect.addEventListener('change', handleRepoChange);
+                collectionSelect.addEventListener('change', handleCollectionChange);
                 msSelect.addEventListener('change', handleMsSelection);
             } catch (e) {
-                console.error('Failed to load manuscripts:', e);
+                console.error('Failed to load repositories:', e);
             }
 
             // Deep link support
@@ -627,8 +633,17 @@
                     const ms = await resp.json();
                     if (ms && !ms.error) {
                         ms.repository = ms.repository_short || ms.repository_name || ms.repository;
+                        // Set selectors to match the manuscript
+                        if (ms.repository_id) {
+                            repoSelect.value = ms.repository_id;
+                            await handleRepoChange();
+                            if (ms.collection) {
+                                collectionSelect.value = ms.collection;
+                                await handleCollectionChange();
+                            }
+                            msSelect.value = msId;
+                        }
                         selectManuscript(ms);
-                        msSelect.value = msId;
                     }
                 } catch (e) {
                     console.error('Failed to load manuscript by ID:', e);
@@ -1082,35 +1097,91 @@
         // =============================================
 
         function populateRepos() {
-            const repos = [...new Set(allManuscripts.map(m => m.repository).filter(Boolean))].sort();
-            repos.forEach(r => {
+            repoSelect.innerHTML = '<option value="">-- Select repository --</option>';
+            repositories.sort((a, b) => a.name.localeCompare(b.name)).forEach(r => {
                 const opt = document.createElement('option');
-                opt.value = r;
-                opt.textContent = r;
+                opt.value = r.id;
+                opt.textContent = `${r.short_name || r.name} (${r.manuscript_count})`;
                 repoSelect.appendChild(opt);
             });
-            repoSelect.addEventListener('change', () => populateManuscripts());
         }
 
-        function populateManuscripts() {
-            const repo = repoSelect.value;
-            const filtered = repo ? allManuscripts.filter(m => m.repository === repo) : allManuscripts;
-            msSelect.innerHTML = '<option value="">-- Choose a manuscript --</option>';
-            filtered.sort((a, b) => (a.shelfmark || '').localeCompare(b.shelfmark || '')).forEach(ms => {
-                const opt = document.createElement('option');
-                opt.value = ms.id;
-                opt.textContent = `${ms.shelfmark || 'MS ' + ms.id}${ms.date_display ? ' (' + ms.date_display + ')' : ''}`;
-                msSelect.appendChild(opt);
-            });
-            msCount.textContent = `(${filtered.length} viewable)`;
+        async function handleRepoChange() {
+            const repoId = repoSelect.value;
+            currentRepoId = repoId;
+            currentCollection = null;
+
+            // Reset dependent dropdowns
+            collectionSelect.innerHTML = '<option value="">-- Select collection --</option>';
+            collectionSelect.disabled = true;
+            msSelect.innerHTML = '<option value="">-- Select manuscript --</option>';
+            msSelect.disabled = true;
+            msCount.textContent = '';
+
+            if (!repoId) return;
+
+            // Load collections for this repository
+            try {
+                const resp = await fetch(`${API_BASE}/repositories/${repoId}`);
+                const repo = await resp.json();
+                if (repo.collections && repo.collections.length > 0) {
+                    repo.collections.forEach(c => {
+                        const opt = document.createElement('option');
+                        opt.value = c.name;
+                        opt.textContent = `${c.name} (${c.count})`;
+                        collectionSelect.appendChild(opt);
+                    });
+                    collectionSelect.disabled = false;
+                }
+            } catch (e) {
+                console.error('Failed to load repository details:', e);
+            }
         }
 
-        function handleMsSelection() {
+        async function handleCollectionChange() {
+            const collection = collectionSelect.value;
+            currentCollection = collection;
+
+            // Reset manuscript dropdown
+            msSelect.innerHTML = '<option value="">-- Select manuscript --</option>';
+            msSelect.disabled = true;
+            msCount.textContent = '';
+
+            if (!collection || !currentRepoId) return;
+
+            // Load manuscripts for this repository + collection
+            try {
+                const resp = await fetch(`${API_BASE}/manuscripts?repository_id=${currentRepoId}&collection=${encodeURIComponent(collection)}&limit=200`);
+                const data = await resp.json();
+                const manuscripts = (data.manuscripts || []).filter(m => m.iiif_manifest_url);
+
+                manuscripts.sort((a, b) => (a.shelfmark || '').localeCompare(b.shelfmark || '')).forEach(ms => {
+                    const opt = document.createElement('option');
+                    opt.value = ms.id;
+                    opt.textContent = `${ms.shelfmark || 'MS ' + ms.id}${ms.date_display ? ' (' + ms.date_display + ')' : ''}`;
+                    msSelect.appendChild(opt);
+                });
+                msSelect.disabled = false;
+                msCount.textContent = `(${manuscripts.length} viewable)`;
+            } catch (e) {
+                console.error('Failed to load manuscripts:', e);
+            }
+        }
+
+        async function handleMsSelection() {
             const id = msSelect.value;
             if (!id) return;
-            const ms = allManuscripts.find(m => m.id == id);
-            if (!ms) return;
-            selectManuscript(ms);
+
+            try {
+                const resp = await fetch(`${API_BASE}/manuscripts/${id}`);
+                const ms = await resp.json();
+                if (ms && !ms.error) {
+                    ms.repository = ms.repository_short || ms.repository_name || ms.repository;
+                    selectManuscript(ms);
+                }
+            } catch (e) {
+                console.error('Failed to load manuscript:', e);
+            }
         }
 
         async function selectManuscript(ms) {
