@@ -235,6 +235,7 @@
                             }
                             <div class="ms-info">
                                 <h3 class="ms-shelfmark">${escapeHtml(ms.shelfmark || 'Unknown')}</h3>
+                                ${ms.contents ? `<p class="ms-title">${escapeHtml(truncateText(ms.contents))}</p>` : ''}
                                 ${ms.date_display ? `<p class="ms-date">${escapeHtml(ms.date_display)}</p>` : ''}
                             </div>
                         </a>
@@ -345,6 +346,23 @@
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    }
+
+    /**
+     * Truncate text to a maximum length, adding ellipsis if needed
+     */
+    function truncateText(text, maxLength = 70) {
+        if (!text) return '';
+        // Clean up whitespace
+        text = text.replace(/\s+/g, ' ').trim();
+        if (text.length <= maxLength) return text;
+        // Try to break at a word boundary
+        const truncated = text.substring(0, maxLength);
+        const lastSpace = truncated.lastIndexOf(' ');
+        if (lastSpace > maxLength * 0.6) {
+            return truncated.substring(0, lastSpace) + '…';
+        }
+        return truncated + '…';
     }
 
     // Handle browser back/forward

@@ -431,6 +431,17 @@ h1 a:hover {
     text-overflow: ellipsis;
 }
 
+.ms-title {
+    font-size: 0.8rem;
+    color: #aaa;
+    margin: 0.25rem 0;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
 .ms-date {
     font-size: 0.8rem;
     color: #777;

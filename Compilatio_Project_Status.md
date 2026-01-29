@@ -64,8 +64,8 @@ http://localhost:8000/viewer.html?manifest=https://iiif.bodleian.ox.ac.uk/iiif/m
 
 ### Navigation Flow
 1. Landing: Featured manuscript + repository cards with counts
-2. Browse: Click repository → see collections → click collection → see manuscripts
-3. Viewer: Click manuscript → Universal Viewer with metadata sidebar
+2. Browse: Click repository → see collections → click collection → see manuscripts (shelfmark, title, date)
+3. Viewer: Click manuscript → OpenSeadragon viewer with metadata sidebar
 
 ### Design
 - **Fonts**: Cormorant Garamond (headings) + Inter (body) via Google Fonts
