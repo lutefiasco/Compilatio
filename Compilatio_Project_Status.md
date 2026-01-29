@@ -226,3 +226,4 @@ All UV integration issues (header wrapping, white box, attribution watermark, th
 1. ~~**Duplicate BL shelfmarks**~~ — Fixed: removed "Reference (shelfmark)" from importer field mapping
 2. **Missing Bodleian thumbnails** — Importer uses manifest UUID as image ID, but Bodleian returns placeholder for non-existent image IDs. Fix script written: `scripts/fix_bodleian_thumbnails.py` (needs to be run). See [plan](docs/plans/2026-01-28-Fix-Bodleian-Thumbnails.md).
 3. **favicon.ico 404** — No favicon configured
+4. Dropdown selector shows only CUL, needs a rethink possibly removal.
