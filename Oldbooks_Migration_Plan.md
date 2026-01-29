@@ -21,9 +21,10 @@ This document details the migration of Compilatio from a local Python/Starlette 
 | Viewer | OpenSeadragon 4.1.1 (CDN, unchanged) |
 
 ### Data Summary
-- **Repositories:** 8
+- **Repositories:** 8 (Bodleian, CUL, Durham, NLW, BL, UCLA, NLS, Lambeth)
 - **Manuscripts:** 2,929
 - **Database size:** ~2 MB
+- **Thumbnails:** All repositories have correct thumbnail URLs (Bodleian thumbnails fixed 2026-01-28)
 
 ---
 
@@ -163,6 +164,7 @@ EOF > mysql_manuscripts.sql
 - Replace `NULL` values if they appear as empty strings
 - Ensure proper escaping of special characters in TEXT fields
 - The INSERT statements should be compatible with MySQL
+- Thumbnail URLs are already correct in the database (no post-migration fixes needed)
 
 ### 2.4 Import Data to MySQL
 
@@ -733,7 +735,7 @@ Expected responses:
 - [ ] Browse page loads in <2 seconds
 - [ ] API responses return in <500ms
 - [ ] IIIF manifests load from external sources
-- [ ] Thumbnails load (note: some may 404 from source institutions)
+- [ ] Thumbnails load from source institution IIIF servers
 
 ---
 
@@ -930,3 +932,4 @@ php -S localhost:8080
 | Date | Version | Changes |
 |------|---------|---------|
 | 2026-01-28 | 1.0 | Initial migration plan |
+| 2026-01-28 | 1.1 | Updated data summary: all Bodleian thumbnails now fixed |
