@@ -225,5 +225,5 @@ All UV integration issues (header wrapping, white box, attribution watermark, th
 ## Known Bugs
 
 1. **Duplicate BL shelfmarks** — British Library manuscripts show shelfmark twice (e.g. "Royal MS 1 D III\n\nRoyal MS 1 D III") — importer bug
-2. **Missing thumbnails** — Browse page manuscript grid shows "No image" for all thumbnails
+2. **Missing thumbnails** — Browse page manuscript grid shows "No image" for Bodleian manuscripts only
 3. **favicon.ico 404** — No favicon configured
