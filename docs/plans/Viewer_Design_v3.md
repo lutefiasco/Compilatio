@@ -35,7 +35,7 @@ Thumbnail panel is resizable via drag handle; grid switches between 1 and 2 colu
 ┌─────────────────────────────────────────────────────────┐
 │ Compilatio                              ← Back to Browse│
 ├─────────────────────────────────────────────────────────┤
-│ [All repositories ▼] [-- Choose manuscript -- ▼] (N)    │
+│ [-- Repository --▼] [-- Collection --▼] [-- MS --▼] (N) │
 ├─────────────────────────────────────────────────────────┤
 │ ⏮ ◀ [folio input ] ▶ ⏭  Image X of Y     □ ⊞ ⛶      │
 ├──────┬──────────┬─┬─────────────────────────────────────┤
@@ -49,6 +49,8 @@ Thumbnail panel is resizable via drag handle; grid switches between 1 and 2 colu
 │ [src]│ width    │ │                                     │
 └──────┴──────────┴─┴─────────────────────────────────────┘
 ```
+
+**Cascading selector**: Repository → Collection → Manuscript dropdowns load on-demand to avoid loading all 2800+ manuscripts at once.
 
 **Metadata sidebar** (fixed 200px): Shelfmark, repository, date, physical description, contents, provenance, source link.
 **Thumbnail panel** (resizable 90-400px): Uses `grid-template-columns: repeat(auto-fill, minmax(80px, 1fr))` to automatically switch between 1 and 2 columns based on available width.
@@ -70,7 +72,7 @@ Thumbnail panel is resizable via drag handle; grid switches between 1 and 2 colu
 - [x] Folio text input with jump-to
 - [x] "Image X of Y" counter
 - [x] Resizable divider between thumbnails and image
-- [x] Manuscript selector from Compilatio API
+- [x] Cascading manuscript selector (Repository → Collection → Manuscript)
 - [x] Dark theme matching Compilatio design
 - [x] Keyboard shortcuts (left/right arrows, Home/End)
 - [x] OSD overlay controls (zoom, rotate, home)

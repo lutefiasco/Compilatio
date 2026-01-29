@@ -1,6 +1,14 @@
 # Ongoing Design Issues
 
-## Goal
+**Status: RESOLVED** — UV replaced with OpenSeadragon direct integration. See `Viewer_Design_v3.md`.
+
+---
+
+## Historical Context (Archived)
+
+This document describes UV integration issues that led to replacing Universal Viewer with OpenSeadragon.
+
+## Original Goal
 
 Make Compilatio's viewer page match the look and feel of the Digital Bodleian viewer (https://digital.bodleian.ox.ac.uk), while keeping Compilatio's own manuscript selector. Both sites use Universal Viewer v4.
 

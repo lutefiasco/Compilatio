@@ -8,8 +8,10 @@ Integrate five new manuscript repositories into Compilatio, prioritised by techn
 1. Cambridge University Library (CUDL IIIF collection, 304 MSS) — **imported**
 2. Durham University Library (IIIF collection tree, 287 MSS) — **imported**
 3. National Library of Scotland (IIIF collection tree, 104 MSS) — **imported**
-4. National Library of Wales (large IIIF estate, PID discovery needed) — **pending**
+4. National Library of Wales (249 MSS via crawl4ai) — **imported**
 5. Lambeth Palace Library (CUDL subset, 2 MSS) — **imported**
+
+**All repositories complete.** Total new manuscripts: 946. Grand total: 2,837.
 
 Each repository is a self-contained chunk. Complete one before starting the next.
 
@@ -265,7 +267,7 @@ Each importer follows the established pattern from `bodleian.py` and `british_li
 | Cambridge University Library | 304 | CUDL IIIF collection crawl | Complete |
 | Durham University Library | 287 | IIIF collection tree crawl | Complete |
 | National Library of Scotland | 104 | IIIF collection tree crawl | Complete |
-| National Library of Wales | ~200-300 | Catalogue scrape + IIIF fetch | Pending |
+| National Library of Wales | 249 | crawl4ai discovery + IIIF fetch | Complete |
 | Lambeth Palace Library | 2 | CUDL IIIF subset | Complete |
-| **Total new (so far)** | **697** | | |
-| **Grand total** (with existing 1,891) | **2,588** | | |
+| **Total new** | **946** | | |
+| **Grand total** (with existing 1,891) | **2,837** | | |

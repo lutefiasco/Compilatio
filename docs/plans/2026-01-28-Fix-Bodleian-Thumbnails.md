@@ -1,7 +1,7 @@
 # Fix Bodleian Thumbnails
 
 **Date:** 2026-01-28
-**Status:** Script created, ready to run
+**Status:** Script enhanced with progress tracking, ready to run
 **Issue:** Browse page shows "No image" for all Bodleian manuscripts
 
 ## Problem Analysis
