@@ -226,6 +226,11 @@ All UV integration issues (header wrapping, white box, attribution watermark, th
 1. Search functionality
 2. Performance optimization for large collections
 
+## Future Repositories
+
+- [ ] **Harvard** (Houghton Library)
+- [ ] **Yale** (Beinecke Rare Book & Manuscript Library)
+
 ---
 
 ## Current Gaps
