@@ -129,9 +129,22 @@ Priority order (one at a time, each complete before starting next):
 - **Lambeth Palace Library**: 2 manuscripts (CUDL Scriptorium subset only)
 - **National Library of Wales**: 226 manuscripts (249 discovered, 226 new inserts, 23 updates)
 
-## Deferred
+## Phase 8: Huntington Library
+**Status: Complete**
 
-- Huntington Library importer
+See [Huntington Ellesmere Import Plan](docs/plans/2026-01-29-Huntington-Ellesmere-Import.md) for details.
+
+- [x] Create Huntington importer script (`scripts/importers/huntington.py`)
+- [x] CONTENTdm API integration (no browser needed)
+- [x] IIIF manifest parsing
+- [x] Checkpoint/resumability support
+- [x] Shelfmark range filtering
+- [x] Import Ellesmere collection (mssEL)
+- [x] Import Huntington Manuscripts collection (mssHM 1-946)
+
+### Import Results
+- **Ellesmere (mssEL)**: 27 manuscripts
+- **Huntington Manuscripts (mssHM 1-946)**: 164 manuscripts (163 new, 1 updated)
 
 ---
 
@@ -145,10 +158,12 @@ All imports completed on rabota:
 | Cambridge University Library | 304 | Additional (122), Dd (50), Ff (32), Kk (29), ... |
 | Durham University Library | 287 | Cathedral A/B/C, Cosin, Hunter, Bamburgh, ... |
 | National Library of Wales | 249 | Peniarth |
+| Huntington Library | 190 | Ellesmere (27), Huntington Manuscripts (163) |
 | British Library | 178 | Royal (81), Harley (56), Cotton (41) |
 | National Library of Scotland | 104 | Gaelic (93), Early Scottish (8), Middle English (3) |
 | Lambeth Palace Library | 2 | Lambeth Palace |
-| **Total** | **2,837** | |
+| UCLA | 115 | (various) |
+| **Total** | **3,119** | |
 
 ### To Recreate Database
 
@@ -183,6 +198,10 @@ python3.12 -m venv .venv-crawl4ai && source .venv-crawl4ai/bin/activate
 pip install crawl4ai beautifulsoup4 && crawl4ai-setup
 python scripts/importers/nlw.py --discover-only          # slow: ~40 min crawl
 python scripts/importers/nlw.py --skip-discovery --execute  # fast: uses cached PIDs
+
+# Huntington Library (no special dependencies)
+python scripts/importers/huntington.py --collection EL --execute
+python scripts/importers/huntington.py --collection HM --min-shelfmark 1 --max-shelfmark 946 --execute
 
 # Start server
 python server.py
