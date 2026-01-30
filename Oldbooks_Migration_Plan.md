@@ -929,13 +929,13 @@ php -S localhost:8080
 
 ## Phase 9: Database Synchronization
 
-After initial deployment, the SQLite database on rabota (the development server) may be updated with new manuscripts, corrections, or new repositories. This section covers how to re-sync those changes to oldbooks.
+After initial deployment, the SQLite database on serving (the development server) may be updated with new manuscripts, corrections, or new repositories. This section covers how to re-sync those changes to oldbooks.
 
 ### 9.1 Sync Scenarios
 
 #### Scenario A: New manuscripts added to existing repository
 
-**On rabota (after updating SQLite):**
+**On serving (after updating SQLite):**
 
 ```bash
 cd /Users/rabota/Geekery/Compilatio
@@ -956,7 +956,7 @@ TRUNCATE TABLE manuscripts;
 
 #### Scenario B: New repository added
 
-**On rabota:**
+**On serving:**
 
 ```bash
 # Export both tables
@@ -991,7 +991,7 @@ WHERE id = 123;
 
 ### 9.2 Automation Scripts
 
-#### sync_to_mysql.sh (run on rabota)
+#### sync_to_mysql.sh (run on serving)
 
 ```bash
 #!/bin/bash
@@ -1052,7 +1052,7 @@ mysql-sync: mysql-export mysql-upload
 
 ### 9.3 Re-sync Workflow
 
-1. **Make changes** to SQLite database on rabota
+1. **Make changes** to SQLite database on serving
 2. **Run export**: `make mysql-export` or `./sync_to_mysql.sh`
 3. **Upload files**: `make mysql-upload` or SCP manually
 4. **Import on oldbooks**:
@@ -1063,21 +1063,21 @@ mysql-sync: mysql-export mysql-upload
    - Import `manuscripts.sql` second
 5. **Verify counts** match the export output
 
-### 9.4 Keeping rabota and laptop in sync
+### 9.4 Keeping serving and laptop in sync
 
-Before making database changes, ensure rabota and laptop have the same SQLite file:
+Before making database changes, ensure serving and laptop have the same SQLite file:
 
 ```bash
-# On laptop - pull latest from rabota
-rsync -avz rabota:/Users/rabota/Geekery/Compilatio/database/compilatio.db ./database/
+# On laptop - pull latest from serving
+rsync -avz serving:/Users/rabota/Geekery/Compilatio/database/compilatio.db ./database/
 
-# On laptop - push local changes to rabota
-rsync -avz ./database/compilatio.db rabota:/Users/rabota/Geekery/Compilatio/database/
+# On laptop - push local changes to serving
+rsync -avz ./database/compilatio.db serving:/Users/rabota/Geekery/Compilatio/database/
 ```
 
 **Rule:** Pick one machine as the primary for any given editing session. Never edit on both simultaneously.
 
-See `DB_Ideas.md` for more details on laptop/rabota sync strategies.
+See `DB_Ideas.md` for more details on laptop/serving sync strategies.
 
 ---
 
@@ -1088,3 +1088,4 @@ See `DB_Ideas.md` for more details on laptop/rabota sync strategies.
 | 2026-01-28 | 1.0 | Initial migration plan |
 | 2026-01-28 | 1.1 | Updated data summary: all Bodleian thumbnails now fixed |
 | 2026-01-29 | 1.2 | Added Phase 9: Database synchronization and automation scripts |
+| 2026-01-29 | 1.3 | Fixed development server name: "serving" (user: rabota) |
