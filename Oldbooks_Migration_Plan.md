@@ -610,7 +610,8 @@ public_html/
 - [x] Data export from SQLite completed (`mysql_repositories.sql`, `mysql_manuscripts.sql`)
 - [x] Data imported to MySQL (9 repositories, 3,119 manuscripts)
 - [x] PHP files created (`php_deploy/` directory)
-- [ ] Files uploaded to server
+- [x] Files uploaded to server (via cPanel File Manager zip upload)
+- [x] Site tested and verified working (2026-01-29)
 
 ### 5.2 Upload Files
 
@@ -689,6 +690,12 @@ In cPanel File Manager (right-click → Change Permissions) or via SSH:
 ---
 
 ## Phase 6: Testing
+
+**Status: COMPLETE (2026-01-29)**
+- API endpoints verified working
+- Landing page loads (200 OK)
+- Browse page loads (200 OK)
+- config.php protected (403 Forbidden)
 
 ### 6.1 API Endpoint Tests
 
@@ -1102,3 +1109,4 @@ See `DB_Ideas.md` for more details on laptop/serving sync strategies.
 | 2026-01-29 | 1.2 | Added Phase 9: Database synchronization and automation scripts |
 | 2026-01-29 | 1.3 | Fixed development server name: "serving" (user: rabota) |
 | 2026-01-29 | 1.4 | Updated counts (9 repos, 3119 MSS), marked completed phases, added zip upload option |
+| 2026-01-29 | 1.5 | **MIGRATION COMPLETE** - Site live at oldbooks.humspace.ucla.edu |
