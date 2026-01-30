@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compilatio - Medieval Manuscripts</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><a href="index.html">Compilatio</a></h1>
+            <p class="subtitle">Medieval Manuscript Aggregator</p>
+        </header>
+
+        <main>
+            <!-- Featured Manuscript -->
+            <section class="featured-section" id="featured-section">
+                <h2 class="section-title">Featured Manuscript</h2>
+                <a href="#" class="featured-card" id="featured-card">
+                    <div class="featured-thumbnail-placeholder" id="featured-thumbnail">
+                        <span>Loading...</span>
+                    </div>
+                    <div class="featured-info">
+                        <span class="featured-label">Featured</span>
+                        <h3 class="featured-shelfmark" id="featured-shelfmark">Loading...</h3>
+                        <p class="featured-meta" id="featured-meta"></p>
+                        <p class="featured-contents" id="featured-contents"></p>
+                        <span class="featured-link">View manuscript &rarr;</span>
+                    </div>
+                </a>
+            </section>
+
+            <!-- Repositories -->
+            <section class="repositories-section" id="repositories-section">
+                <h2 class="section-title">Browse by Repository</h2>
+                <div class="repo-grid" id="repo-grid">
+                    <div class="loading">
+                        <div class="loading-spinner"></div>
+                        <p>Loading repositories...</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="site-footer">
+            <p class="footer-text">Bringing together medieval manuscripts made available through IIIF, partly for convenience and partly as a proof of concept. </p>
+            <p class="footer-text">All images and data are owned by the institutions that make it available. </p>
+            <p class="footer-text">Developed by <a href="https://english.ucla.edu/people-faculty/matthew%E2%80%A8-fisher/" target="_blank" rel="noopener">Matthew Fisher</a>, Department of English, UCLA.</p> 
+        </footer>
+    </div>
+    <script src="js/script.js"></script>
+</body>
+</html>

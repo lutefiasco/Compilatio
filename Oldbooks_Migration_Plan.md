@@ -21,8 +21,8 @@ This document details the migration of Compilatio from a local Python/Starlette 
 | Viewer | OpenSeadragon 4.1.1 (CDN, unchanged) |
 
 ### Data Summary
-- **Repositories:** 8 (Bodleian, CUL, Durham, NLW, BL, UCLA, NLS, Lambeth)
-- **Manuscripts:** 2,929
+- **Repositories:** 9 (Bodleian, CUL, Durham, NLW, BL, UCLA, NLS, Lambeth, Huntington)
+- **Manuscripts:** 3,119
 - **Database size:** ~2 MB
 - **Thumbnails:** All repositories have correct thumbnail URLs (Bodleian thumbnails fixed 2026-01-28)
 
@@ -56,12 +56,15 @@ This document details the migration of Compilatio from a local Python/Starlette 
    - Enter database name: `compilatio`
    - Click "Create Database"
    - Note: The full name will be prefixed with your username (e.g., `username_compilatio`)
-
+   - **oldbooks_compilatio**
+   
 4. Under "MySQL Users → Add New User":
    - Username: `compilatio_user` (will become `username_compilatio_user`)
+   - **oldbooks_compilatio_user**
    - Password: Generate a strong password and **save it securely**
+   - See DevonThink
    - Click "Create User"
-
+   
 5. Under "Add User To Database":
    - Select the user you created
    - Select the database you created
@@ -142,6 +145,8 @@ CREATE TABLE manuscripts (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
+**MNF COMPLETE**
+
 ### 2.3 Export Data from SQLite
 
 Run these commands locally to export data as MySQL-compatible INSERT statements:
@@ -177,12 +182,12 @@ EOF > mysql_manuscripts.sql
 4. Import in this order:
    1. First: `mysql_schema.sql` (creates tables)
    2. Second: `mysql_repositories.sql` (8 rows)
-   3. Third: `mysql_manuscripts.sql` (2,929 rows)
+   3. Third: `mysql_manuscripts.sql` (3,119 rows)
 
 5. Verify import:
    ```sql
-   SELECT COUNT(*) FROM repositories;  -- Should return 8
-   SELECT COUNT(*) FROM manuscripts;   -- Should return 2929
+   SELECT COUNT(*) FROM repositories;  -- Should return 9
+   SELECT COUNT(*) FROM manuscripts;   -- Should return 3119
    ```
 
 ---
@@ -598,46 +603,53 @@ public_html/
 
 ### 5.1 Pre-Deployment Checklist
 
-- [ ] MySQL database created in cPanel
-- [ ] Database user created and granted privileges
-- [ ] Database credentials recorded securely
-- [ ] MySQL schema file prepared
-- [ ] Data export from SQLite completed
-- [ ] PHP files created and tested locally (optional)
+- [x] MySQL database created in cPanel (`oldbooks_compilatio`)
+- [x] Database user created and granted privileges (`oldbooks_compilatio_user`)
+- [x] Database credentials recorded securely
+- [x] MySQL schema file prepared (`mysql_schema.sql`)
+- [x] Data export from SQLite completed (`mysql_repositories.sql`, `mysql_manuscripts.sql`)
+- [x] Data imported to MySQL (9 repositories, 3,119 manuscripts)
+- [x] PHP files created (`php_deploy/` directory)
+- [ ] Files uploaded to server
 
 ### 5.2 Upload Files
 
-**Option A: cPanel File Manager**
+All deployment files are prepared in `php_deploy/` directory locally.
 
-1. Log in to cPanel
-2. Open **File Manager**
-3. Navigate to `public_html` (or subdomain directory)
-4. Create directories: `api/`, `includes/`, `css/`, `js/`, `images/`
-5. Upload files to appropriate directories
-6. Create/edit `.htaccess` files directly in File Manager
+**Option A: cPanel File Manager with Zip (RECOMMENDED)**
 
-**Option B: FTP Client**
+1. Create zip file locally:
+   ```bash
+   cd php_deploy && zip -r ../compilatio_deploy.zip . && cd ..
+   ```
+2. Log in to cPanel → **File Manager**
+3. Navigate to `public_html`
+4. Upload `compilatio_deploy.zip`
+5. Select the zip file → click **Extract**
+6. Delete the zip file after extraction
+
+**Option B: cPanel File Manager (Manual)**
+
+1. Log in to cPanel → **File Manager**
+2. Navigate to `public_html`
+3. Create directories: `api/`, `includes/`, `css/`, `js/`, `images/`
+4. Upload files to appropriate directories from `php_deploy/`
+5. Ensure `.htaccess` files are uploaded (may need to enable "Show Hidden Files")
+
+**Option C: FTP Client**
 
 1. Connect using FTP credentials from cPanel
 2. Host: `oldbooks.humspace.ucla.edu` or server IP
 3. Port: 21
-4. Upload entire directory structure
+4. Upload contents of `php_deploy/` to `public_html/`
 
-**Option C: Terminal (SSH)**
+**Option D: Terminal (SSH)**
 
-If SSH access works:
+Note: SSH access on Humspace may be restricted or use non-standard ports.
+
 ```bash
-# Connect
-ssh username@oldbooks.humspace.ucla.edu
-
-# Navigate to web root
-cd public_html
-
-# Create directories
-mkdir -p api includes css js images
+scp -r php_deploy/* oldbooks@oldbooks.humspace.ucla.edu:~/public_html/
 ```
-
-Then upload files via SCP or FTP.
 
 ### 5.3 Import Database
 
@@ -1089,3 +1101,4 @@ See `DB_Ideas.md` for more details on laptop/serving sync strategies.
 | 2026-01-28 | 1.1 | Updated data summary: all Bodleian thumbnails now fixed |
 | 2026-01-29 | 1.2 | Added Phase 9: Database synchronization and automation scripts |
 | 2026-01-29 | 1.3 | Fixed development server name: "serving" (user: rabota) |
+| 2026-01-29 | 1.4 | Updated counts (9 repos, 3119 MSS), marked completed phases, added zip upload option |

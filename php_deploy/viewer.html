@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compilatio - Manuscript Viewer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        /*
+         * Compilatio Manuscript Viewer
+         * ============================
+         * OpenSeadragon-based IIIF viewer.
+         * Three-panel layout: Metadata sidebar | Thumbnail grid | OSD image
+         * Thumbnail panel resizable to 1 or 2 columns.
+         */
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: #1a1a1a;
+            color: #d8d8d8;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* === SITE HEADER === */
+        .site-header {
+            display: flex;
+            align-items: baseline;
+            gap: 1.5rem;
+            padding: 0.4rem 1rem;
+            background: #1a1a1a;
+            border-bottom: 1px solid #2a2a2a;
+            flex-shrink: 0;
+        }
+        .site-header h1 {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-size: 1.3rem;
+            color: #f5f3ef;
+            font-weight: 300;
+            letter-spacing: 0.1em;
+        }
+        .site-header h1 a {
+            color: inherit;
+            text-decoration: none;
+        }
+        .site-header .back-link {
+            margin-left: auto;
+            color: #888;
+            font-size: 0.8rem;
+            text-decoration: none;
+        }
+        .site-header .back-link:hover { color: #e8e4dc; }
+
+        /* === SELECTOR BAR === */
+        .selector-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.4rem 1rem;
+            background: #232323;
+            border-bottom: 1px solid #2a2a2a;
+            flex-shrink: 0;
+        }
+        .selector-bar select {
+            padding: 0.3rem 0.5rem;
+            font-family: inherit;
+            font-size: 0.8rem;
+            color: #d8d8d8;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 2px;
+        }
+        .selector-bar select:focus {
+            outline: none;
+            border-color: #e8e4dc;
+        }
+        .selector-bar .count {
+            font-size: 0.75rem;
+            color: #888;
+        }
+
+        /* === VIEWER HEADER (navigation toolbar) === */
+        .viewer-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 0.5rem;
+            height: 36px;
+            background: #1e1e1e;
+            border-bottom: 1px solid #2a2a2a;
+            flex-shrink: 0;
+            position: relative;
+        }
+        .nav-controls {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+        .nav-controls button {
+            background: transparent;
+            border: none;
+            color: #aaa;
+            padding: 4px 6px;
+            cursor: pointer;
+            border-radius: 2px;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .nav-controls button svg {
+            width: 14px;
+            height: 14px;
+            fill: currentColor;
+        }
+        .nav-controls button:hover {
+            color: #e8e4dc;
+            background: #333;
+        }
+        .nav-controls button:disabled {
+            color: #444;
+            cursor: default;
+            background: transparent;
+        }
+        .nav-controls .folio-input {
+            width: 110px;
+            padding: 3px 8px;
+            font-family: inherit;
+            font-size: 0.8rem;
+            color: #d8d8d8;
+            background: #2a2a2a;
+            border: 1px solid #444;
+            border-radius: 2px;
+            text-align: center;
+        }
+        .nav-controls .folio-input:focus {
+            outline: none;
+            border-color: #e8e4dc;
+        }
+        .nav-controls .image-counter {
+            font-size: 0.75rem;
+            color: #888;
+            margin-left: 10px;
+            white-space: nowrap;
+        }
+        .mode-controls {
+            position: absolute;
+            right: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+        .mode-controls button {
+            background: transparent;
+            border: none;
+            color: #888;
+            padding: 4px 6px;
+            cursor: pointer;
+            border-radius: 2px;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .mode-controls button svg {
+            width: 16px;
+            height: 16px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 1.5;
+        }
+        .mode-controls button:hover {
+            color: #e8e4dc;
+            background: #333;
+        }
+        .mode-controls button.active {
+            color: #e8e4dc;
+            background: #333;
+        }
+
+        /* === VIEWER BODY (three panels) === */
+        .viewer-body {
+            flex: 1;
+            display: flex;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        /* Compilatio metadata sidebar */
+        .meta-sidebar {
+            width: 200px;
+            min-width: 200px;
+            background: #1e1e1e;
+            border-right: 1px solid #2a2a2a;
+            overflow-y: auto;
+            padding: 0.75rem;
+            flex-shrink: 0;
+        }
+        .meta-sidebar h3 {
+            font-family: 'Cormorant Garamond', Georgia, serif;
+            font-size: 1.05rem;
+            color: #f5f3ef;
+            font-weight: 400;
+            margin-bottom: 0.3rem;
+            line-height: 1.3;
+        }
+        .meta-sidebar .meta-repo {
+            color: #999;
+            font-size: 0.75rem;
+            margin-bottom: 0.15rem;
+        }
+        .meta-sidebar .meta-date {
+            color: #888;
+            font-size: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+        .meta-sidebar details {
+            margin-bottom: 0.4rem;
+        }
+        .meta-sidebar summary {
+            font-size: 0.75rem;
+            color: #aaa;
+            cursor: pointer;
+            padding: 0.2rem 0;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .meta-sidebar summary:hover {
+            color: #e8e4dc;
+        }
+        .meta-sidebar .meta-text {
+            font-size: 0.75rem;
+            color: #999;
+            line-height: 1.5;
+            padding: 0.3rem 0;
+        }
+        .meta-sidebar .meta-list {
+            font-size: 0.75rem;
+            color: #999;
+            line-height: 1.5;
+            padding: 0.2rem 0;
+        }
+        .meta-sidebar .meta-list dt {
+            color: #aaa;
+            font-weight: 500;
+            margin-top: 0.2rem;
+        }
+        .meta-sidebar .meta-list dd {
+            margin-left: 0;
+            margin-bottom: 0.15rem;
+        }
+        .meta-sidebar .source-link {
+            display: inline-block;
+            margin-top: 0.5rem;
+            padding: 0.3rem 0.6rem;
+            background: #e8e4dc;
+            color: #1a1a1a;
+            text-decoration: none;
+            border-radius: 2px;
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+        .meta-sidebar .source-link:hover {
+            background: #fff;
+        }
+        .meta-sidebar .meta-placeholder {
+            color: #555;
+            font-size: 0.8rem;
+        }
+
+        /* Thumbnail panel */
+        .thumb-panel {
+            width: 220px;
+            min-width: 90px;
+            max-width: 400px;
+            background: #1a1a1a;
+            border-right: 1px solid #2a2a2a;
+            overflow-y: auto;
+            overflow-x: hidden;
+            flex-shrink: 0;
+        }
+        .thumb-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 4px;
+            padding: 4px;
+        }
+        .thumb-item {
+            cursor: pointer;
+            border: 2px solid transparent;
+            border-radius: 2px;
+            overflow: hidden;
+            background: #232323;
+            transition: border-color 0.15s;
+        }
+        .thumb-item:hover {
+            border-color: #555;
+        }
+        .thumb-item.active {
+            border-color: #e8e4dc;
+        }
+        .thumb-item img {
+            width: 100%;
+            aspect-ratio: 3/4;
+            object-fit: cover;
+            display: block;
+            background: #2a2a2a;
+        }
+        .thumb-item .thumb-label {
+            font-size: 0.65rem;
+            color: #999;
+            text-align: center;
+            padding: 2px 2px 3px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .thumb-item.active .thumb-label {
+            color: #e8e4dc;
+        }
+
+        /* Resizable divider between thumbnails and image */
+        .divider {
+            width: 6px;
+            background: #2a2a2a;
+            cursor: col-resize;
+            flex-shrink: 0;
+            position: relative;
+            transition: background 0.15s;
+        }
+        .divider:hover,
+        .divider.dragging {
+            background: #e8e4dc;
+        }
+        .divider::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 2px;
+            height: 30px;
+            background: #555;
+            border-radius: 1px;
+        }
+        .divider:hover::after,
+        .divider.dragging::after {
+            background: #1a1a1a;
+        }
+
+        /* Image panel (OpenSeadragon) */
+        .image-panel {
+            flex: 1;
+            min-width: 200px;
+            position: relative;
+            background: #141414;
+        }
+        #osd-viewer {
+            width: 100%;
+            height: 100%;
+        }
+        .viewer-placeholder {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #555;
+            font-size: 0.9rem;
+        }
+        .viewer-placeholder.hidden {
+            display: none;
+        }
+
+        /* === CUSTOM OSD OVERLAY CONTROLS (vertical stack, top-left of image) === */
+        .osd-controls {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 5;
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            background: rgba(0, 0, 0, 0.45);
+            border-radius: 3px;
+            padding: 2px;
+        }
+        .osd-controls button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            background: transparent;
+            border: none;
+            color: #ccc;
+            cursor: pointer;
+            border-radius: 2px;
+            padding: 0;
+        }
+        .osd-controls button:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.12);
+        }
+        .osd-controls button svg {
+            width: 16px;
+            height: 16px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        /* Loading indicator */
+        .loading-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(20, 20, 20, 0.8);
+            color: #888;
+            font-size: 0.85rem;
+            z-index: 10;
+            pointer-events: none;
+        }
+        .loading-overlay.hidden {
+            display: none;
+        }
+
+        /* === Scrollbar styling === */
+        .thumb-panel::-webkit-scrollbar,
+        .meta-sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .thumb-panel::-webkit-scrollbar-track,
+        .meta-sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .thumb-panel::-webkit-scrollbar-thumb,
+        .meta-sidebar::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 3px;
+        }
+        .thumb-panel::-webkit-scrollbar-thumb:hover,
+        .meta-sidebar::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+
+        /* User select prevention during drag */
+        body.dragging {
+            user-select: none;
+            -webkit-user-select: none;
+            cursor: col-resize !important;
+        }
+        body.dragging * {
+            cursor: col-resize !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Site header -->
+    <header class="site-header">
+        <h1><a href="index.html">Compilatio</a></h1>
+        <a href="browse.html" class="back-link">&larr; Browse</a>
+    </header>
+
+    <!-- Manuscript selector -->
+    <div class="selector-bar">
+        <select id="repo-select" aria-label="Repository">
+            <option value="">-- Select repository --</option>
+        </select>
+        <select id="collection-select" aria-label="Collection" disabled>
+            <option value="">-- Select collection --</option>
+        </select>
+        <select id="ms-select" aria-label="Manuscript" disabled>
+            <option value="">-- Select manuscript --</option>
+        </select>
+        <span class="count" id="ms-count"></span>
+    </div>
+
+    <!-- Viewer header toolbar -->
+    <div class="viewer-header" id="viewer-header">
+        <div class="nav-controls">
+            <button id="btn-first" title="First page" disabled>
+                <svg viewBox="0 0 14 14"><line x1="3" y1="3" x2="3" y2="11"/><polyline points="11,3 6,7 11,11"/></svg>
+            </button>
+            <button id="btn-prev" title="Previous page" disabled>
+                <svg viewBox="0 0 14 14"><polyline points="10,3 5,7 10,11"/></svg>
+            </button>
+            <input type="text" class="folio-input" id="folio-input" placeholder="folio" title="Type a folio label and press Enter" disabled>
+            <button id="btn-next" title="Next page" disabled>
+                <svg viewBox="0 0 14 14"><polyline points="4,3 9,7 4,11"/></svg>
+            </button>
+            <button id="btn-last" title="Last page" disabled>
+                <svg viewBox="0 0 14 14"><polyline points="3,3 8,7 3,11"/><line x1="11" y1="3" x2="11" y2="11"/></svg>
+            </button>
+            <span class="image-counter" id="image-counter"></span>
+        </div>
+        <div class="mode-controls">
+            <button id="btn-single" title="Single page view" class="active">
+                <svg viewBox="0 0 16 16"><rect x="3" y="2" width="10" height="12" rx="1"/></svg>
+            </button>
+            <button id="btn-fullscreen" title="Full screen">
+                <svg viewBox="0 0 16 16"><polyline points="2,6 2,2 6,2"/><polyline points="10,2 14,2 14,6"/><polyline points="14,10 14,14 10,14"/><polyline points="6,14 2,14 2,10"/></svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- Viewer body: three panels -->
+    <div class="viewer-body" id="viewer-body">
+        <!-- Compilatio metadata sidebar -->
+        <aside class="meta-sidebar" id="meta-sidebar">
+            <div id="meta-content">
+                <p class="meta-placeholder">Select a manuscript to view details.</p>
+            </div>
+        </aside>
+
+        <!-- Thumbnail panel -->
+        <div class="thumb-panel" id="thumb-panel">
+            <div class="thumb-grid" id="thumb-grid"></div>
+        </div>
+
+        <!-- Resizable divider -->
+        <div class="divider" id="divider"></div>
+
+        <!-- Image panel -->
+        <div class="image-panel" id="image-panel">
+            <div id="osd-viewer"></div>
+            <!-- Custom OSD controls: vertical stack, top-left -->
+            <div class="osd-controls" id="osd-controls">
+                <button id="osd-zoom-in" title="Zoom in">
+                    <svg viewBox="0 0 16 16"><line x1="8" y1="4" x2="8" y2="12"/><line x1="4" y1="8" x2="12" y2="8"/></svg>
+                </button>
+                <button id="osd-zoom-out" title="Zoom out">
+                    <svg viewBox="0 0 16 16"><line x1="4" y1="8" x2="12" y2="8"/></svg>
+                </button>
+                <button id="osd-home" title="Fit to page">
+                    <svg viewBox="0 0 16 16"><rect x="3" y="3" width="10" height="10" rx="1"/></svg>
+                </button>
+                <button id="osd-rotate" title="Rotate right">
+                    <svg viewBox="0 0 16 16"><path d="M12,7 A4.5,4.5 0 1,1 8,3"/><polyline points="8,1 8,3.5 10.5,3.5"/></svg>
+                </button>
+            </div>
+            <div class="viewer-placeholder" id="viewer-placeholder">Select a manuscript above to view it.</div>
+            <div class="loading-overlay hidden" id="loading-overlay">Loading manifest...</div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/openseadragon@4.1.1/build/openseadragon/openseadragon.min.js"></script>
+    <script>
+    (function() {
+        'use strict';
+
+        // =============================================
+        // CONFIGURATION
+        // =============================================
+
+        const API_BASE = '/api';
+        const OSD_PREFIX = 'https://cdn.jsdelivr.net/npm/openseadragon@4.1.1/build/openseadragon/images/';
+
+        // =============================================
+        // STATE
+        // =============================================
+
+        let repositories = [];      // All repositories from API
+        let currentRepoId = null;   // Currently selected repository
+        let currentCollection = null; // Currently selected collection
+        let osdViewer = null;
+        let canvases = [];          // Parsed canvas list from current manifest
+        let currentIndex = 0;       // Current canvas index
+        let currentManuscript = null;
+
+        // =============================================
+        // DOM REFERENCES
+        // =============================================
+
+        const repoSelect = document.getElementById('repo-select');
+        const collectionSelect = document.getElementById('collection-select');
+        const msSelect = document.getElementById('ms-select');
+        const msCount = document.getElementById('ms-count');
+        const metaContent = document.getElementById('meta-content');
+        const thumbGrid = document.getElementById('thumb-grid');
+        const thumbPanel = document.getElementById('thumb-panel');
+        const divider = document.getElementById('divider');
+        const placeholder = document.getElementById('viewer-placeholder');
+        const loadingOverlay = document.getElementById('loading-overlay');
+        const folioInput = document.getElementById('folio-input');
+        const imageCounter = document.getElementById('image-counter');
+        const btnFirst = document.getElementById('btn-first');
+        const btnPrev = document.getElementById('btn-prev');
+        const btnNext = document.getElementById('btn-next');
+        const btnLast = document.getElementById('btn-last');
+        const btnFullscreen = document.getElementById('btn-fullscreen');
+
+        // =============================================
+        // INITIALIZATION
+        // =============================================
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            initOSD();
+            initDivider();
+            initNavigation();
+            initKeyboard();
+
+            // Load repositories from API
+            try {
+                const resp = await fetch(`${API_BASE}/repositories`);
+                repositories = await resp.json();
+                populateRepos();
+                repoSelect.addEventListener('change', handleRepoChange);
+                collectionSelect.addEventListener('change', handleCollectionChange);
+                msSelect.addEventListener('change', handleMsSelection);
+            } catch (e) {
+                console.error('Failed to load repositories:', e);
+            }
+
+            // Deep link support
+            const params = new URLSearchParams(window.location.search);
+            const msId = params.get('ms');
+            const manifestUrl = params.get('manifest');
+            if (msId) {
+                // Try to load from API directly
+                try {
+                    const resp = await fetch(`${API_BASE}/manuscripts/${msId}`);
+                    const ms = await resp.json();
+                    if (ms && !ms.error) {
+                        ms.repository = ms.repository_short || ms.repository_name || ms.repository;
+                        // Set selectors to match the manuscript
+                        if (ms.repository_id) {
+                            repoSelect.value = ms.repository_id;
+                            await handleRepoChange();
+                            if (ms.collection) {
+                                collectionSelect.value = ms.collection;
+                                await handleCollectionChange();
+                            }
+                            msSelect.value = msId;
+                        }
+                        selectManuscript(ms);
+                    }
+                } catch (e) {
+                    console.error('Failed to load manuscript by ID:', e);
+                }
+            } else if (manifestUrl) {
+                loadManifest(manifestUrl);
+            }
+        });
+
+        // =============================================
+        // OPENSEADRAGON SETUP
+        // =============================================
+
+        function initOSD() {
+            osdViewer = OpenSeadragon({
+                id: 'osd-viewer',
+                prefixUrl: OSD_PREFIX,
+                // Disable all default controls - we use custom overlay buttons
+                showNavigationControl: false,
+                showZoomControl: false,
+                showHomeControl: false,
+                showFullPageControl: false,
+                showRotationControl: false,
+                visibilityRatio: 0.5,
+                minZoomLevel: 0.5,
+                maxZoomLevel: 20,
+                zoomPerClick: 1.5,
+                zoomPerScroll: 1.2,
+                animationTime: 0.3,
+                gestureSettingsMouse: { scrollToZoom: true },
+                gestureSettingsTouch: { pinchToZoom: true },
+                crossOriginPolicy: 'Anonymous',
+                loadTilesWithAjax: false,
+                immediateRender: false,
+                background: '#141414',
+            });
+
+            // Loading events
+            osdViewer.addHandler('open', () => {
+                loadingOverlay.classList.add('hidden');
+            });
+            osdViewer.addHandler('open-failed', (event) => {
+                loadingOverlay.textContent = 'Failed to load image';
+                console.error('OSD open failed:', event);
+            });
+
+            // Wire custom overlay controls to OSD actions
+            document.getElementById('osd-zoom-in').addEventListener('click', () => {
+                osdViewer.viewport && osdViewer.viewport.zoomBy(1.4);
+            });
+            document.getElementById('osd-zoom-out').addEventListener('click', () => {
+                osdViewer.viewport && osdViewer.viewport.zoomBy(0.7);
+            });
+            document.getElementById('osd-home').addEventListener('click', () => {
+                osdViewer.viewport && osdViewer.viewport.goHome();
+            });
+            document.getElementById('osd-rotate').addEventListener('click', () => {
+                if (osdViewer.viewport) {
+                    const current = osdViewer.viewport.getRotation();
+                    osdViewer.viewport.setRotation(current + 90);
+                }
+            });
+        }
+
+        // =============================================
+        // IIIF MANIFEST PARSING
+        // =============================================
+
+        /**
+         * Parse a IIIF Presentation API manifest (v2 or v3) into a
+         * normalized list of canvas objects.
+         */
+        function parseManifest(manifest) {
+            const result = [];
+
+            // IIIF Presentation API v3
+            if (manifest.type === 'Manifest' && manifest.items) {
+                for (const canvas of manifest.items) {
+                    if (canvas.type !== 'Canvas') continue;
+                    const label = extractLabel(canvas.label);
+                    let imageService = null;
+                    let imageUrl = null;
+                    let thumbnailUrl = null;
+
+                    // Navigate annotation structure: items[0].items[0].body
+                    const body = canvas.items?.[0]?.items?.[0]?.body;
+                    if (body) {
+                        imageUrl = body.id;
+                        if (body.service) {
+                            const svc = Array.isArray(body.service) ? body.service[0] : body.service;
+                            imageService = svc.id || svc['@id'];
+                        }
+                    }
+
+                    // Thumbnail
+                    if (canvas.thumbnail) {
+                        const thumb = Array.isArray(canvas.thumbnail) ? canvas.thumbnail[0] : canvas.thumbnail;
+                        thumbnailUrl = thumb.id || thumb['@id'];
+                    }
+                    if (!thumbnailUrl && imageService) {
+                        thumbnailUrl = imageService + '/full/,150/0/default.jpg';
+                    }
+
+                    result.push({ label, imageService, imageUrl, thumbnailUrl });
+                }
+            }
+            // IIIF Presentation API v2
+            else if (manifest.sequences) {
+                const sequence = manifest.sequences[0];
+                for (const canvas of (sequence.canvases || [])) {
+                    const label = extractLabel(canvas.label);
+                    let imageService = null;
+                    let imageUrl = null;
+                    let thumbnailUrl = null;
+
+                    const resource = canvas.images?.[0]?.resource;
+                    if (resource) {
+                        imageUrl = resource['@id'];
+                        if (resource.service) {
+                            const svc = Array.isArray(resource.service) ? resource.service[0] : resource.service;
+                            imageService = svc['@id'] || svc.id;
+                        }
+                    }
+
+                    // Thumbnail
+                    if (canvas.thumbnail) {
+                        thumbnailUrl = typeof canvas.thumbnail === 'string'
+                            ? canvas.thumbnail
+                            : canvas.thumbnail['@id'] || canvas.thumbnail.id;
+                    }
+                    if (!thumbnailUrl && imageService) {
+                        thumbnailUrl = imageService + '/full/,150/0/default.jpg';
+                    }
+
+                    result.push({ label, imageService, imageUrl, thumbnailUrl });
+                }
+            }
+
+            return result;
+        }
+
+        /**
+         * Extract a human-readable label from IIIF label formats.
+         * Handles: plain string, {"@value": "..."}, {"en": ["..."]}, etc.
+         */
+        function extractLabel(label) {
+            if (!label) return '';
+            if (typeof label === 'string') return label;
+            if (label['@value']) return label['@value'];
+            // v3: { "en": ["fol. 1r"] }
+            const values = Object.values(label);
+            if (values.length > 0 && Array.isArray(values[0]) && values[0].length > 0) {
+                return values[0][0];
+            }
+            return '';
+        }
+
+        // =============================================
+        // MANIFEST LOADING
+        // =============================================
+
+        async function loadManifest(url) {
+            placeholder.classList.add('hidden');
+            loadingOverlay.textContent = 'Loading manifest...';
+            loadingOverlay.classList.remove('hidden');
+
+            try {
+                const resp = await fetch(url);
+                if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                const manifest = await resp.json();
+
+                canvases = parseManifest(manifest);
+                if (canvases.length === 0) {
+                    loadingOverlay.textContent = 'No images found in manifest';
+                    return;
+                }
+
+                currentIndex = 0;
+                buildThumbnails();
+                enableNavControls();
+                showCanvas(0);
+
+            } catch (e) {
+                console.error('Failed to load manifest:', e);
+                loadingOverlay.textContent = 'Failed to load manifest: ' + e.message;
+            }
+        }
+
+        // =============================================
+        // CANVAS DISPLAY
+        // =============================================
+
+        function showCanvas(index) {
+            if (index < 0 || index >= canvases.length) return;
+            currentIndex = index;
+            const canvas = canvases[index];
+
+            loadingOverlay.textContent = 'Loading image...';
+            loadingOverlay.classList.remove('hidden');
+
+            // Build tile source for OSD
+            let tileSource;
+            if (canvas.imageService) {
+                // Normalize: strip trailing slash, append /info.json
+                let svcUrl = canvas.imageService.replace(/\/+$/, '');
+                tileSource = svcUrl + '/info.json';
+            } else if (canvas.imageUrl) {
+                tileSource = { type: 'image', url: canvas.imageUrl };
+            } else {
+                loadingOverlay.textContent = 'No image available for this page';
+                return;
+            }
+
+            osdViewer.open(tileSource);
+            updateNavState();
+            updateThumbnailSelection();
+        }
+
+        // =============================================
+        // THUMBNAIL SIDEBAR
+        // =============================================
+
+        function buildThumbnails() {
+            thumbGrid.innerHTML = '';
+
+            canvases.forEach((canvas, i) => {
+                const item = document.createElement('div');
+                item.className = 'thumb-item';
+                item.dataset.index = i;
+
+                const img = document.createElement('img');
+                img.loading = 'lazy';
+                img.alt = canvas.label || `Page ${i + 1}`;
+                // Use a transparent placeholder until real thumbnail loads
+                img.src = 'data:image/svg+xml,' + encodeURIComponent(
+                    '<svg xmlns="http://www.w3.org/2000/svg" width="80" height="107" fill="%232a2a2a"><rect width="80" height="107"/></svg>'
+                );
+                if (canvas.thumbnailUrl) {
+                    // Set real source after placeholder
+                    const realSrc = canvas.thumbnailUrl;
+                    img.onload = null;
+                    img.onerror = () => { /* keep placeholder */ };
+                    // Defer to allow layout to settle
+                    requestAnimationFrame(() => { img.src = realSrc; });
+                }
+
+                const label = document.createElement('div');
+                label.className = 'thumb-label';
+                label.textContent = canvas.label || `${i + 1}`;
+                label.title = canvas.label || `Page ${i + 1}`;
+
+                item.appendChild(img);
+                item.appendChild(label);
+
+                item.addEventListener('click', () => {
+                    showCanvas(i);
+                });
+
+                thumbGrid.appendChild(item);
+            });
+        }
+
+        function updateThumbnailSelection() {
+            const items = thumbGrid.querySelectorAll('.thumb-item');
+            items.forEach((item, i) => {
+                item.classList.toggle('active', i === currentIndex);
+            });
+
+            // Scroll active thumbnail into view
+            const active = thumbGrid.querySelector('.thumb-item.active');
+            if (active) {
+                active.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            }
+        }
+
+        // =============================================
+        // NAVIGATION
+        // =============================================
+
+        function initNavigation() {
+            btnFirst.addEventListener('click', () => showCanvas(0));
+            btnPrev.addEventListener('click', () => showCanvas(currentIndex - 1));
+            btnNext.addEventListener('click', () => showCanvas(currentIndex + 1));
+            btnLast.addEventListener('click', () => showCanvas(canvases.length - 1));
+
+            // Folio input: jump to matching canvas on Enter
+            folioInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    jumpToFolio(folioInput.value.trim());
+                }
+            });
+
+            // Fullscreen
+            btnFullscreen.addEventListener('click', toggleFullscreen);
+        }
+
+        function enableNavControls() {
+            folioInput.disabled = false;
+        }
+
+        function updateNavState() {
+            const n = canvases.length;
+            const i = currentIndex;
+
+            btnFirst.disabled = (i <= 0);
+            btnPrev.disabled = (i <= 0);
+            btnNext.disabled = (i >= n - 1);
+            btnLast.disabled = (i >= n - 1);
+
+            imageCounter.textContent = `Image ${i + 1} of ${n}`;
+            folioInput.value = canvases[i]?.label || '';
+        }
+
+        function jumpToFolio(query) {
+            if (!query || canvases.length === 0) return;
+            const q = query.toLowerCase();
+
+            // Try exact match first
+            let idx = canvases.findIndex(c => (c.label || '').toLowerCase() === q);
+            // Try contains match
+            if (idx < 0) {
+                idx = canvases.findIndex(c => (c.label || '').toLowerCase().includes(q));
+            }
+            // Try numeric: "5" → canvas index 4
+            if (idx < 0) {
+                const num = parseInt(query, 10);
+                if (!isNaN(num) && num >= 1 && num <= canvases.length) {
+                    idx = num - 1;
+                }
+            }
+
+            if (idx >= 0) {
+                showCanvas(idx);
+            } else {
+                // Flash the input to indicate no match
+                folioInput.style.borderColor = '#c9917a';
+                setTimeout(() => { folioInput.style.borderColor = ''; }, 800);
+            }
+        }
+
+        function toggleFullscreen() {
+            const el = document.documentElement;
+            if (!document.fullscreenElement) {
+                el.requestFullscreen?.() || el.webkitRequestFullscreen?.();
+            } else {
+                document.exitFullscreen?.() || document.webkitExitFullscreen?.();
+            }
+        }
+
+        // =============================================
+        // KEYBOARD SHORTCUTS
+        // =============================================
+
+        function initKeyboard() {
+            document.addEventListener('keydown', (e) => {
+                // Don't intercept when typing in inputs
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') {
+                    return;
+                }
+                if (canvases.length === 0) return;
+
+                switch (e.key) {
+                    case 'ArrowLeft':
+                        e.preventDefault();
+                        showCanvas(currentIndex - 1);
+                        break;
+                    case 'ArrowRight':
+                        e.preventDefault();
+                        showCanvas(currentIndex + 1);
+                        break;
+                    case 'Home':
+                        e.preventDefault();
+                        showCanvas(0);
+                        break;
+                    case 'End':
+                        e.preventDefault();
+                        showCanvas(canvases.length - 1);
+                        break;
+                    case 'f':
+                        e.preventDefault();
+                        toggleFullscreen();
+                        break;
+                }
+            });
+        }
+
+        // =============================================
+        // RESIZABLE DIVIDER
+        // =============================================
+
+        function initDivider() {
+            let isDragging = false;
+
+            divider.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                divider.classList.add('dragging');
+                document.body.classList.add('dragging');
+                e.preventDefault();
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                const bodyRect = document.getElementById('viewer-body').getBoundingClientRect();
+                const metaSidebar = document.getElementById('meta-sidebar');
+                const metaWidth = metaSidebar.getBoundingClientRect().width;
+                // thumbPanel left edge = bodyRect.left + metaWidth
+                const thumbLeft = bodyRect.left + metaWidth;
+                const newWidth = Math.max(90, Math.min(400, e.clientX - thumbLeft));
+                thumbPanel.style.width = newWidth + 'px';
+            });
+
+            document.addEventListener('mouseup', () => {
+                if (isDragging) {
+                    isDragging = false;
+                    divider.classList.remove('dragging');
+                    document.body.classList.remove('dragging');
+                }
+            });
+
+            // Touch support
+            divider.addEventListener('touchstart', (e) => {
+                isDragging = true;
+                divider.classList.add('dragging');
+                document.body.classList.add('dragging');
+                e.preventDefault();
+            }, { passive: false });
+
+            document.addEventListener('touchmove', (e) => {
+                if (!isDragging) return;
+                const touch = e.touches[0];
+                const bodyRect = document.getElementById('viewer-body').getBoundingClientRect();
+                const metaSidebar = document.getElementById('meta-sidebar');
+                const metaWidth = metaSidebar.getBoundingClientRect().width;
+                const thumbLeft = bodyRect.left + metaWidth;
+                const newWidth = Math.max(90, Math.min(400, touch.clientX - thumbLeft));
+                thumbPanel.style.width = newWidth + 'px';
+            }, { passive: true });
+
+            document.addEventListener('touchend', () => {
+                if (isDragging) {
+                    isDragging = false;
+                    divider.classList.remove('dragging');
+                    document.body.classList.remove('dragging');
+                }
+            });
+        }
+
+        // =============================================
+        // MANUSCRIPT SELECTOR
+        // =============================================
+
+        function populateRepos() {
+            repoSelect.innerHTML = '<option value="">-- Select repository --</option>';
+            repositories.sort((a, b) => a.name.localeCompare(b.name)).forEach(r => {
+                const opt = document.createElement('option');
+                opt.value = r.id;
+                opt.textContent = `${r.short_name || r.name} (${r.manuscript_count})`;
+                repoSelect.appendChild(opt);
+            });
+        }
+
+        async function handleRepoChange() {
+            const repoId = repoSelect.value;
+            currentRepoId = repoId;
+            currentCollection = null;
+
+            // Reset dependent dropdowns
+            collectionSelect.innerHTML = '<option value="">-- Select collection --</option>';
+            collectionSelect.disabled = true;
+            msSelect.innerHTML = '<option value="">-- Select manuscript --</option>';
+            msSelect.disabled = true;
+            msCount.textContent = '';
+
+            if (!repoId) return;
+
+            // Load collections for this repository
+            try {
+                const resp = await fetch(`${API_BASE}/repositories/${repoId}`);
+                const repo = await resp.json();
+                if (repo.collections && repo.collections.length > 0) {
+                    repo.collections.forEach(c => {
+                        const opt = document.createElement('option');
+                        opt.value = c.name;
+                        opt.textContent = `${c.name} (${c.count})`;
+                        collectionSelect.appendChild(opt);
+                    });
+                    collectionSelect.disabled = false;
+                }
+            } catch (e) {
+                console.error('Failed to load repository details:', e);
+            }
+        }
+
+        async function handleCollectionChange() {
+            const collection = collectionSelect.value;
+            currentCollection = collection;
+
+            // Reset manuscript dropdown
+            msSelect.innerHTML = '<option value="">-- Select manuscript --</option>';
+            msSelect.disabled = true;
+            msCount.textContent = '';
+
+            if (!collection || !currentRepoId) return;
+
+            // Load manuscripts for this repository + collection
+            try {
+                const resp = await fetch(`${API_BASE}/manuscripts?repository_id=${currentRepoId}&collection=${encodeURIComponent(collection)}&limit=200`);
+                const data = await resp.json();
+                const manuscripts = (data.manuscripts || []).filter(m => m.iiif_manifest_url);
+
+                manuscripts.sort((a, b) => (a.shelfmark || '').localeCompare(b.shelfmark || '')).forEach(ms => {
+                    const opt = document.createElement('option');
+                    opt.value = ms.id;
+                    opt.textContent = `${ms.shelfmark || 'MS ' + ms.id}${ms.date_display ? ' (' + ms.date_display + ')' : ''}`;
+                    msSelect.appendChild(opt);
+                });
+                msSelect.disabled = false;
+                msCount.textContent = `(${manuscripts.length} viewable)`;
+            } catch (e) {
+                console.error('Failed to load manuscripts:', e);
+            }
+        }
+
+        async function handleMsSelection() {
+            const id = msSelect.value;
+            if (!id) return;
+
+            try {
+                const resp = await fetch(`${API_BASE}/manuscripts/${id}`);
+                const ms = await resp.json();
+                if (ms && !ms.error) {
+                    ms.repository = ms.repository_short || ms.repository_name || ms.repository;
+                    selectManuscript(ms);
+                }
+            } catch (e) {
+                console.error('Failed to load manuscript:', e);
+            }
+        }
+
+        async function selectManuscript(ms) {
+            currentManuscript = ms;
+            renderMetadata(ms);
+
+            if (ms.iiif_manifest_url) {
+                await loadManifest(ms.iiif_manifest_url);
+                updateUrl(ms.id);
+            }
+        }
+
+        // =============================================
+        // METADATA PANEL
+        // =============================================
+
+        function renderMetadata(ms) {
+            if (!ms) {
+                metaContent.innerHTML = '<p class="meta-placeholder">Select a manuscript to view details.</p>';
+                return;
+            }
+
+            let html = `<h3>${esc(ms.shelfmark || '')}</h3>`;
+            if (ms.repository) html += `<p class="meta-repo">${esc(ms.repository)}</p>`;
+            if (ms.date_display) html += `<p class="meta-date">${esc(ms.date_display)}</p>`;
+
+            if (ms.language || ms.folios) {
+                html += `<details class="meta-section" open>
+                    <summary>Physical</summary>
+                    <dl class="meta-list">
+                        ${ms.language ? `<dt>Language</dt><dd>${esc(ms.language)}</dd>` : ''}
+                        ${ms.folios ? `<dt>Folios</dt><dd>${esc(ms.folios)}</dd>` : ''}
+                    </dl>
+                </details>`;
+            }
+
+            if (ms.contents) {
+                html += `<details class="meta-section">
+                    <summary>Contents</summary>
+                    <p class="meta-text">${esc(ms.contents)}</p>
+                </details>`;
+            }
+
+            if (ms.provenance) {
+                html += `<details class="meta-section">
+                    <summary>Provenance</summary>
+                    <p class="meta-text">${esc(ms.provenance)}</p>
+                </details>`;
+            }
+
+            if (ms.source_url) {
+                html += `<a href="${esc(ms.source_url)}" class="source-link" target="_blank">View at Source</a>`;
+            }
+
+            metaContent.innerHTML = html;
+        }
+
+        // =============================================
+        // URL MANAGEMENT
+        // =============================================
+
+        function updateUrl(msId) {
+            const url = new URL(window.location);
+            url.searchParams.delete('manifest');
+            url.searchParams.delete('ms');
+            if (msId) url.searchParams.set('ms', msId);
+            if (currentIndex > 0) url.searchParams.set('canvas', currentIndex);
+            window.history.replaceState({}, '', url);
+        }
+
+        // =============================================
+        // UTILITIES
+        // =============================================
+
+        function esc(text) {
+            if (!text) return '';
+            const d = document.createElement('div');
+            d.textContent = text;
+            return d.innerHTML;
+        }
+
+    })();
+    </script>
+</body>
+</html>

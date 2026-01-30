@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browse - Compilatio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><a href="index.html">Compilatio</a></h1>
+            <p class="subtitle">Medieval Manuscript Aggregator</p>
+        </header>
+
+        <main>
+            <!-- Breadcrumb Navigation -->
+            <nav class="breadcrumb" id="breadcrumb">
+                <a href="index.html">Home</a>
+                <span class="breadcrumb-separator">/</span>
+                <span>Browse</span>
+            </nav>
+
+            <!-- Browse Header -->
+            <div class="browse-header">
+                <h2 class="browse-title" id="browse-title">Repositories</h2>
+                <p class="browse-subtitle" id="browse-subtitle">Select a repository to explore its collections</p>
+            </div>
+
+            <!-- Content Area - dynamically populated -->
+            <div id="browse-content">
+                <div class="loading">
+                    <div class="loading-spinner"></div>
+                    <p>Loading...</p>
+                </div>
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination hidden" id="pagination">
+                <button class="pagination-btn" id="prev-btn" disabled>&larr; Previous</button>
+                <span class="pagination-info" id="pagination-info"></span>
+                <button class="pagination-btn" id="next-btn">Next &rarr;</button>
+            </div>
+        </main>
+
+        <footer class="site-footer">
+            <p class="footer-text">Bringing together medieval manuscripts made available through IIIF, partly for convenience and partly as a proof of concept. </p>
+            <p class="footer-text">All images and data are owned by the institutions that make it available. </p>
+            <p class="footer-text">Developed by <a href="https://english.ucla.edu/people-faculty/matthew%E2%80%A8-fisher/" target="_blank" rel="noopener">Matthew Fisher</a>, Department of English, UCLA.</p>
+        </footer>
+    </div>
+    <script src="js/browse.js"></script>
+</body>
+</html>

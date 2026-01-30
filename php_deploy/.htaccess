@@ -1,0 +1,32 @@
+# Compilatio .htaccess
+# URL rewriting for clean API URLs
+
+RewriteEngine On
+
+# Prevent direct access to config file
+<Files "config.php">
+    Order Allow,Deny
+    Deny from all
+</Files>
+
+# API URL Rewriting
+# /api/repositories -> api/index.php?action=repositories
+RewriteRule ^api/repositories$ api/index.php?action=repositories [L,QSA]
+
+# /api/repositories/123 -> api/index.php?action=repository&id=123
+RewriteRule ^api/repositories/([0-9]+)$ api/index.php?action=repository&id=$1 [L,QSA]
+
+# /api/manuscripts -> api/index.php?action=manuscripts
+RewriteRule ^api/manuscripts$ api/index.php?action=manuscripts [L,QSA]
+
+# /api/manuscripts/123 -> api/index.php?action=manuscript&id=$1
+RewriteRule ^api/manuscripts/([0-9]+)$ api/index.php?action=manuscript&id=$1 [L,QSA]
+
+# /api/featured -> api/index.php?action=featured
+RewriteRule ^api/featured$ api/index.php?action=featured [L,QSA]
+
+# Prevent directory listing
+Options -Indexes
+
+# Default charset
+AddDefaultCharset UTF-8
