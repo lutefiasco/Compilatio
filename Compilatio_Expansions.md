@@ -1,0 +1,770 @@
+# Compilatio Repository Expansion Plan
+
+This document provides a robust, repeatable process for adding new repositories to Compilatio. It covers exploration, import script development, testing, and database synchronization to production.
+
+---
+
+## Table of Contents
+
+1. [Overview](#overview)
+2. [Repository Exploration Process](#repository-exploration-process)
+3. [Import Script Development](#import-script-development)
+4. [Testing and Validation](#testing-and-validation)
+5. [Database Synchronization](#database-synchronization)
+6. [Priority Repositories](#priority-repositories)
+
+---
+
+## Overview
+
+### Current State
+
+| Repository | Manuscripts | Import Method |
+|------------|-------------|---------------|
+| Bodleian Library | 1,713 | TEI/XML parsing from git clone |
+| Cambridge University Library | 304 | IIIF collection crawl |
+| Durham University Library | 287 | IIIF collection tree |
+| National Library of Wales | 249 | crawl4ai + IIIF manifests |
+| Huntington Library | 190 | CONTENTdm API + IIIF |
+| British Library | 178 | Playwright + HTML scraping |
+| UCLA | 115 | Direct IIIF |
+| National Library of Scotland | 104 | IIIF collection tree |
+| Lambeth Palace Library | 2 | CUDL IIIF subset |
+| **Total** | **3,142** | |
+
+### Import Methods Overview
+
+| Method | When to Use | Dependencies |
+|--------|-------------|--------------|
+| **IIIF Collection** | Repository publishes IIIF collection manifest | Standard library only |
+| **API + IIIF** | Repository has search API (CONTENTdm, Blacklight, etc.) | Standard library only |
+| **crawl4ai** | JavaScript-rendered pages with bot protection, CAPTCHA sites | Python 3.12, crawl4ai |
+| **Playwright** | Heavy JavaScript without bot protection | Playwright, beautifulsoup4 |
+| **TEI/XML** | Repository publishes TEI catalog data | lxml or standard library |
+| **Manual + IIIF** | Aggressive bot protection blocks all automation | Standard library only |
+
+### Choosing Between crawl4ai and Playwright
+
+**Prefer crawl4ai** for sites with:
+- Cloudflare protection
+- CAPTCHA challenges
+- Bot detection (e.g., Akamai, PerimeterX)
+- Rate limiting based on browser fingerprinting
+
+crawl4ai includes anti-detection features that Playwright lacks. Use the Python 3.12 venv:
+```bash
+source .venv-crawl4ai/bin/activate
+```
+
+**Use Playwright** only for:
+- Simple JavaScript-rendered pages without bot protection
+- Sites where crawl4ai fails for other reasons
+
+**Fallback to Manual** when:
+- Even crawl4ai is blocked (e.g., Stanford Parker Library)
+- Site requires human verification
+- No API alternatives exist
+
+---
+
+## Repository Exploration Process
+
+Before writing any code, explore the target repository to understand its technical infrastructure.
+
+### Phase 1: Initial Assessment
+
+Use a subagent to investigate the repository. Key questions:
+
+1. **Does it have IIIF support?**
+   - Look for IIIF logo/links on viewer pages
+   - Check if manifests are accessible (usually `/iiif/` or `/manifest.json` in URLs)
+   - Search for IIIF collection endpoints
+
+2. **Is there an API?**
+   - Look for `/api/`, `/search/`, or query parameters in URLs
+   - Check for Blacklight, CONTENTdm, Luna, or other known platforms
+   - Inspect network requests in browser developer tools
+
+3. **What catalog metadata is available?**
+   - Shelfmarks/call numbers
+   - Dates
+   - Contents/titles
+   - Provenance
+   - Language
+
+4. **Are there access restrictions?**
+   - Rate limiting
+   - Authentication requirements
+   - CAPTCHA/bot protection
+
+### Phase 2: Technical Deep Dive
+
+Once the basic structure is understood, gather specifics:
+
+```markdown
+## [Repository Name] Technical Assessment
+
+### Platform
+- [ ] Blacklight (Ruby)
+- [ ] CONTENTdm
+- [ ] Luna Imaging
+- [ ] Custom platform
+- [ ] Spotlight Exhibits (Stanford)
+
+### IIIF Support
+- [ ] Presentation API v2
+- [ ] Presentation API v3
+- [ ] Image API
+- Collection manifest URL: _______________
+- Manifest URL pattern: _______________
+
+### API Endpoints
+- Search: _______________
+- Item details: _______________
+- Collection listing: _______________
+
+### Metadata Mapping
+| Field | Source Label | IIIF metadata key |
+|-------|--------------|-------------------|
+| shelfmark | | |
+| date_display | | |
+| contents | | |
+| language | | |
+| provenance | | |
+
+### Technical Notes
+- Rate limiting observed: _______________
+- JavaScript required: Yes / No
+- Pagination method: _______________
+- Total manuscripts estimated: _______________
+```
+
+### Exploration Subagent Prompt Template
+
+```
+Explore [Repository Name] at [URL] for IIIF manuscript integration.
+
+Tasks:
+1. Identify the catalog platform (Blacklight, CONTENTdm, etc.)
+2. Find IIIF endpoints:
+   - Collection manifest URLs
+   - Individual manifest URL patterns
+3. Document available metadata fields
+4. Check for API endpoints or search functionality
+5. Note any access restrictions or rate limiting
+6. Estimate total manuscript count
+
+Return a technical assessment with:
+- Platform identification
+- IIIF support details
+- API endpoints found
+- Metadata field mapping
+- Recommended import approach
+```
+
+---
+
+## Import Script Development
+
+### Standard Script Structure
+
+All importers follow a consistent pattern. Create new scripts in `scripts/importers/`:
+
+```python
+#!/usr/bin/env python3
+"""
+[Repository Name] Manuscript Import Script for Compilatio.
+
+[Brief description of data source and import method]
+
+Usage:
+    python scripts/importers/[repo].py                    # Dry-run mode
+    python scripts/importers/[repo].py --execute          # Actually import
+    python scripts/importers/[repo].py --test             # First 5 only
+    python scripts/importers/[repo].py --verbose          # Detailed logging
+"""
+
+import argparse
+import json
+import logging
+import re
+import sqlite3
+import sys
+import time
+from pathlib import Path
+from typing import Optional
+
+# Project paths
+PROJECT_ROOT = Path(__file__).parent.parent.parent
+DB_PATH = PROJECT_ROOT / "database" / "compilatio.db"
+
+# Repository-specific constants
+REPO_NAME = "[Full Repository Name]"
+REPO_SHORT = "[Short Code]"
+COLLECTION_URL = "[IIIF collection or API endpoint]"
+VIEWER_BASE = "[Base URL for source links]"
+
+# Rate limiting
+REQUEST_DELAY = 0.5  # seconds between requests
+
+# Logging setup
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s %(levelname)s: %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+USER_AGENT = "Compilatio/1.0 (Academic manuscript research; IIIF aggregator)"
+```
+
+### Required Functions
+
+Every importer must implement:
+
+```python
+def fetch_json(url: str) -> Optional[dict]:
+    """Fetch URL and parse as JSON with error handling."""
+    pass
+
+def discover_manuscripts() -> list[dict]:
+    """Phase 1: Get list of manuscript items to import."""
+    pass
+
+def parse_manifest(manifest_data: dict, manifest_url: str) -> Optional[dict]:
+    """Phase 2: Parse IIIF manifest into database record."""
+    pass
+
+def ensure_repository(cursor) -> int:
+    """Create or get repository ID in database."""
+    pass
+
+def manuscript_exists(cursor, shelfmark: str, repo_id: int) -> Optional[int]:
+    """Check if manuscript already exists."""
+    pass
+
+def import_[repo](db_path, dry_run=True, test_mode=False, verbose=False):
+    """Main import function."""
+    pass
+
+def main():
+    """CLI entry point."""
+    pass
+```
+
+### Database Record Fields
+
+Each manuscript record must include:
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `shelfmark` | Yes | Unique identifier within repository |
+| `collection` | No | Sub-collection grouping |
+| `iiif_manifest_url` | Yes | Full URL to IIIF manifest |
+| `thumbnail_url` | No | URL to thumbnail image |
+| `source_url` | No | Link to original catalog page |
+| `date_display` | No | Human-readable date string |
+| `date_start` | No | Start year as integer |
+| `date_end` | No | End year as integer |
+| `contents` | No | Title or contents description |
+| `language` | No | Language(s) |
+| `provenance` | No | Origin/provenance notes |
+| `folios` | No | Physical extent |
+| `image_count` | No | Number of pages/images |
+
+### CLI Arguments
+
+Standard arguments for all importers:
+
+```python
+parser.add_argument('--execute', action='store_true',
+    help='Actually execute the import (default is dry-run)')
+parser.add_argument('--test', action='store_true',
+    help='Test mode: limit to first 5 manuscripts')
+parser.add_argument('--verbose', '-v', action='store_true',
+    help='Show detailed logging')
+parser.add_argument('--db', type=Path, default=DB_PATH,
+    help='Path to database')
+parser.add_argument('--limit', type=int, default=None,
+    help='Limit number of manuscripts to process')
+```
+
+Optional arguments for specific needs:
+
+```python
+# For multi-collection repositories
+parser.add_argument('--collection', '-c', type=str,
+    help='Specific collection to import')
+
+# For checkpoint/resume support
+parser.add_argument('--resume', action='store_true',
+    help='Resume from last checkpoint')
+parser.add_argument('--discover-only', action='store_true',
+    help='Only run discovery phase')
+parser.add_argument('--skip-discovery', action='store_true',
+    help='Use cached discovery data')
+```
+
+---
+
+## Testing and Validation
+
+### Test Workflow
+
+1. **Dry run first** (always):
+   ```bash
+   python scripts/importers/[repo].py
+   ```
+
+2. **Test mode** (first 5):
+   ```bash
+   python scripts/importers/[repo].py --test --verbose
+   ```
+
+3. **Limited run** (verify at scale):
+   ```bash
+   python scripts/importers/[repo].py --limit 50 --verbose
+   ```
+
+4. **Full dry run** (verify all records):
+   ```bash
+   python scripts/importers/[repo].py --verbose
+   ```
+
+5. **Execute** (write to database):
+   ```bash
+   python scripts/importers/[repo].py --execute
+   ```
+
+### Validation Checklist
+
+Before considering an import complete:
+
+- [ ] All expected manuscripts discovered
+- [ ] Shelfmarks are unique and correctly formatted
+- [ ] IIIF manifest URLs are valid and accessible
+- [ ] Thumbnail URLs load correctly
+- [ ] Source URLs link to correct catalog pages
+- [ ] Date parsing produces reasonable values
+- [ ] No duplicate records created
+- [ ] Collection groupings are sensible
+
+### Quick Database Checks
+
+```bash
+# Count by repository
+sqlite3 database/compilatio.db "SELECT r.short_name, COUNT(*)
+FROM manuscripts m
+JOIN repositories r ON m.repository_id = r.id
+GROUP BY r.id;"
+
+# Check for duplicate shelfmarks
+sqlite3 database/compilatio.db "SELECT shelfmark, COUNT(*) as cnt
+FROM manuscripts
+WHERE repository_id = [ID]
+GROUP BY shelfmark
+HAVING cnt > 1;"
+
+# Sample records from new repository
+sqlite3 database/compilatio.db -header "SELECT * FROM manuscripts
+WHERE repository_id = [ID]
+LIMIT 5;"
+```
+
+---
+
+## Database Synchronization
+
+### Architecture
+
+```
+┌─────────────────┐         ┌──────────────────┐         ┌─────────────────────────┐
+│   serving       │         │   laptop         │         │ oldbooks.humspace.ucla  │
+│   (primary)     │◄───────►│   (dev)          │────────►│ (production)            │
+│   SQLite        │  rsync  │   SQLite         │ export  │ MySQL                   │
+└─────────────────┘         └──────────────────┘         └─────────────────────────┘
+```
+
+### Step 1: Sync SQLite Between serving and laptop
+
+After running imports on serving:
+
+```bash
+# On laptop - pull latest database from serving
+rsync -avz serving:/Users/rabota/Geekery/Compilatio/database/compilatio.db ./database/
+
+# Or push laptop changes to serving
+rsync -avz ./database/compilatio.db serving:/Users/rabota/Geekery/Compilatio/database/
+```
+
+### Step 2: Export SQLite to MySQL Format
+
+Create export files for phpMyAdmin import:
+
+```bash
+cd /Users/rabota/Geekery/Compilatio
+
+# Create export directory
+mkdir -p mysql_export
+
+# Export repositories table
+sqlite3 database/compilatio.db ".mode insert repositories" \
+  ".output mysql_export/repositories.sql" \
+  "SELECT * FROM repositories;"
+
+# Export manuscripts table
+sqlite3 database/compilatio.db ".mode insert manuscripts" \
+  ".output mysql_export/manuscripts.sql" \
+  "SELECT * FROM manuscripts;"
+
+# Verify counts
+echo "Repositories: $(sqlite3 database/compilatio.db 'SELECT COUNT(*) FROM repositories;')"
+echo "Manuscripts: $(sqlite3 database/compilatio.db 'SELECT COUNT(*) FROM manuscripts;')"
+```
+
+### Step 3: Upload Export Files to oldbooks
+
+**Option A: FTP**
+
+1. Connect to `oldbooks.humspace.ucla.edu` with FTP client
+2. Upload `mysql_export/*.sql` to a working directory (e.g., `~/mysql_import/`)
+
+**Option B: cPanel File Manager**
+
+1. Log in to cPanel at `oldbooks.humspace.ucla.edu/cpanel`
+2. Open File Manager
+3. Navigate to home directory
+4. Create `mysql_import` folder
+5. Upload the SQL files
+
+**Option C: SCP (if SSH available)**
+
+```bash
+scp mysql_export/*.sql oldbooks:~/mysql_import/
+```
+
+### Step 4: Import to MySQL via phpMyAdmin
+
+1. Log in to cPanel → phpMyAdmin
+2. Select the `compilatio` database
+3. Go to the **SQL** tab
+
+**For full refresh** (recommended when adding new repositories):
+
+```sql
+-- Disable foreign key checks temporarily
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- Clear existing data
+TRUNCATE TABLE manuscripts;
+TRUNCATE TABLE repositories;
+
+-- Re-enable foreign key checks
+SET FOREIGN_KEY_CHECKS = 1;
+```
+
+4. Go to **Import** tab
+5. Import `repositories.sql` first
+6. Import `manuscripts.sql` second
+
+**For manuscript-only updates** (when repositories unchanged):
+
+```sql
+SET FOREIGN_KEY_CHECKS = 0;
+TRUNCATE TABLE manuscripts;
+SET FOREIGN_KEY_CHECKS = 1;
+```
+
+Then import only `manuscripts.sql`.
+
+### Step 5: Verify Import
+
+In phpMyAdmin SQL tab:
+
+```sql
+-- Check counts
+SELECT 'repositories' as tbl, COUNT(*) as cnt FROM repositories
+UNION ALL
+SELECT 'manuscripts', COUNT(*) FROM manuscripts;
+
+-- Verify new repository
+SELECT r.short_name, COUNT(*) as manuscripts
+FROM manuscripts m
+JOIN repositories r ON m.repository_id = r.id
+GROUP BY r.id
+ORDER BY manuscripts DESC;
+```
+
+### Automation Script
+
+Create `scripts/sync_to_production.sh`:
+
+```bash
+#!/bin/bash
+# Sync Compilatio database to oldbooks.humspace.ucla.edu
+# Run from project root after completing imports
+
+set -e
+
+echo "=== Compilatio Database Sync ==="
+
+# Export
+echo "Exporting SQLite to MySQL format..."
+mkdir -p mysql_export
+
+sqlite3 database/compilatio.db ".mode insert repositories" \
+  ".output mysql_export/repositories.sql" \
+  "SELECT * FROM repositories;"
+
+sqlite3 database/compilatio.db ".mode insert manuscripts" \
+  ".output mysql_export/manuscripts.sql" \
+  "SELECT * FROM manuscripts;"
+
+REPO_COUNT=$(sqlite3 database/compilatio.db "SELECT COUNT(*) FROM repositories;")
+MS_COUNT=$(sqlite3 database/compilatio.db "SELECT COUNT(*) FROM manuscripts;")
+
+echo "Exported: $REPO_COUNT repositories, $MS_COUNT manuscripts"
+echo "Files in mysql_export/"
+
+echo ""
+echo "=== Next Steps ==="
+echo "1. Upload mysql_export/*.sql to oldbooks via FTP or cPanel"
+echo "2. In phpMyAdmin, run:"
+echo "   SET FOREIGN_KEY_CHECKS = 0;"
+echo "   TRUNCATE TABLE manuscripts;"
+echo "   TRUNCATE TABLE repositories;"
+echo "   SET FOREIGN_KEY_CHECKS = 1;"
+echo "3. Import repositories.sql first, then manuscripts.sql"
+echo "4. Verify counts match: $REPO_COUNT repos, $MS_COUNT manuscripts"
+```
+
+---
+
+## Priority Repositories
+
+### 1. Parker Library (Corpus Christi College, Cambridge)
+
+**Status:** High Priority - Blocked by Bot Protection
+
+**Technical Details:**
+- **Platform:** Stanford Spotlight Exhibits (Blacklight)
+- **Collection:** 538-560 medieval manuscripts (per M.R. James catalog)
+- **IIIF Support:** Yes, via Stanford PURL service
+- **Manifest URL Pattern:** `https://purl.stanford.edu/{druid}/iiif/manifest`
+- **Alternative Pattern:** `https://dms-data.stanford.edu/data/manifests/Parker/{druid}/manifest.json`
+- **Website:** [parker.stanford.edu](https://parker.stanford.edu/parker/)
+- **Bot Protection:** Aggressive (blocks Playwright, crawl4ai, and direct requests)
+
+**Known Druids (from page metadata):**
+- `nm203xw8381` - MS 2I (Bury Bible)
+- `wz026zp2442` - MS 001
+
+**Key Resources:**
+- [Parker Library IIIF on Biblissima](https://iiif.biblissima.fr/collections/) - has indexed Parker manuscripts
+- [M.R. James Catalog (1909-1912)](https://parker.stanford.edu/parker/about/corpus-christi-college-manuscript-catalogues) - 538 items
+- IIIF manifests accessible via PURL once druid is known
+
+**Blocking Issue:**
+Stanford's bot protection (Akamai-style) blocks all automated access:
+- parker.stanford.edu returns "Traffic control and bot detection" to headless browsers
+- SearchWorks also blocked
+- Even crawl4ai with anti-detection features is blocked
+
+**Workaround: Manual HTML Download**
+
+Since all automated access is blocked, manually save page source from browser:
+
+1. Open each browse page (6 pages total at 96 per page):
+   ```
+   https://parker.stanford.edu/parker/browse/browse-by-manuscript-number?per_page=96
+   https://parker.stanford.edu/parker/browse/browse-by-manuscript-number?per_page=96&page=2
+   https://parker.stanford.edu/parker/browse/browse-by-manuscript-number?per_page=96&page=3
+   https://parker.stanford.edu/parker/browse/browse-by-manuscript-number?per_page=96&page=4
+   https://parker.stanford.edu/parker/browse/browse-by-manuscript-number?per_page=96&page=5
+   https://parker.stanford.edu/parker/browse/browse-by-manuscript-number?per_page=96&page=6
+   ```
+
+2. View Source (Cmd+Option+U) → Save As:
+   ```
+   data/parker_html/page1.html
+   data/parker_html/page2.html
+   ... through page6.html
+   ```
+
+3. Commit to git and push
+
+4. Parse with importer:
+   ```bash
+   python scripts/importers/parker.py --from-html data/parker_html/ --discover-only
+   python scripts/importers/parker.py --skip-discovery --execute
+   ```
+
+**Key HTML elements:**
+- `div.document-thumbnail.mb-2` contains manifest links
+- Druids visible in catalog URLs: `/catalog/{druid}`
+- Shelfmarks in link text: "MS ###"
+
+**Import Script:** `scripts/importers/parker.py` (supports `--from-html` mode)
+
+**Next Steps:**
+1. Download 6 HTML pages manually on laptop
+2. Push to git
+3. Run importer with `--from-html` to extract druids
+4. IIIF manifest fetching works fine (not blocked)
+
+**Estimated Manuscripts:** 538-560
+
+### 2. John Rylands Library (University of Manchester)
+
+**Status:** High Priority - Second Target
+
+**Technical Details:**
+- **Collection:** Major medieval manuscript collection
+- **Website:** [luna.manchester.ac.uk](https://luna.manchester.ac.uk/) / [digitalcollections.manchester.ac.uk](https://www.digitalcollections.manchester.ac.uk/)
+- **Platform:** Luna Imaging / Digital Collections
+
+**Exploration Needed:**
+- IIIF manifest availability
+- Luna API endpoints
+- Metadata field mapping
+- Medieval manuscript scope
+
+**Notable Holdings:**
+- Crawford Collection of medieval manuscripts
+- Latin, Greek, and vernacular manuscripts
+- Significant Anglo-Saxon and Middle English texts
+
+### 3. Trinity College Dublin
+
+**Status:** Candidate
+
+**Technical Details:**
+- **Collection:** Digital Collections including Book of Kells
+- **Website:** [digitalcollections.tcd.ie](https://digitalcollections.tcd.ie/)
+- **Platform:** Custom/Luna
+
+**Exploration Needed:**
+- IIIF support confirmation
+- API availability
+- Manuscript scope vs. all collections
+
+### 4. Bibliothèque nationale de France (Gallica)
+
+**Status:** Future Consideration
+
+**Technical Details:**
+- **Collection:** Massive digitized manuscript collection
+- **IIIF:** Yes, extensive support
+- **API:** IIIF and SRU/OAI-PMH
+
+**Note:** Very large collection, would need scoping to medieval manuscripts only.
+
+### 5. e-codices (Virtual Manuscript Library of Switzerland)
+
+**Status:** Future Consideration
+
+**Technical Details:**
+- **Collection:** Swiss manuscript libraries
+- **IIIF:** Full support
+- **API:** IIIF collection endpoints
+
+---
+
+## Workflow Summary
+
+### Adding a New Repository (Subagent-Driven)
+
+1. **Exploration Phase** (use Explore subagent)
+   - Investigate repository website
+   - Document IIIF/API infrastructure
+   - Map metadata fields
+   - Create technical assessment
+
+2. **Development Phase** (use general-purpose subagent)
+   - Create importer script in `scripts/importers/`
+   - Follow standard patterns from existing importers
+   - Implement discovery and parsing functions
+   - Add checkpoint/resume for large collections
+
+3. **Testing Phase**
+   - Dry-run validation
+   - Test mode with verbose logging
+   - Limited run verification
+   - Full execution
+
+4. **Sync Phase**
+   - Export SQLite to MySQL format
+   - Upload to oldbooks via FTP/cPanel
+   - Import via phpMyAdmin
+   - Verify production counts
+
+### Parallel Subagent Pattern
+
+For large imports with independent sub-collections:
+
+```
+Main Agent
+    ├── Subagent 1: Import Collection A
+    ├── Subagent 2: Import Collection B
+    └── Subagent 3: Import Collection C
+```
+
+Each subagent handles:
+- Discovery for its collection
+- Manifest fetching with rate limiting
+- Database writes with proper locking
+
+Coordinate via:
+- Separate checkpoint files per collection
+- Repository ID established before parallel work
+- Final count verification after all complete
+
+---
+
+## Appendix: Quick Commands
+
+### Start a new import exploration
+
+```bash
+# Explore repository (replace with actual URL)
+# Use Explore subagent in Claude Code
+```
+
+### Create new importer from template
+
+```bash
+cp scripts/importers/cambridge.py scripts/importers/[newrepo].py
+# Edit constants and parsing logic
+```
+
+### Full import cycle
+
+```bash
+# 1. Dry run
+python scripts/importers/[repo].py
+
+# 2. Test
+python scripts/importers/[repo].py --test --verbose
+
+# 3. Execute
+python scripts/importers/[repo].py --execute
+
+# 4. Export
+./scripts/sync_to_production.sh
+
+# 5. Upload and import via phpMyAdmin
+```
+
+### Database verification
+
+```bash
+# Quick count by repo
+sqlite3 database/compilatio.db "SELECT r.short_name, COUNT(*) FROM manuscripts m JOIN repositories r ON m.repository_id = r.id GROUP BY r.id ORDER BY COUNT(*) DESC;"
+```
+
+---
+
+## Version History
+
+| Date | Changes |
+|------|---------|
+| 2026-01-31 | Initial expansion plan created |

@@ -203,6 +203,12 @@ python scripts/importers/nlw.py --skip-discovery --execute  # fast: uses cached 
 python scripts/importers/huntington.py --collection EL --execute
 python scripts/importers/huntington.py --collection HM --min-shelfmark 1 --max-shelfmark 946 --execute
 
+# Parker Library (requires manual HTML download first)
+# 1. Save page source from browser for 6 pages to data/parker_html/
+# 2. Run:
+python scripts/importers/parker.py --from-html data/parker_html/ --discover-only
+python scripts/importers/parker.py --skip-discovery --execute
+
 # Start server
 python server.py
 ```
@@ -219,12 +225,40 @@ All UV integration issues (header wrapping, white box, attribution watermark, th
 
 **Cascading dropdown selectors**: The viewer uses Repository → Collection → Manuscript dropdowns, each loading only when the previous is selected. This avoids loading all 2800+ manuscripts at once. Deep linking via `?ms=ID` remains supported and auto-populates the dropdowns.
 
+## Phase 9: Repository Expansion
+**Status: In Progress**
+
+See [Compilatio_Expansions.md](Compilatio_Expansions.md) for detailed expansion plan.
+
+### Parker Library (Corpus Christi College, Cambridge)
+**Status: Pending Manual HTML Download**
+
+- [x] Create importer script (`scripts/importers/parker.py`)
+- [x] IIIF manifest parsing via Stanford PURL
+- [x] Support for `--from-html` mode (bot protection workaround)
+- [ ] Download HTML pages manually (6 pages at 96/page)
+- [ ] Run discovery from HTML files
+- [ ] Import ~560 manuscripts
+
+**Technical Notes:**
+- Stanford's aggressive bot protection blocks all automated access (Playwright, crawl4ai)
+- Workaround: manually save page source from browser, parse locally
+- IIIF manifests accessible via `https://purl.stanford.edu/{druid}/iiif/manifest`
+
+### John Rylands Library (University of Manchester)
+**Status: Planned**
+
+- [ ] Explore IIIF/API infrastructure
+- [ ] Create importer script
+
 ---
 
 ## Next Steps
 
-1. Search functionality
-2. Performance optimization for large collections
+1. Complete Parker Library import (manual HTML download)
+2. Explore John Rylands Library
+3. Search functionality
+4. Performance optimization for large collections
 
 ## Future Repositories
 
@@ -236,7 +270,7 @@ All UV integration issues (header wrapping, white box, attribution watermark, th
 ## Current Gaps
 
 1. **Search** - No search functionality yet
-2. **Additional repositories** - Phase 7 complete: CUL, Durham, NLS, NLW, Lambeth all imported
+2. **Parker Library** - Pending manual HTML download from browser
 
 ## Known Bugs
 
