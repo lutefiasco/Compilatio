@@ -563,8 +563,19 @@
         // CONFIGURATION
         // =============================================
 
-        const API_BASE = '/api';
         const OSD_PREFIX = 'https://cdn.jsdelivr.net/npm/openseadragon@4.1.1/build/openseadragon/images/';
+
+        // API helper - builds URLs without mod_rewrite
+        function apiUrl(action, params = {}) {
+            const url = new URL('/api/index.php', window.location.origin);
+            url.searchParams.set('action', action);
+            for (const [key, value] of Object.entries(params)) {
+                if (value !== undefined && value !== null) {
+                    url.searchParams.set(key, value);
+                }
+            }
+            return url.toString();
+        }
 
         // =============================================
         // STATE
@@ -612,7 +623,7 @@
 
             // Load repositories from API
             try {
-                const resp = await fetch(`${API_BASE}/repositories`);
+                const resp = await fetch(apiUrl('repositories'));
                 repositories = await resp.json();
                 populateRepos();
                 repoSelect.addEventListener('change', handleRepoChange);
@@ -629,7 +640,7 @@
             if (msId) {
                 // Try to load from API directly
                 try {
-                    const resp = await fetch(`${API_BASE}/manuscripts/${msId}`);
+                    const resp = await fetch(apiUrl('manuscript', { id: msId }));
                     const ms = await resp.json();
                     if (ms && !ms.error) {
                         ms.repository = ms.repository_short || ms.repository_name || ms.repository;
@@ -1122,7 +1133,7 @@
 
             // Load collections for this repository
             try {
-                const resp = await fetch(`${API_BASE}/repositories/${repoId}`);
+                const resp = await fetch(apiUrl('repository', { id: repoId }));
                 const repo = await resp.json();
                 if (repo.collections && repo.collections.length > 0) {
                     repo.collections.forEach(c => {
@@ -1145,7 +1156,7 @@
         async function loadManuscriptsForRepo(repoId) {
             // Load all manuscripts for a repository (used when no collections exist)
             try {
-                const resp = await fetch(`${API_BASE}/manuscripts?repository_id=${repoId}&limit=200`);
+                const resp = await fetch(apiUrl('manuscripts', { repository_id: repoId, limit: 200 }));
                 const data = await resp.json();
                 const manuscripts = (data.manuscripts || []).filter(m => m.iiif_manifest_url);
 
@@ -1175,7 +1186,7 @@
 
             // Load manuscripts for this repository + collection
             try {
-                const resp = await fetch(`${API_BASE}/manuscripts?repository_id=${currentRepoId}&collection=${encodeURIComponent(collection)}&limit=200`);
+                const resp = await fetch(apiUrl('manuscripts', { repository_id: currentRepoId, collection: collection, limit: 200 }));
                 const data = await resp.json();
                 const manuscripts = (data.manuscripts || []).filter(m => m.iiif_manifest_url);
 
@@ -1197,7 +1208,7 @@
             if (!id) return;
 
             try {
-                const resp = await fetch(`${API_BASE}/manuscripts/${id}`);
+                const resp = await fetch(apiUrl('manuscript', { id: id }));
                 const ms = await resp.json();
                 if (ms && !ms.error) {
                     ms.repository = ms.repository_short || ms.repository_name || ms.repository;
