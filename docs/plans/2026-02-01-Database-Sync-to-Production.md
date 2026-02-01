@@ -264,6 +264,103 @@ If something goes wrong:
 
 ---
 
+---
+
+## Step 7: Deploy PHP Files and Resources
+
+### 7.1 Prepare Local Files
+
+Ensure `php_deploy/` is up to date with `src/`:
+
+```bash
+cd /Users/rabota/Geekery/Compilatio
+
+# Sync HTML/CSS/JS from src to php_deploy (if needed)
+cp src/index.html php_deploy/
+cp src/browse.html php_deploy/
+cp src/viewer.html php_deploy/
+cp src/css/styles.css php_deploy/css/
+cp src/js/*.js php_deploy/js/
+```
+
+### 7.2 Upload Files via cPanel File Manager
+
+1. Log in to cPanel at `oldbooks.humspace.ucla.edu/cpanel`
+2. Open **File Manager**
+3. Navigate to `public_html`
+
+**Upload structure:**
+
+| Local Path | Remote Path (in public_html) |
+|------------|------------------------------|
+| `php_deploy/.htaccess` | `.htaccess` |
+| `php_deploy/index.html` | `index.html` |
+| `php_deploy/browse.html` | `browse.html` |
+| `php_deploy/about.html` | `about.html` |
+| `php_deploy/viewer.html` | `viewer.html` |
+| `php_deploy/css/styles.css` | `css/styles.css` |
+| `php_deploy/js/script.js` | `js/script.js` |
+| `php_deploy/js/browse.js` | `js/browse.js` |
+| `php_deploy/images/border-top.jpg` | `images/border-top.jpg` |
+| `php_deploy/images/border-right.jpg` | `images/border-right.jpg` |
+| `php_deploy/api/index.php` | `api/index.php` |
+| `php_deploy/includes/.htaccess` | `includes/.htaccess` |
+
+### 7.3 Create config.php on Server
+
+**Do NOT upload config.php from local** - create it directly on the server with production credentials.
+
+1. In File Manager, navigate to `public_html/includes/`
+2. Click **+ File** → name it `config.php`
+3. Right-click → **Edit** and paste:
+
+```php
+<?php
+define('DB_HOST', 'localhost');
+define('DB_NAME', 'oldbooks_compilatio');
+define('DB_USER', 'oldbooks_compilatio_user');
+define('DB_PASS', 'YOUR_PASSWORD_HERE');  // See DevonThink
+define('DB_CHARSET', 'utf8mb4');
+
+function getDbConnection() {
+    static $pdo = null;
+    if ($pdo === null) {
+        $dsn = sprintf('mysql:host=%s;dbname=%s;charset=%s', DB_HOST, DB_NAME, DB_CHARSET);
+        $options = [
+            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            PDO::ATTR_EMULATE_PREPARES => false,
+        ];
+        $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
+    }
+    return $pdo;
+}
+```
+
+4. Save the file
+
+### 7.4 Set File Permissions
+
+In File Manager, right-click each item → **Change Permissions**:
+
+| Path | Permissions |
+|------|-------------|
+| `includes/config.php` | 640 (owner read/write, group read) |
+| `includes/.htaccess` | 644 |
+| All other files | 644 |
+| All directories | 755 |
+
+### 7.5 Verify Deployment
+
+Test in browser:
+
+1. https://oldbooks.humspace.ucla.edu/ - Landing page loads
+2. https://oldbooks.humspace.ucla.edu/browse.html - Browse page loads
+3. https://oldbooks.humspace.ucla.edu/api/repositories - Returns JSON array
+4. https://oldbooks.humspace.ucla.edu/includes/config.php - Should return 403 Forbidden (protected)
+
+---
+
 ## Post-Deployment
 
 - [ ] Delete uploaded SQL files from server: `rm ~/mysql_import/*.sql`
@@ -291,3 +388,4 @@ If something goes wrong:
 | 2026-02-01 | Initial plan for TCC thumbnail sync + new repository data |
 | 2026-02-01 | Updated counts: 4,352 manuscripts (80 Parker duplicates removed) |
 | 2026-02-01 | Fixed export: Python script for MySQL-compatible SQL (SQLite unistr() not supported); use DELETE instead of TRUNCATE |
+| 2026-02-01 | Added Step 7: PHP and resource file deployment instructions |
