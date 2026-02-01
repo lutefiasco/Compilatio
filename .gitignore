@@ -23,3 +23,6 @@ venv/
 # PHP deployment (contains credentials)
 php_deploy/includes/config.php
 compilatio_deploy.zip
+
+# Temporary export files
+mysql_export/
