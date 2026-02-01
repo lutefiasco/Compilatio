@@ -2,10 +2,9 @@
 
 ## Priority TODO
 
-1. **[Database Sync to Production](docs/plans/2026-02-01-Database-Sync-to-Production.md)** — Local DB has 4,432 manuscripts; production has 3,119
-2. **[Fix Parker Shelfmarks](docs/plans/2026-02-01-Parker-Shelfmark-Fix.md)** — 368/640 have DRUID-based shelfmarks instead of MS numbers
-3. Search functionality
-4. John Rylands Library exploration
+1. **[Database Sync to Production](docs/plans/2026-02-01-Database-Sync-to-Production.md)** — Local DB has 4,352 manuscripts; production has 3,119
+2. Search functionality
+3. John Rylands Library exploration
 
 ---
 
@@ -14,7 +13,7 @@
 | Repository | Manuscripts | Notes |
 |------------|-------------|-------|
 | Bodleian Library | 1,713 | Greek, Laud Misc., Barocci, etc. |
-| Parker Library | 640 | Shelfmarks need fixing |
+| Parker Library | 560 | Complete |
 | Trinity College Cambridge | 534 | Thumbnails fixed 2026-02-01 |
 | Cambridge University Library | 304 | CUDL API |
 | Durham University Library | 287 | IIIF collection tree |
@@ -25,7 +24,7 @@
 | UCLA | 115 | Various |
 | National Library of Scotland | 104 | Gaelic, Early Scottish |
 | Lambeth Palace Library | 2 | CUDL subset only |
-| **Total** | **4,432** | |
+| **Total** | **4,352** | |
 
 ---
 
@@ -52,7 +51,7 @@ cp src/css/*.css php_deploy/css/
 
 | Issue | Status |
 |-------|--------|
-| Parker shelfmarks | Open — 368 need fixing |
+| ~~Parker shelfmarks~~ | Fixed 2026-02-01 |
 | favicon.ico 404 | Open |
 | ~~TCC thumbnails~~ | Fixed 2026-02-01 |
 | ~~Bodleian thumbnails~~ | Fixed 2026-01-28 |
