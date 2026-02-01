@@ -22,18 +22,18 @@ This document provides a robust, repeatable process for adding new repositories 
 | Repository | Manuscripts | Import Method |
 |------------|-------------|---------------|
 | Bodleian Library | 1,713 | TEI/XML parsing from git clone |
+| Parker Library | 640 | Manual HTML + IIIF manifests |
+| Trinity College Cambridge | 534 | Shelfmark enumeration + IIIF manifests |
 | Cambridge University Library | 304 | IIIF collection crawl |
 | Durham University Library | 287 | IIIF collection tree |
 | National Library of Wales | 226 | crawl4ai + IIIF manifests |
 | Huntington Library | 190 | CONTENTdm API + IIIF |
 | British Library | 178 | Playwright + HTML scraping |
-| Parker Library | 640 | Manual HTML + IIIF manifests |
 | Yale (Takamiya) | 139 | Direct IIIF |
 | UCLA | 115 | Direct IIIF |
 | National Library of Scotland | 104 | IIIF collection tree |
-| Trinity College Cambridge | 10 | Playwright + IIIF manifests |
 | Lambeth Palace Library | 2 | CUDL IIIF subset |
-| **Total** | **3,908** | |
+| **Total** | **4,432** | |
 
 ### Import Methods Overview
 
@@ -658,11 +658,10 @@ python scripts/importers/parker.py --skip-discovery --execute
 
 ### 2. Trinity College Cambridge (Wren Library)
 
-**Status:** In Progress - Enumeration Approach
+**Status:** ✅ Complete (2026-02-01)
 
 **Technical Details:**
 - **Platform:** Custom catalog (James Catalogue of Western Manuscripts)
-- **Collection:** ~850 digitized medieval manuscripts
 - **IIIF Support:** Yes, Presentation API v2
 - **Website:** [mss-cat.trin.cam.ac.uk](https://mss-cat.trin.cam.ac.uk)
 - **Manifest URL Pattern:** `https://mss-cat.trin.cam.ac.uk/manuscripts/{shelfmark}.json`
@@ -670,9 +669,14 @@ python scripts/importers/parker.py --skip-discovery --execute
 
 **Import Script:** `scripts/importers/trinity_cambridge.py`
 
-**Current Status (2026-01-31):**
-- **Imported:** 10 manuscripts (from initial Playwright test)
-- **Approach:** Switched to shelfmark enumeration (Playwright discovery failed)
+**Import Results (2026-02-01):**
+- **Candidates tested:** 1,663 shelfmarks
+- **Imported:** 534 manuscripts
+- **Not found (no manifest):** 1,129 shelfmarks
+- **Errors:** 0
+
+**Import Method:**
+Shelfmark enumeration - generates candidates from known ranges (B, F, O, R series), tests each for IIIF manifest availability.
 
 **Shelfmark Ranges (Known Digitized):**
 
