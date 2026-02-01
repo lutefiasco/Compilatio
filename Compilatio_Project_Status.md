@@ -21,7 +21,7 @@
 | Huntington Library | 190 | Ellesmere + HM collection |
 | British Library | 178 | Royal, Harley, Cotton |
 | Yale Beinecke | 139 | Takamiya collection |
-| UCLA | 115 | Various |
+| UCLA | 115 | Some thumbnails missing |
 | National Library of Scotland | 104 | Gaelic, Early Scottish |
 | Lambeth Palace Library | 2 | CUDL subset only |
 | **Total** | **4,352** | |
@@ -51,8 +51,9 @@ cp src/css/*.css php_deploy/css/
 
 | Issue | Status |
 |-------|--------|
-| ~~Parker shelfmarks~~ | Fixed 2026-02-01 |
+| UCLA thumbnails | Open — some not displaying on browse page |
 | favicon.ico 404 | Open |
+| ~~Parker shelfmarks~~ | Fixed 2026-02-01 |
 | ~~TCC thumbnails~~ | Fixed 2026-02-01 |
 | ~~Bodleian thumbnails~~ | Fixed 2026-01-28 |
 | ~~BL duplicate shelfmarks~~ | Fixed |
