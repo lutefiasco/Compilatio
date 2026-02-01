@@ -307,7 +307,7 @@ See [Repository_Import_Research.md](docs/plans/Repository_Import_Research.md) fo
 
 ## Next Steps
 
-1. Add TCC thumbnails (script needed - manifests have thumbnail at manifest level, not canvas)
+1. Fix Parker shelfmarks (368/640 have DRUID-based shelfmarks like "MS bc854fy5899" instead of "MS 296") — see [plan](docs/plans/2026-02-01-Parker-Shelfmark-Fix.md)
 2. Explore John Rylands Library (University of Manchester)
 3. Search functionality
 4. Performance optimization for large collections
@@ -321,11 +321,13 @@ See [Repository_Import_Research.md](docs/plans/Repository_Import_Research.md) fo
 ## Current Gaps
 
 1. **Search** - No search functionality yet
-2. **TCC Thumbnails** - Trinity College Cambridge manuscripts missing thumbnails (534 manuscripts)
+2. ~~**TCC Thumbnails**~~ — Fixed: ran `scripts/fix_tcc_thumbnails.py` to fetch thumbnail URLs from manifest level (534 updated)
+3. **Parker Shelfmarks** - 368 manuscripts have DRUID-based shelfmarks instead of proper MS numbers
 
 ## Known Bugs
 
 1. ~~**Duplicate BL shelfmarks**~~ — Fixed: removed "Reference (shelfmark)" from importer field mapping
 2. ~~**Missing Bodleian thumbnails**~~ — Fixed: ran `scripts/fix_bodleian_thumbnails.py` to fetch correct thumbnail URLs from manifests (1,713 updated)
+3. **Parker shelfmarks** — 368/640 manuscripts have Stanford DRUID-based shelfmarks (e.g., "MS bc854fy5899") instead of proper MS numbers (e.g., "MS 296"). See [fix plan](docs/plans/2026-02-01-Parker-Shelfmark-Fix.md)
 3. **favicon.ico 404** — No favicon configured
 4. ~~**Dropdown selector shows only CUL**~~ — Fixed: viewer now uses cascading Repository → Collection → Manuscript dropdowns

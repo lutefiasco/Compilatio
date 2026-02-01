@@ -33,14 +33,23 @@ Files modified:
 ---
 
 ## 3. Trinity College Cambridge Thumbnail Script
-**Status: Deferred**
+**Status: Ready**
 
 TCC manuscripts currently show without thumbnails. Root cause: importer looked for thumbnails in canvas, but TCC manifests have them at manifest level.
 
-Plan when ready:
-- Create `scripts/fix_tcc_thumbnails.py` based on Bodleian fixer template
-- Extract manifest-level `thumbnail` field
-- Features: --execute, --limit, --status, progress tracking
+Implementation:
+- Created `scripts/fix_tcc_thumbnails.py` based on Bodleian fixer template
+- Extracts manifest-level `thumbnail` field (TCC uses string URLs, not objects)
+- Features: --execute, --limit, --status, --reset, --batch-size
+- Progress tracking with resume capability (`.tcc_thumbnail_progress.json`)
+- 534 manuscripts need updating
+
+Usage:
+```bash
+python3 scripts/fix_tcc_thumbnails.py              # Dry-run
+python3 scripts/fix_tcc_thumbnails.py --execute    # Apply changes
+python3 scripts/fix_tcc_thumbnails.py --status     # Check progress
+```
 
 ---
 
@@ -64,5 +73,5 @@ Files modified:
 |-------------|--------|
 | About Page | Complete |
 | Page Jump | Complete |
-| TCC Thumbnails | Deferred |
+| TCC Thumbnails | Ready |
 | Viewer Dropdown Fix | Complete |
