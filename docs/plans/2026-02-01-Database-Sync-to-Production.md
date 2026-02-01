@@ -270,18 +270,18 @@ If something goes wrong:
 
 ### 7.1 Prepare Local Files
 
-Ensure `php_deploy/` is up to date with `src/`:
+**IMPORTANT:** Do NOT simply copy from `src/` to `php_deploy/`. The files in `php_deploy/` have been modified for production:
 
-```bash
-cd /Users/rabota/Geekery/Compilatio
+- `src/` uses `/api/repositories` URLs (requires mod_rewrite - works with Python dev server)
+- `php_deploy/` uses `/api/index.php?action=repositories` URLs (no mod_rewrite needed)
 
-# Sync HTML/CSS/JS from src to php_deploy (if needed)
-cp src/index.html php_deploy/
-cp src/browse.html php_deploy/
-cp src/viewer.html php_deploy/
-cp src/css/styles.css php_deploy/css/
-cp src/js/*.js php_deploy/js/
-```
+If you update files in `src/`, you must manually port changes to `php_deploy/` and update API calls.
+
+**Files with API URL differences:**
+- `js/script.js` - uses `apiUrl()` helper function
+- `js/browse.js` - uses `apiUrl()` helper function
+- `viewer.html` - uses `apiUrl()` helper function
+- `about.html` - uses direct `/api/index.php?action=...` URL
 
 ### 7.2 Upload Files via cPanel File Manager
 
@@ -381,6 +381,77 @@ Test in browser:
 
 ---
 
+## Known Issues & Fixes (Production Environment)
+
+### 1. SQLite Export Incompatibility with MySQL
+
+**Problem:** SQLite's `.mode insert` uses `unistr()` function for Unicode escaping (e.g., newlines as `\u000a`). MySQL doesn't have this function.
+
+**Error:** `#1305 - FUNCTION oldbooks_compilatio.unistr does not exist`
+
+**Solution:** Use Python script to export manuscripts (see Step 2). The `repositories.sql` export is simple enough to work directly.
+
+---
+
+### 2. TRUNCATE Fails with Foreign Key Constraints
+
+**Problem:** Even with `SET FOREIGN_KEY_CHECKS = 0`, TRUNCATE fails on tables with FK relationships.
+
+**Error:** `#1701 - Cannot truncate a table referenced in a foreign key constraint`
+
+**Solution:** Use `DELETE FROM` instead of `TRUNCATE TABLE`. Run all statements in a single query block.
+
+---
+
+### 3. mod_rewrite Not Available
+
+**Problem:** The hosting doesn't support `.htaccess` with `RewriteEngine On`. Clean URLs like `/api/repositories` don't work.
+
+**Error:** 500 Internal Server Error when `.htaccess` with RewriteEngine is present.
+
+**Solution:** Don't use `.htaccess` for URL rewriting. Modify JavaScript files to call API directly:
+
+| Instead of | Use |
+|------------|-----|
+| `/api/repositories` | `/api/index.php?action=repositories` |
+| `/api/repositories/123` | `/api/index.php?action=repository&id=123` |
+| `/api/manuscripts?repo=1` | `/api/index.php?action=manuscripts&repository_id=1` |
+| `/api/manuscripts/456` | `/api/index.php?action=manuscript&id=456` |
+| `/api/featured` | `/api/index.php?action=featured` |
+
+**Files modified for production:**
+- `php_deploy/js/script.js` - uses `apiUrl()` helper
+- `php_deploy/js/browse.js` - uses `apiUrl()` helper
+- `php_deploy/viewer.html` - uses `apiUrl()` helper
+- `php_deploy/about.html` - uses direct URL
+
+---
+
+### 4. Duplicate Primary Key on Import
+
+**Problem:** Importing after a failed/partial import leaves data in the table.
+
+**Error:** `#1062 - Duplicate entry '1' for key 'manuscripts.PRIMARY'`
+
+**Solution:** Run `DELETE FROM manuscripts;` before re-importing.
+
+---
+
+### 5. src/ vs php_deploy/ Differences
+
+**Problem:** The `src/` directory is for local development with the Python server. The `php_deploy/` directory is for production with PHP/MySQL.
+
+**Key differences:**
+| File | src/ (dev) | php_deploy/ (prod) |
+|------|------------|-------------------|
+| API URLs | `/api/repositories` | `/api/index.php?action=repositories` |
+| Backend | Python/Starlette | PHP |
+| Database | SQLite | MySQL |
+
+**Never** directly copy from `src/` to `php_deploy/` without updating API calls.
+
+---
+
 ## Version
 
 | Date | Notes |
@@ -389,3 +460,4 @@ Test in browser:
 | 2026-02-01 | Updated counts: 4,352 manuscripts (80 Parker duplicates removed) |
 | 2026-02-01 | Fixed export: Python script for MySQL-compatible SQL (SQLite unistr() not supported); use DELETE instead of TRUNCATE |
 | 2026-02-01 | Added Step 7: PHP and resource file deployment instructions |
+| 2026-02-01 | Added Known Issues section documenting mod_rewrite, FK constraints, and src/php_deploy differences |
