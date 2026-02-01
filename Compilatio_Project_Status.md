@@ -203,10 +203,8 @@ python scripts/importers/nlw.py --skip-discovery --execute  # fast: uses cached 
 python scripts/importers/huntington.py --collection EL --execute
 python scripts/importers/huntington.py --collection HM --min-shelfmark 1 --max-shelfmark 946 --execute
 
-# Parker Library (requires manual HTML download first)
-# 1. Save page source from browser for 6 pages to data/parker_html/
-# 2. Run:
-python scripts/importers/parker.py --from-html data/parker_html/ --discover-only
+# Parker Library (HTML files included in repo)
+python scripts/importers/parker.py --from-html scripts/importers/resources/parker_html/ --discover-only
 python scripts/importers/parker.py --skip-discovery --execute
 
 # Start server
@@ -236,7 +234,7 @@ See [Compilatio_Expansions.md](Compilatio_Expansions.md) for detailed expansion 
 - [x] Create importer script (`scripts/importers/parker.py`)
 - [x] IIIF manifest parsing via Stanford PURL
 - [x] Support for `--from-html` mode (bot protection workaround)
-- [x] Download HTML pages manually (6 pages at 96/page) — saved to `data/parker_html/`
+- [x] Download HTML pages manually (6 pages at 96/page) — saved to `scripts/importers/resources/parker_html/`
 - [ ] Run discovery from HTML files
 - [ ] Import ~560 manuscripts
 
