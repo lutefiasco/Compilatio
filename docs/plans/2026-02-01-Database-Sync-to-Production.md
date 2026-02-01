@@ -8,14 +8,14 @@ Safely synchronize the updated local SQLite database to the production MySQL ser
 
 | Environment | Repositories | Manuscripts | Notes |
 |-------------|--------------|-------------|-------|
-| Local (SQLite) | 12 | 4,432 | Includes TCC with thumbnails fixed |
-| Production (MySQL) | 9 | 3,119 | Missing: TCC (534), Parker (640), Yale (139) |
+| Local (SQLite) | 12 | 4,352 | Includes TCC with thumbnails fixed |
+| Production (MySQL) | 9 | 3,119 | Missing: TCC (534), Parker (560), Yale (139) |
 
 ### Changes to Deploy
 
 1. **TCC thumbnails** - 534 manuscripts now have correct thumbnail URLs
 2. **New repositories** - TCC, Parker, Yale added since last sync
-3. **Net new manuscripts** - 1,313 manuscripts to add
+3. **Net new manuscripts** - 1,233 manuscripts to add
 
 ---
 
@@ -60,19 +60,48 @@ WHERE r.id IS NULL;
 
 ## Step 2: Export SQLite to MySQL Format
 
+**Note:** SQLite's `.mode insert` uses `unistr()` for Unicode escaping, which MySQL doesn't support. Use the Python script below for MySQL-compatible output.
+
 ```bash
 cd /Users/rabota/Geekery/Compilatio
 mkdir -p mysql_export
 
-# Export repositories
+# Export repositories (simple table, SQLite export works fine)
 sqlite3 database/compilatio.db ".mode insert repositories" \
   ".output mysql_export/repositories.sql" \
   "SELECT * FROM repositories;"
 
-# Export manuscripts
-sqlite3 database/compilatio.db ".mode insert manuscripts" \
-  ".output mysql_export/manuscripts.sql" \
-  "SELECT * FROM manuscripts;"
+# Export manuscripts using Python for MySQL compatibility
+python3 << 'EOF'
+import sqlite3
+
+conn = sqlite3.connect('database/compilatio.db')
+cursor = conn.cursor()
+
+def escape_mysql(val):
+    if val is None:
+        return 'NULL'
+    if isinstance(val, (int, float)):
+        return str(val)
+    s = str(val)
+    s = s.replace('\\', '\\\\')
+    s = s.replace("'", "\\'")
+    s = s.replace('\n', '\\n')
+    s = s.replace('\r', '\\r')
+    s = s.replace('\t', '\\t')
+    return f"'{s}'"
+
+cursor.execute("SELECT * FROM manuscripts")
+rows = cursor.fetchall()
+
+with open('mysql_export/manuscripts_mysql.sql', 'w') as f:
+    for row in rows:
+        values = ','.join(escape_mysql(v) for v in row)
+        f.write(f"INSERT INTO manuscripts VALUES({values});\n")
+
+print(f"Exported {len(rows)} manuscripts to manuscripts_mysql.sql")
+conn.close()
+EOF
 
 # Verify export files exist and have content
 wc -l mysql_export/*.sql
@@ -80,7 +109,7 @@ wc -l mysql_export/*.sql
 
 Expected output:
 - `repositories.sql`: ~12 lines (one INSERT per repository)
-- `manuscripts.sql`: ~4,432 lines (one INSERT per manuscript)
+- `manuscripts_mysql.sql`: ~4,352 lines (one INSERT per manuscript)
 
 ---
 
@@ -114,12 +143,12 @@ mysqldump -u oldbooks_compilatio_user -p oldbooks_compilatio > ~/backup_2026-02-
 2. Open **File Manager**
 3. Navigate to home directory (not public_html)
 4. Create folder `mysql_import` if it doesn't exist
-5. Upload `repositories.sql` and `manuscripts.sql`
+5. Upload `repositories.sql` and `manuscripts_mysql.sql`
 
 **Option B: SCP**
 
 ```bash
-scp mysql_export/*.sql oldbooks@oldbooks.humspace.ucla.edu:~/mysql_import/
+scp mysql_export/repositories.sql mysql_export/manuscripts_mysql.sql oldbooks@oldbooks.humspace.ucla.edu:~/mysql_import/
 ```
 
 ---
@@ -130,19 +159,16 @@ scp mysql_export/*.sql oldbooks@oldbooks.humspace.ucla.edu:~/mysql_import/
 
 ### 5.1 Clear Existing Data
 
-In phpMyAdmin, run:
+In phpMyAdmin, run all statements together as a single block:
 
 ```sql
--- Disable foreign key checks temporarily
 SET FOREIGN_KEY_CHECKS = 0;
-
--- Clear tables (manuscripts first due to FK)
-TRUNCATE TABLE manuscripts;
-TRUNCATE TABLE repositories;
-
--- Re-enable foreign key checks
+DELETE FROM manuscripts;
+DELETE FROM repositories;
 SET FOREIGN_KEY_CHECKS = 1;
 ```
+
+**Note:** Use `DELETE` instead of `TRUNCATE`. TRUNCATE fails with FK constraint errors even with `FOREIGN_KEY_CHECKS = 0` on some MySQL configurations.
 
 ### 5.2 Import Repositories
 
@@ -154,14 +180,14 @@ SET FOREIGN_KEY_CHECKS = 1;
 ### 5.3 Import Manuscripts
 
 1. Go to **Import** tab
-2. Choose file: `manuscripts.sql`
+2. Choose file: `manuscripts_mysql.sql`
 3. Click **Import**
-4. Verify: `SELECT COUNT(*) FROM manuscripts;` → Should return 4,432
+4. Verify: `SELECT COUNT(*) FROM manuscripts;` → Should return 4,352
 
-**Note:** Large imports may timeout. If `manuscripts.sql` fails:
+**Note:** Large imports may timeout. If `manuscripts_mysql.sql` fails:
 - Split the file into chunks of 1000 INSERT statements each
 - Import each chunk separately
-- Or use command line: `mysql -u user -p database < manuscripts.sql`
+- Or use command line: `mysql -u user -p database < manuscripts_mysql.sql`
 
 ---
 
@@ -263,3 +289,5 @@ If something goes wrong:
 | Date | Notes |
 |------|-------|
 | 2026-02-01 | Initial plan for TCC thumbnail sync + new repository data |
+| 2026-02-01 | Updated counts: 4,352 manuscripts (80 Parker duplicates removed) |
+| 2026-02-01 | Fixed export: Python script for MySQL-compatible SQL (SQLite unistr() not supported); use DELETE instead of TRUNCATE |
