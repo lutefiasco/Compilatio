@@ -2,9 +2,11 @@
 
 ## Priority TODO
 
-1. **[Database Sync to Production](docs/plans/2026-02-01-Database-Sync-to-Production.md)** — Local DB has 4,352 manuscripts; production has 3,119
-2. Search functionality
-3. John Rylands Library exploration
+1. Search functionality
+2. John Rylands Library exploration
+3. Investigate TCC thumbnail slow loading in viewer
+
+**Completed:** Database sync to production (2026-02-01) — see [deployment guide](docs/plans/Production-Deployment-Guide.md)
 
 ---
 
@@ -38,12 +40,7 @@
 | Viewer | OpenSeadragon 4.1.1 | Same |
 | Hosting | localhost:8000 | oldbooks.humspace.ucla.edu |
 
-**Deployment note:** Before uploading to Humspace, always sync `php_deploy/` from `src/`:
-```bash
-cp src/*.html php_deploy/
-cp src/js/*.js php_deploy/js/
-cp src/css/*.css php_deploy/css/
-```
+**Deployment note:** See **[Production Deployment Guide](docs/plans/Production-Deployment-Guide.md)**. Do NOT copy directly from `src/` to `php_deploy/` — API URLs differ (mod_rewrite unavailable on Humspace).
 
 ---
 
@@ -51,6 +48,7 @@ cp src/css/*.css php_deploy/css/
 
 | Issue | Status |
 |-------|--------|
+| TCC thumbnails slow | Open — thumbnails load very slowly in viewer, investigate |
 | UCLA thumbnails | Open — some not displaying on browse page |
 | favicon.ico 404 | Open |
 | ~~Parker shelfmarks~~ | Fixed 2026-02-01 |
