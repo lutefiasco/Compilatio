@@ -32,12 +32,58 @@ https://mss-cat.trin.cam.ac.uk/manuscripts/R.14.9.json
 https://mss-cat.trin.cam.ac.uk/manuscripts/uv/view.php?n={shelfmark}
 ```
 
-### Shelfmark Patterns
+### Shelfmark Ranges (Known Digitized)
 
-Shelfmarks follow pattern: `{Letter}.{Number}.{Number}`
-- **B.x.y** - e.g., B.1.1 through B.1.46 (digitized), B.2.1 through B.2.36
-- **O.x.y** - e.g., O.1.1, O.2.16, O.7.31, O.8.25, O.9.38
-- **R.x.y** - e.g., R.1.2, R.14.9, R.14.30, R.14.41
+Shelfmarks follow pattern: `{Letter}.{Number}.{Number}` with occasional suffixes (e.g., B.1.30A).
+
+**B Series:**
+- B.1.1 to B.1.46 (includes B.1.30A)
+- B.2.1 to B.2.36
+- B.3.1 to B.3.35
+- B.4.1 to B.4.32
+- B.5.1 to B.5.28
+- B.7.1 to B.7.7
+- B.8.1 to B.8.12
+- B.9.1 to B.9.15
+- B.10.1 to B.10.27
+- B.11.1 to B.11.34
+- B.13.1 to B.13.30
+- B.14.1 to B.14.55
+- B.15.1 to B.15.42
+- B.16.1 to B.16.47
+- B.17.1 to B.17.42
+
+**F Series:**
+- F.12.40 to F.12.44
+
+**O Series:**
+- O.1.1 to O.1.79
+- O.2.1 to O.2.68
+- O.3.1 to O.3.63
+- O.4.1 to O.4.52
+- O.5.2 to O.5.54
+- O.7.1 to O.7.47
+- O.8.1 to O.8.37
+- O.9.1 to O.9.40
+- O.10.2 to O.10.34
+- O.11.2 to O.11.19
+
+**R Series:**
+- R.1.2 to R.1.92
+- R.2.4 to R.2.98
+- R.3.1 to R.3.68
+- R.4.1 to R.4.52
+- R.5.3 to R.5.46
+- R.7.1 to R.7.51
+- R.8.3 to R.8.35
+- R.9.8 to R.9.39
+- R.10.5 to R.10.15
+- R.11.1 to R.11.2
+- R.13.8 to R.13.74
+- R.14.1 to R.14.16
+- R.15.1 to R.15.55
+- R.16.2 to R.16.40
+- R.17.1 to R.17.23
 
 ### Discovery Challenge
 
@@ -48,20 +94,37 @@ The search API (`/Search/GetResults`) requires browser-based requests:
 
 ### Implementation Approach
 
-1. **Playwright approach (preferred):**
-   - Load search page with "Digitised Copies Only" filter
-   - Paginate through results (up to 100 per page)
-   - Extract shelfmarks from result cards
-   - Fetch IIIF manifests for each
+**Current approach: Shelfmark enumeration**
 
-2. **Fallback - crawl4ai:**
-   - Similar browser-based crawling
-   - Used successfully for National Library of Wales
+The Playwright-based discovery was unreliable (pagination issues), so we use known shelfmark ranges instead.
 
-3. **Last resort - enumeration:**
-   - Test all possible shelfmark combinations
-   - Check which return valid manifests (200 vs 404)
-   - Slower but reliable
+**Script:** `scripts/importers/trinity_cambridge.py`
+
+**Workflow:**
+1. Generate all candidate shelfmarks from documented ranges (1,663 total)
+2. Test each against manifest endpoint (HTTP 200 = exists, 404 = skip)
+3. Fetch and parse valid IIIF manifests
+4. Insert into database with checkpoint after each item
+
+**Script Features:**
+- Rate limiting: 0.5s delay between requests
+- Timeout: 30s per manifest fetch
+- Checkpoint file: `scripts/importers/cache/trinity_progress.json`
+- Resume support: `--resume` skips already-completed and not-found shelfmarks
+- Standard library only (no Playwright/crawl4ai dependency)
+
+**Usage:**
+```bash
+python3 scripts/importers/trinity_cambridge.py --execute           # Full import
+python3 scripts/importers/trinity_cambridge.py --resume --execute  # Resume after interrupt
+python3 scripts/importers/trinity_cambridge.py --test              # First 10 only (dry-run)
+```
+
+**Estimated runtime:** ~15-20 minutes for full import (1,663 candidates × 0.5s delay)
+
+**Previous approaches (deprecated):**
+- Playwright scraping: Failed due to AJAX pagination issues
+- crawl4ai: Not attempted (Playwright issues likely apply)
 
 ### Metadata Available
 

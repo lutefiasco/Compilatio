@@ -27,13 +27,13 @@ This document provides a robust, repeatable process for adding new repositories 
 | National Library of Wales | 226 | crawl4ai + IIIF manifests |
 | Huntington Library | 190 | CONTENTdm API + IIIF |
 | British Library | 178 | Playwright + HTML scraping |
-| Parker Library | 176 | Manual HTML + IIIF manifests |
+| Parker Library | 640 | Manual HTML + IIIF manifests |
 | Yale (Takamiya) | 139 | Direct IIIF |
 | UCLA | 115 | Direct IIIF |
 | National Library of Scotland | 104 | IIIF collection tree |
 | Trinity College Cambridge | 10 | Playwright + IIIF manifests |
 | Lambeth Palace Library | 2 | CUDL IIIF subset |
-| **Total** | **3,444** | |
+| **Total** | **3,908** | |
 
 ### Import Methods Overview
 
@@ -464,22 +464,22 @@ LIMIT 5;"
 
 ```
 ┌─────────────────┐         ┌──────────────────┐         ┌─────────────────────────┐
-│   serving       │         │   laptop         │         │ oldbooks.humspace.ucla  │
+│   server       │         │   laptop         │         │ oldbooks.humspace.ucla  │
 │   (primary)     │◄───────►│   (dev)          │────────►│ (production)            │
 │   SQLite        │  rsync  │   SQLite         │ export  │ MySQL                   │
 └─────────────────┘         └──────────────────┘         └─────────────────────────┘
 ```
 
-### Step 1: Sync SQLite Between serving and laptop
+### Step 1: Sync SQLite Between server and laptop
 
-After running imports on serving:
+After running imports on server:
 
 ```bash
-# On laptop - pull latest database from serving
-rsync -avz serving:/Users/rabota/Geekery/Compilatio/database/compilatio.db ./database/
+# On laptop - pull latest database from server
+rsync -avz server:/Users/rabota/Geekery/Compilatio/database/compilatio.db ./database/
 
-# Or push laptop changes to serving
-rsync -avz ./database/compilatio.db serving:/Users/rabota/Geekery/Compilatio/database/
+# Or push laptop changes to server
+rsync -avz ./database/compilatio.db server:/Users/rabota/Geekery/Compilatio/database/
 ```
 
 ### Step 2: Export SQLite to MySQL Format
@@ -629,83 +629,40 @@ echo "4. Verify counts match: $REPO_COUNT repos, $MS_COUNT manuscripts"
 
 ### 1. Parker Library (Corpus Christi College, Cambridge)
 
-**Status:** High Priority - Blocked by Bot Protection
+**Status:** ✅ Complete (2026-01-31)
 
 **Technical Details:**
 - **Platform:** Stanford Spotlight Exhibits (Blacklight)
-- **Collection:** 538-560 medieval manuscripts (per M.R. James catalog)
 - **IIIF Support:** Yes, via Stanford PURL service
 - **Manifest URL Pattern:** `https://purl.stanford.edu/{druid}/iiif/manifest`
-- **Alternative Pattern:** `https://dms-data.stanford.edu/data/manifests/Parker/{druid}/manifest.json`
 - **Website:** [parker.stanford.edu](https://parker.stanford.edu/parker/)
 - **Bot Protection:** Aggressive (blocks Playwright, crawl4ai, and direct requests)
 
-**Known Druids (from page metadata):**
-- `nm203xw8381` - MS 2I (Bury Bible)
-- `wz026zp2442` - MS 001
+**Import Results:**
+- **Discovered:** 560 manuscripts from 6 HTML pages
+- **Imported:** 640 manuscripts (464 new + 176 existing updated)
+- **Errors:** 0
 
-**Key Resources:**
-- [Parker Library IIIF on Biblissima](https://iiif.biblissima.fr/collections/) - has indexed Parker manuscripts
-- [M.R. James Catalog (1909-1912)](https://parker.stanford.edu/parker/about/corpus-christi-college-manuscript-catalogues) - 538 items
-- IIIF manifests accessible via PURL once druid is known
+**Import Method:**
+Due to Stanford's bot protection, manual HTML download was required:
+1. HTML pages saved from browser to `scripts/importers/resources/parker_html/`
+2. Importer parses HTML to extract druids and shelfmarks
+3. IIIF manifests fetched directly (not blocked)
 
-**Blocking Issue:**
-Stanford's bot protection (Akamai-style) blocks all automated access:
-- parker.stanford.edu returns "Traffic control and bot detection" to headless browsers
-- SearchWorks also blocked
-- Even crawl4ai with anti-detection features is blocked
+**Import Script:** `scripts/importers/parker.py --from-html`
 
-**Workaround: Manual HTML Download**
-
-Since all automated access is blocked, manually save page source from browser:
-
-1. Open each browse page (6 pages total at 96 per page):
-   ```
-   https://parker.stanford.edu/parker/browse/browse-by-manuscript-number?per_page=96
-   https://parker.stanford.edu/parker/browse/browse-by-manuscript-number?per_page=96&page=2
-   https://parker.stanford.edu/parker/browse/browse-by-manuscript-number?per_page=96&page=3
-   https://parker.stanford.edu/parker/browse/browse-by-manuscript-number?per_page=96&page=4
-   https://parker.stanford.edu/parker/browse/browse-by-manuscript-number?per_page=96&page=5
-   https://parker.stanford.edu/parker/browse/browse-by-manuscript-number?per_page=96&page=6
-   ```
-
-2. View Source (Cmd+Option+U) → Save As:
-   ```
-   data/parker_html/page1.html
-   data/parker_html/page2.html
-   ... through page6.html
-   ```
-
-3. Commit to git and push
-
-4. Parse with importer:
-   ```bash
-   python scripts/importers/parker.py --from-html data/parker_html/ --discover-only
-   python scripts/importers/parker.py --skip-discovery --execute
-   ```
-
-**Key HTML elements:**
-- `div.document-thumbnail.mb-2` contains manifest links
-- Druids visible in catalog URLs: `/catalog/{druid}`
-- Shelfmarks in link text: "MS ###"
-
-**Import Script:** `scripts/importers/parker.py` (supports `--from-html` mode)
-
-**Next Steps:**
-1. Download 6 HTML pages manually on laptop
-2. Push to git
-3. Run importer with `--from-html` to extract druids
-4. IIIF manifest fetching works fine (not blocked)
-
-**Estimated Manuscripts:** 538-560
+```bash
+python scripts/importers/parker.py --from-html scripts/importers/resources/parker_html/ --discover-only
+python scripts/importers/parker.py --skip-discovery --execute
+```
 
 ### 2. Trinity College Cambridge (Wren Library)
 
-**Status:** Partially Imported - Discovery Issue
+**Status:** In Progress - Enumeration Approach
 
 **Technical Details:**
 - **Platform:** Custom catalog (James Catalogue of Western Manuscripts)
-- **Collection:** ~850 digitized medieval manuscripts (per documentation)
+- **Collection:** ~850 digitized medieval manuscripts
 - **IIIF Support:** Yes, Presentation API v2
 - **Website:** [mss-cat.trin.cam.ac.uk](https://mss-cat.trin.cam.ac.uk)
 - **Manifest URL Pattern:** `https://mss-cat.trin.cam.ac.uk/manuscripts/{shelfmark}.json`
@@ -714,38 +671,77 @@ Since all automated access is blocked, manually save page source from browser:
 **Import Script:** `scripts/importers/trinity_cambridge.py`
 
 **Current Status (2026-01-31):**
-- **Imported:** 10 manuscripts
-- **Failed:** 1 (B.1.2 - invalid manifest JSON)
-- **Issue:** Discovery phase only found 11 manuscripts
+- **Imported:** 10 manuscripts (from initial Playwright test)
+- **Approach:** Switched to shelfmark enumeration (Playwright discovery failed)
 
-**Discovery Problem:**
-The Playwright-based scraper checks the "Digitised Copies Only" checkbox and submits the search, but only receives one page of results with 11 shelfmarks. The pagination ("Next" button) is not found, suggesting either:
-1. The search interface has changed
-2. JavaScript-driven pagination not being captured
-3. Different search parameters needed to expose full collection
+**Shelfmark Ranges (Known Digitized):**
 
-**Shelfmark Pattern:** `[A-Z].\d+.\d+` (e.g., B.1.1, B.16.17, O.1.2, R.3.4)
+Pattern: `{Letter}.{Number}.{Number}` with occasional suffixes (e.g., B.1.30A)
 
-**Known Working Shelfmarks:**
-- B.1.1 - Glossed Jeremiah and Lamentations (213 images)
-- B.1.3 - Gregory the Great, In Ezechielem (147 images)
-- B.1.4 - Gregory the Great, Dialogi (172 images)
-- B.1.5 - John Cassian, Collationes patrum (68 images)
-- B.1.6 - Glossed Epistles of St Paul (135 images)
-- B.1.7 - Ambrose, Expositio Psalmi cxviii (157 images)
-- B.1.8 - William of Tournai, Flores Bernardi (321 images)
-- B.1.9 - Tractatus De Viciis (188 images)
-- B.1.10 - Glossed Gospel of St Matthew (145 images)
-- B.16.17 - Odonis Morimundensis (133 images)
+| Series | Ranges | Est. Count |
+|--------|--------|------------|
+| B.1 | B.1.1 to B.1.46 (+ B.1.30A) | ~47 |
+| B.2 | B.2.1 to B.2.36 | 36 |
+| B.3 | B.3.1 to B.3.35 | 35 |
+| B.4 | B.4.1 to B.4.32 | 32 |
+| B.5 | B.5.1 to B.5.28 | 28 |
+| B.7 | B.7.1 to B.7.7 | 7 |
+| B.8 | B.8.1 to B.8.12 | 12 |
+| B.9 | B.9.1 to B.9.15 | 15 |
+| B.10 | B.10.1 to B.10.27 | 27 |
+| B.11 | B.11.1 to B.11.34 | 34 |
+| B.13 | B.13.1 to B.13.30 | 30 |
+| B.14 | B.14.1 to B.14.55 | 55 |
+| B.15 | B.15.1 to B.15.42 | 42 |
+| B.16 | B.16.1 to B.16.47 | 47 |
+| B.17 | B.17.1 to B.17.42 | 42 |
+| F.12 | F.12.40 to F.12.44 | 5 |
+| O.1 | O.1.1 to O.1.79 | 79 |
+| O.2 | O.2.1 to O.2.68 | 68 |
+| O.3 | O.3.1 to O.3.63 | 63 |
+| O.4 | O.4.1 to O.4.52 | 52 |
+| O.5 | O.5.2 to O.5.54 | 53 |
+| O.7 | O.7.1 to O.7.47 | 47 |
+| O.8 | O.8.1 to O.8.37 | 37 |
+| O.9 | O.9.1 to O.9.40 | 40 |
+| O.10 | O.10.2 to O.10.34 | 33 |
+| O.11 | O.11.2 to O.11.19 | 18 |
+| R.1 | R.1.2 to R.1.92 | 91 |
+| R.2 | R.2.4 to R.2.98 | 95 |
+| R.3 | R.3.1 to R.3.68 | 68 |
+| R.4 | R.4.1 to R.4.52 | 52 |
+| R.5 | R.5.3 to R.5.46 | 44 |
+| R.7 | R.7.1 to R.7.51 | 51 |
+| R.8 | R.8.3 to R.8.35 | 33 |
+| R.9 | R.9.8 to R.9.39 | 32 |
+| R.10 | R.10.5 to R.10.15 | 11 |
+| R.11 | R.11.1 to R.11.2 | 2 |
+| R.13 | R.13.8 to R.13.74 | 67 |
+| R.14 | R.14.1 to R.14.16 | 16 |
+| R.15 | R.15.1 to R.15.55 | 55 |
+| R.16 | R.16.2 to R.16.40 | 39 |
+| R.17 | R.17.1 to R.17.23 | 23 |
+
+**Total candidates:** ~1,663 (B + F + O + R series)
+
+**Script Behavior (`scripts/importers/trinity_cambridge.py`):**
+- Enumeration-based: generates all 1,663 candidates from known ranges
+- Tests each shelfmark via HTTP request to manifest URL
+- Rate limiting: 0.5s delay between requests
+- Timeout: 30s per manifest fetch
+- Checkpoint: saves progress after each item to `cache/trinity_progress.json`
+- Resume: `--resume` flag skips completed and not-found shelfmarks
+- No special dependencies - uses standard library `urllib`
+
+**Usage:**
+```bash
+python3 scripts/importers/trinity_cambridge.py --execute           # Full run
+python3 scripts/importers/trinity_cambridge.py --resume --execute  # Resume if interrupted
+python3 scripts/importers/trinity_cambridge.py --test              # First 10 only
+```
 
 **Next Steps:**
-1. Investigate the James Catalogue site structure for alternative discovery methods
-2. Check for IIIF collection manifest endpoint
-3. Look for sitemap or API that lists all digitized manuscripts
-4. Consider manual shelfmark list compilation if automation fails
-5. The M.R. James catalog (1900-1904) may provide a complete shelfmark reference
-
-**Estimated Remaining:** ~840 manuscripts (if 850 total digitized)
+1. Run full import (~1,663 candidates, ~15-20 min estimated)
 
 ### 3. John Rylands Library (University of Manchester)
 

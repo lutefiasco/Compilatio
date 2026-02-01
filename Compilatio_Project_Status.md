@@ -258,17 +258,37 @@ See [Compilatio_Expansions.md](Compilatio_Expansions.md) for detailed expansion 
 - [x] Import 139 manuscripts
 
 ### Trinity College Cambridge (Wren Library)
-**Status: Research Complete**
+**Status: Ready to Import (Enumeration Approach)**
 
 - [x] Explore IIIF/API infrastructure
 - [x] Document manifest URL pattern: `https://mss-cat.trin.cam.ac.uk/manuscripts/{shelfmark}.json`
-- [ ] Create importer script (Playwright-based for discovery)
-- [ ] Import ~850 digitized manuscripts
+- [x] Create importer script (`scripts/importers/trinity_cambridge.py`)
+- [x] Switch to shelfmark enumeration (Playwright discovery failed)
+- [x] Document B series ranges (489 candidates)
+- [x] Document F series ranges (5 candidates)
+- [x] Document O series ranges (490 candidates)
+- [x] Document R series ranges (679 candidates)
+- [ ] Run full import (~1,663 candidates)
 
-**Technical Notes:**
-- Search API requires browser automation (CSRF/cookies)
-- Shelfmarks: B.x.y, O.x.y, R.x.y patterns
-- IIIF v2 manifests, CC BY-NC 4.0 license
+**Shelfmark Ranges (1,663 total candidates):**
+- **B series:** B.1-5, B.7-11, B.13-17 (489)
+- **F series:** F.12.40-44 (5)
+- **O series:** O.1-5, O.7-11 (490)
+- **R series:** R.1-5, R.7-11, R.13-17 (679)
+
+**Script Behavior:**
+- Enumeration-based: generates all candidates, tests each via HTTP
+- 0.5s delay between requests (rate limiting)
+- 30s timeout per manifest fetch
+- Checkpoint after each successful import (`cache/trinity_progress.json`)
+- Resume support: `--resume` skips already-completed and not-found shelfmarks
+- No browser automation needed - uses standard library `urllib`
+
+**To run:**
+```bash
+python3 scripts/importers/trinity_cambridge.py --execute
+python3 scripts/importers/trinity_cambridge.py --resume --execute  # if interrupted
+```
 
 ### John Rylands Library (University of Manchester)
 **Status: Initial Research**
@@ -284,7 +304,7 @@ See [Repository_Import_Research.md](docs/plans/Repository_Import_Research.md) fo
 ## Next Steps
 
 1. Re-download Parker Library HTML pages 3-6 and complete import (~384 more manuscripts)
-2. Implement Trinity College Cambridge importer (Playwright-based, ~850 manuscripts)
+2. Complete Trinity College Cambridge shelfmark ranges (O, R series) and run full import
 3. Explore John Rylands Library (University of Manchester)
 4. Search functionality
 5. Performance optimization for large collections
