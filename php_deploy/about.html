@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About - Compilatio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><a href="index.html">Compilatio</a></h1>
+            <p class="subtitle">Medieval Manuscript Aggregator</p>
+        </header>
+
+        <main class="about-main">
+            <nav class="breadcrumb">
+                <a href="index.html">Home</a>
+                <span class="breadcrumb-separator">/</span>
+                <span>About</span>
+            </nav>
+
+            <section class="about-section">
+                <h2 class="section-title">About Compilatio</h2>
+
+                <p class="about-text">
+                    Compilatio brings together medieval manuscripts from major research libraries,
+                    providing a convenient and unified interface for browsing collections made available through
+                    the International Image Interoperability Framework (IIIF).
+                </p>
+
+                <p class="about-text">
+                    Currently aggregating <strong id="total-manuscripts">—</strong> manuscripts
+                    from <strong id="total-repositories">—</strong> repositories.
+                </p>
+            </section>
+
+            <section class="about-section">
+                <h2 class="section-title">Sources</h2>
+                <p class="about-text">
+                    All manuscript images and metadata remain the property of their host institutions.
+                    Compilatio links to original catalogue records and serves images directly from
+                    institutional IIIF servers.
+                </p>
+		<p></p>
+                <ul class="source-list" id="source-list">
+                    <!-- Populated by JavaScript -->
+                </ul>
+            </section>
+
+            <section class="about-section">
+                <h2 class="section-title">Technical</h2>
+                <p class="about-text">
+                    Built with <a href="https://openseadragon.github.io/" target="_blank" rel="noopener">OpenSeadragon</a>
+                    for deep-zoom viewing. 
+                </p>
+            </section>
+
+            <section class="about-section">
+                <h2 class="section-title">Changelog</h2>
+                <dl class="changelog">
+                    <dt>February 2026</dt>
+                    <dd>Added Trinity College Cambridge (534 manuscripts) and Parker Library (640 manuscripts)</dd>
+
+                    <dt>January 2026</dt>
+		    <dd>Launched</dd>
+                </dl>
+            </section>
+
+            <section class="about-section">
+                <h2 class="section-title">Contact</h2>
+                <p class="about-text">
+                    Developed by <a href="https://english.ucla.edu/people-faculty/matthew%E2%80%A8-fisher/" target="_blank" rel="noopener">Matthew Fisher</a>,
+                    Department of English, UCLA.
+                </p>
+            </section>
+        </main>
+
+        <footer class="site-footer">
+            <p class="footer-text"><a href="index.html">&larr; Back to Compilatio</a></p>
+        </footer>
+    </div>
+
+    <script>
+        // Fetch totals and repository list
+        (async function() {
+            try {
+                const resp = await fetch('/api/repositories');
+                const repos = await resp.json();
+
+                // Calculate totals
+                const totalMs = repos.reduce((sum, r) => sum + (r.manuscript_count || 0), 0);
+                document.getElementById('total-manuscripts').textContent = totalMs.toLocaleString();
+                document.getElementById('total-repositories').textContent = repos.length;
+
+                // Populate source list
+                const list = document.getElementById('source-list');
+                repos.sort((a, b) => (b.manuscript_count || 0) - (a.manuscript_count || 0));
+                repos.forEach(r => {
+                    const li = document.createElement('li');
+                    const link = r.catalogue_url
+                        ? `<a href="${r.catalogue_url}" target="_blank" rel="noopener">${r.name}</a>`
+                        : r.name;
+                    li.innerHTML = `${link} <span class="source-count">(${r.manuscript_count || 0})</span>`;
+                    list.appendChild(li);
+                });
+            } catch (e) {
+                console.error('Failed to load repository data:', e);
+            }
+        })();
+    </script>
+</body>
+</html>

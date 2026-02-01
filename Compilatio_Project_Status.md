@@ -39,6 +39,13 @@
 | Viewer | OpenSeadragon 4.1.1 | Same |
 | Hosting | localhost:8000 | oldbooks.humspace.ucla.edu |
 
+**Deployment note:** Before uploading to Humspace, always sync `php_deploy/` from `src/`:
+```bash
+cp src/*.html php_deploy/
+cp src/js/*.js php_deploy/js/
+cp src/css/*.css php_deploy/css/
+```
+
 ---
 
 ## Known Issues
