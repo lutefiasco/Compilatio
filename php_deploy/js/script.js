@@ -4,7 +4,15 @@
 (function() {
     'use strict';
 
-    const API_BASE = '/api';
+    // API helper - builds URLs without mod_rewrite
+    function apiUrl(action, params = {}) {
+        const url = new URL('/api/index.php', window.location.origin);
+        url.searchParams.set('action', action);
+        for (const [key, value] of Object.entries(params)) {
+            url.searchParams.set(key, value);
+        }
+        return url.toString();
+    }
 
     // DOM Elements
     const featuredCard = document.getElementById('featured-card');
@@ -30,7 +38,7 @@
      */
     async function loadFeatured() {
         try {
-            const response = await fetch(`${API_BASE}/featured`);
+            const response = await fetch(apiUrl('featured'));
             if (!response.ok) throw new Error('Failed to fetch featured');
 
             const ms = await response.json();
@@ -86,7 +94,7 @@
      */
     async function loadRepositories() {
         try {
-            const response = await fetch(`${API_BASE}/repositories`);
+            const response = await fetch(apiUrl('repositories'));
             if (!response.ok) throw new Error('Failed to fetch repositories');
 
             const repos = await response.json();
@@ -142,7 +150,7 @@
     async function loadIiifCount() {
         try {
             // Fetch a small batch to get the total with IIIF
-            const response = await fetch(`${API_BASE}/manuscripts?limit=1`);
+            const response = await fetch(apiUrl('manuscripts', { limit: 1 }));
             if (!response.ok) return;
 
             const data = await response.json();
