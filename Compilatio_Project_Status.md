@@ -231,12 +231,12 @@ All UV integration issues (header wrapping, white box, attribution watermark, th
 See [Compilatio_Expansions.md](Compilatio_Expansions.md) for detailed expansion plan.
 
 ### Parker Library (Corpus Christi College, Cambridge)
-**Status: Pending Manual HTML Download**
+**Status: Ready for Import**
 
 - [x] Create importer script (`scripts/importers/parker.py`)
 - [x] IIIF manifest parsing via Stanford PURL
 - [x] Support for `--from-html` mode (bot protection workaround)
-- [ ] Download HTML pages manually (6 pages at 96/page)
+- [x] Download HTML pages manually (6 pages at 96/page) — saved to `data/parker_html/`
 - [ ] Run discovery from HTML files
 - [ ] Import ~560 manuscripts
 
@@ -255,7 +255,7 @@ See [Compilatio_Expansions.md](Compilatio_Expansions.md) for detailed expansion 
 
 ## Next Steps
 
-1. Complete Parker Library import (manual HTML download)
+1. Run Parker Library import (`--discover-only` then `--execute`)
 2. Explore John Rylands Library
 3. Search functionality
 4. Performance optimization for large collections
@@ -270,7 +270,7 @@ See [Compilatio_Expansions.md](Compilatio_Expansions.md) for detailed expansion 
 ## Current Gaps
 
 1. **Search** - No search functionality yet
-2. **Parker Library** - Pending manual HTML download from browser
+2. **Parker Library** - HTML downloaded, ready to run import
 
 ## Known Bugs
 
