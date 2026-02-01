@@ -22,6 +22,8 @@
     const prevBtn = document.getElementById('prev-btn');
     const nextBtn = document.getElementById('next-btn');
     const paginationInfo = document.getElementById('pagination-info');
+    const pageInput = document.getElementById('page-input');
+    const totalPagesSpan = document.getElementById('total-pages');
 
     document.addEventListener('DOMContentLoaded', () => {
         // Parse URL parameters
@@ -33,6 +35,17 @@
         // Set up pagination handlers
         if (prevBtn) prevBtn.addEventListener('click', goToPrevPage);
         if (nextBtn) nextBtn.addEventListener('click', goToNextPage);
+        if (pageInput) {
+            pageInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    goToPage(parseInt(pageInput.value, 10));
+                }
+            });
+            pageInput.addEventListener('blur', () => {
+                goToPage(parseInt(pageInput.value, 10));
+            });
+        }
 
         // Load appropriate view
         if (currentRepo && currentCollection) {
@@ -267,7 +280,15 @@
         const currentPage = Math.floor(currentOffset / ITEMS_PER_PAGE) + 1;
         const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
 
-        paginationInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+        // Update input and total pages display
+        if (pageInput) {
+            pageInput.value = currentPage;
+            pageInput.max = totalPages;
+        }
+        if (totalPagesSpan) {
+            totalPagesSpan.textContent = totalPages;
+        }
+
         prevBtn.disabled = currentOffset === 0;
         nextBtn.disabled = currentOffset + ITEMS_PER_PAGE >= totalItems;
     }
@@ -293,6 +314,33 @@
             updateUrl();
             loadManuscripts();
             window.scrollTo(0, 0);
+        }
+    }
+
+    /**
+     * Go to specific page number
+     */
+    function goToPage(pageNumber) {
+        const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+
+        // Clamp to valid range
+        if (isNaN(pageNumber) || pageNumber < 1) {
+            pageNumber = 1;
+        } else if (pageNumber > totalPages) {
+            pageNumber = totalPages;
+        }
+
+        const newOffset = (pageNumber - 1) * ITEMS_PER_PAGE;
+
+        // Only reload if actually changing pages
+        if (newOffset !== currentOffset) {
+            currentOffset = newOffset;
+            updateUrl();
+            loadManuscripts();
+            window.scrollTo(0, 0);
+        } else {
+            // Reset input to current page if no change
+            if (pageInput) pageInput.value = Math.floor(currentOffset / ITEMS_PER_PAGE) + 1;
         }
     }
 

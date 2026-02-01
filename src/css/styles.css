@@ -484,6 +484,30 @@ h1 a:hover {
     padding: 0 1rem;
 }
 
+.page-input {
+    width: 3.5em;
+    padding: 0.25rem 0.4rem;
+    background: #232323;
+    border: 1px solid #444;
+    border-radius: 2px;
+    color: #e8e4dc;
+    font-size: 0.85rem;
+    text-align: center;
+    -moz-appearance: textfield;
+}
+
+.page-input::-webkit-outer-spin-button,
+.page-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.page-input:focus {
+    outline: none;
+    border-color: #666;
+    background: #2a2a2a;
+}
+
 /* Loading State */
 .loading {
     text-align: center;
@@ -1185,4 +1209,90 @@ code {
     .manuscript-grid {
         grid-template-columns: 1fr;
     }
+}
+
+/* ============================================
+   ABOUT PAGE
+   ============================================ */
+
+.about-main {
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.about-section {
+    margin-bottom: 2.5rem;
+}
+
+.about-section + .about-section {
+    margin-top: 3rem;
+}
+
+.about-section .section-title {
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+}
+
+.about-text {
+    color: #aaa;
+    line-height: 1.7;
+    margin-bottom: 1rem;
+}
+
+.about-text a {
+    color: #e8e4dc;
+}
+
+.about-text strong {
+    color: #e8e4dc;
+    font-weight: 500;
+}
+
+.source-list {
+    list-style: none;
+    padding: 0;
+    margin: 1rem 0;
+    columns: 2;
+    column-gap: 2rem;
+}
+
+.source-list li {
+    color: #888;
+    padding: 0.3rem 0;
+    break-inside: avoid;
+}
+
+.source-list a {
+    color: #e8e4dc;
+}
+
+.source-count {
+    color: #666;
+    font-size: 0.85rem;
+}
+
+.changelog {
+    margin: 1rem 0;
+}
+
+.changelog dt {
+    color: #e8e4dc;
+    font-weight: 500;
+    margin-top: 1rem;
+    font-size: 0.95rem;
+}
+
+.changelog dt:first-child {
+    margin-top: 0;
+}
+
+.changelog dd {
+    color: #888;
+    margin: 0.3rem 0 0.3rem 1rem;
+    font-size: 0.9rem;
+}
+
+.footer-sep {
+    color: #444;
+    margin: 0 0.3rem;
 }

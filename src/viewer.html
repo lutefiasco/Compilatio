@@ -1132,9 +1132,33 @@
                         collectionSelect.appendChild(opt);
                     });
                     collectionSelect.disabled = false;
+                } else {
+                    // No collections - load manuscripts directly, skip collection step
+                    collectionSelect.innerHTML = '<option value="">(no collections)</option>';
+                    await loadManuscriptsForRepo(repoId);
                 }
             } catch (e) {
                 console.error('Failed to load repository details:', e);
+            }
+        }
+
+        async function loadManuscriptsForRepo(repoId) {
+            // Load all manuscripts for a repository (used when no collections exist)
+            try {
+                const resp = await fetch(`${API_BASE}/manuscripts?repository_id=${repoId}&limit=200`);
+                const data = await resp.json();
+                const manuscripts = (data.manuscripts || []).filter(m => m.iiif_manifest_url);
+
+                manuscripts.sort((a, b) => (a.shelfmark || '').localeCompare(b.shelfmark || '')).forEach(ms => {
+                    const opt = document.createElement('option');
+                    opt.value = ms.id;
+                    opt.textContent = `${ms.shelfmark || 'MS ' + ms.id}${ms.date_display ? ' (' + ms.date_display + ')' : ''}`;
+                    msSelect.appendChild(opt);
+                });
+                msSelect.disabled = false;
+                msCount.textContent = `(${manuscripts.length} viewable)`;
+            } catch (e) {
+                console.error('Failed to load manuscripts:', e);
             }
         }
 

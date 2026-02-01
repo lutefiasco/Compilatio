@@ -107,6 +107,9 @@ See [British Library Import Plan](docs/plans/archived/2026-01-27-British-Library
 - [ ] Search functionality
 - [x] Responsive design (mobile sidebar, tablet layouts)
 - [x] Featured manuscript rotation (random selection via `/api/featured`)
+- [x] About page with dynamic totals and changelog
+- [x] Page jump navigation for browse results
+- [x] Viewer dropdown fix for repositories with no collections
 - [ ] Performance optimization
 
 ## Phase 7: Additional Repositories
@@ -155,17 +158,18 @@ All imports completed on rabota:
 | Repository | Manuscripts | Collections |
 |------------|-------------|-------------|
 | Bodleian Library | 1,713 | Greek (536), Laud Misc. (289), Barocci (235), ... |
+| Parker Library | 640 | Parker Library |
+| Trinity College Cambridge | 534 | (shelfmark series: B, F, O, R) |
 | Cambridge University Library | 304 | Additional (122), Dd (50), Ff (32), Kk (29), ... |
 | Durham University Library | 287 | Cathedral A/B/C, Cosin, Hunter, Bamburgh, ... |
 | National Library of Wales | 226 | Peniarth |
 | Huntington Library | 190 | Ellesmere (27), Huntington Manuscripts (163) |
 | British Library | 178 | Royal (81), Harley (56), Cotton (41) |
+| Yale Beinecke | 139 | Takamiya |
 | UCLA | 115 | (various) |
 | National Library of Scotland | 104 | Gaelic (93), Early Scottish (8), Middle English (3) |
-| Parker Library | 176 | Parker Library (partial — pages 3-6 pending) |
-| Yale Beinecke | 139 | Takamiya |
 | Lambeth Palace Library | 2 | Lambeth Palace |
-| **Total** | **3,434** | |
+| **Total** | **4,432** | |
 
 ### To Recreate Database
 
@@ -303,11 +307,10 @@ See [Repository_Import_Research.md](docs/plans/Repository_Import_Research.md) fo
 
 ## Next Steps
 
-1. Re-download Parker Library HTML pages 3-6 and complete import (~384 more manuscripts)
-2. Complete Trinity College Cambridge shelfmark ranges (O, R series) and run full import
-3. Explore John Rylands Library (University of Manchester)
-4. Search functionality
-5. Performance optimization for large collections
+1. Add TCC thumbnails (script needed - manifests have thumbnail at manifest level, not canvas)
+2. Explore John Rylands Library (University of Manchester)
+3. Search functionality
+4. Performance optimization for large collections
 
 ## Future Repositories
 
@@ -318,7 +321,7 @@ See [Repository_Import_Research.md](docs/plans/Repository_Import_Research.md) fo
 ## Current Gaps
 
 1. **Search** - No search functionality yet
-2. **Parker Library** - Pages 3-6 HTML files need re-download (currently duplicates of page 1)
+2. **TCC Thumbnails** - Trinity College Cambridge manuscripts missing thumbnails (534 manuscripts)
 
 ## Known Bugs
 
