@@ -11,7 +11,7 @@
 ## Phase 2: Viewer
 **Status: Complete (v3 - OpenSeadragon)**
 
-Replaced Universal Viewer with OpenSeadragon used directly. UV's internal CSS Grid layout was fundamentally incompatible with embedded use (see `docs/plans/Ongoing_Design_Issues.md`). Old UV-based viewer and test files archived to `src/archive/`.
+Replaced Universal Viewer with OpenSeadragon used directly. UV's internal CSS Grid layout was fundamentally incompatible with embedded use (see `docs/plans/archived/Ongoing_Design_Issues.md`). Old UV-based viewer and test files archived to `src/archive/`.
 
 - [x] Replace Mirador with Universal Viewer (v1-v2, archived)
 - [x] Replace UV with OpenSeadragon direct integration (v3)
@@ -88,7 +88,7 @@ http://localhost:8000/viewer.html?manifest=https://iiif.bodleian.ox.ac.uk/iiif/m
 ## Phase 5: British Library
 **Status: Complete**
 
-See [British Library Import Plan](docs/plans/2026-01-27-British-Library-Import.md) for details.
+See [British Library Import Plan](docs/plans/archived/2026-01-27-British-Library-Import.md) for details.
 
 - [x] Create BL importer script (`scripts/importers/british_library.py`)
 - [x] Handle JavaScript rendering (uses Playwright)
@@ -112,7 +112,7 @@ See [British Library Import Plan](docs/plans/2026-01-27-British-Library-Import.m
 ## Phase 7: Additional Repositories
 **Status: Complete**
 
-See [Additional Repositories Import Plan](docs/plans/2026-01-28-Additional-Repositories-Import.md) for full details.
+See [Additional Repositories Import Plan](docs/plans/archived/2026-01-28-Additional-Repositories-Import.md) for full details.
 
 Priority order (one at a time, each complete before starting next):
 
@@ -132,7 +132,7 @@ Priority order (one at a time, each complete before starting next):
 ## Phase 8: Huntington Library
 **Status: Complete**
 
-See [Huntington Ellesmere Import Plan](docs/plans/2026-01-29-Huntington-Ellesmere-Import.md) for details.
+See [Huntington Ellesmere Import Plan](docs/plans/archived/2026-01-29-Huntington-Ellesmere-Import.md) for details.
 
 - [x] Create Huntington importer script (`scripts/importers/huntington.py`)
 - [x] CONTENTdm API integration (no browser needed)
@@ -157,13 +157,15 @@ All imports completed on rabota:
 | Bodleian Library | 1,713 | Greek (536), Laud Misc. (289), Barocci (235), ... |
 | Cambridge University Library | 304 | Additional (122), Dd (50), Ff (32), Kk (29), ... |
 | Durham University Library | 287 | Cathedral A/B/C, Cosin, Hunter, Bamburgh, ... |
-| National Library of Wales | 249 | Peniarth |
+| National Library of Wales | 226 | Peniarth |
 | Huntington Library | 190 | Ellesmere (27), Huntington Manuscripts (163) |
 | British Library | 178 | Royal (81), Harley (56), Cotton (41) |
-| National Library of Scotland | 104 | Gaelic (93), Early Scottish (8), Middle English (3) |
-| Lambeth Palace Library | 2 | Lambeth Palace |
 | UCLA | 115 | (various) |
-| **Total** | **3,119** | |
+| National Library of Scotland | 104 | Gaelic (93), Early Scottish (8), Middle English (3) |
+| Parker Library | 176 | Parker Library (partial — pages 3-6 pending) |
+| Yale Beinecke | 139 | Takamiya |
+| Lambeth Palace Library | 2 | Lambeth Palace |
+| **Total** | **3,434** | |
 
 ### To Recreate Database
 
@@ -207,6 +209,9 @@ python scripts/importers/huntington.py --collection HM --min-shelfmark 1 --max-s
 python scripts/importers/parker.py --from-html scripts/importers/resources/parker_html/ --discover-only
 python scripts/importers/parker.py --skip-discovery --execute
 
+# Yale Beinecke Takamiya Collection (no special dependencies)
+python scripts/importers/yale_takamiya.py --execute
+
 # Start server
 python server.py
 ```
@@ -217,7 +222,7 @@ python server.py
 
 **Status: RESOLVED — UV replaced with OpenSeadragon**
 
-All UV integration issues (header wrapping, white box, attribution watermark, thumbnail panel at bottom) were resolved by replacing UV entirely with OpenSeadragon used directly. See `docs/plans/Viewer_Design_v3.md` for the design document and `docs/plans/Ongoing_Design_Issues.md` for historical UV issues.
+All UV integration issues (header wrapping, white box, attribution watermark, thumbnail panel at bottom) were resolved by replacing UV entirely with OpenSeadragon used directly. See `docs/plans/archived/Viewer_Design_v3.md` for the design document and `docs/plans/archived/Ongoing_Design_Issues.md` for historical UV issues.
 
 ### Viewer Navigation
 
@@ -229,46 +234,71 @@ All UV integration issues (header wrapping, white box, attribution watermark, th
 See [Compilatio_Expansions.md](Compilatio_Expansions.md) for detailed expansion plan.
 
 ### Parker Library (Corpus Christi College, Cambridge)
-**Status: Ready for Import**
+**Status: Partial Import (176/~560)**
 
 - [x] Create importer script (`scripts/importers/parker.py`)
 - [x] IIIF manifest parsing via Stanford PURL
 - [x] Support for `--from-html` mode (bot protection workaround)
 - [x] Download HTML pages manually (6 pages at 96/page) — saved to `scripts/importers/resources/parker_html/`
-- [ ] Run discovery from HTML files
-- [ ] Import ~560 manuscripts
+- [x] Run discovery from HTML files
+- [x] Import manuscripts from pages 1-2 (176 manuscripts)
+- [ ] Re-download pages 3-6 and complete import (~384 remaining)
 
 **Technical Notes:**
 - Stanford's aggressive bot protection blocks all automated access (Playwright, crawl4ai)
 - Workaround: manually save page source from browser, parse locally
 - IIIF manifests accessible via `https://purl.stanford.edu/{druid}/iiif/manifest`
 
-### John Rylands Library (University of Manchester)
-**Status: Planned**
+### Yale Beinecke Takamiya Collection
+**Status: Complete**
 
-- [ ] Explore IIIF/API infrastructure
+- [x] Explore Yale Digital Collections API
+- [x] Create importer script (`scripts/importers/yale_takamiya.py`)
+- [x] JSON API discovery + IIIF v3 manifest parsing
+- [x] Import 139 manuscripts
+
+### Trinity College Cambridge (Wren Library)
+**Status: Research Complete**
+
+- [x] Explore IIIF/API infrastructure
+- [x] Document manifest URL pattern: `https://mss-cat.trin.cam.ac.uk/manuscripts/{shelfmark}.json`
+- [ ] Create importer script (Playwright-based for discovery)
+- [ ] Import ~850 digitized manuscripts
+
+**Technical Notes:**
+- Search API requires browser automation (CSRF/cookies)
+- Shelfmarks: B.x.y, O.x.y, R.x.y patterns
+- IIIF v2 manifests, CC BY-NC 4.0 license
+
+### John Rylands Library (University of Manchester)
+**Status: Initial Research**
+
+- [x] Initial exploration of Manchester Digital Collections
+- [ ] Complete API/IIIF infrastructure research
 - [ ] Create importer script
+
+See [Repository_Import_Research.md](docs/plans/Repository_Import_Research.md) for detailed technical notes.
 
 ---
 
 ## Next Steps
 
-1. Run Parker Library import (`--discover-only` then `--execute`)
-2. Explore John Rylands Library
-3. Search functionality
-4. Performance optimization for large collections
+1. Re-download Parker Library HTML pages 3-6 and complete import (~384 more manuscripts)
+2. Implement Trinity College Cambridge importer (Playwright-based, ~850 manuscripts)
+3. Explore John Rylands Library (University of Manchester)
+4. Search functionality
+5. Performance optimization for large collections
 
 ## Future Repositories
 
 - [ ] **Harvard** (Houghton Library)
-- [ ] **Yale** (Beinecke Rare Book & Manuscript Library)
 
 ---
 
 ## Current Gaps
 
 1. **Search** - No search functionality yet
-2. **Parker Library** - HTML downloaded, ready to run import
+2. **Parker Library** - Pages 3-6 HTML files need re-download (currently duplicates of page 1)
 
 ## Known Bugs
 

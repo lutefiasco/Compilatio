@@ -24,13 +24,16 @@ This document provides a robust, repeatable process for adding new repositories 
 | Bodleian Library | 1,713 | TEI/XML parsing from git clone |
 | Cambridge University Library | 304 | IIIF collection crawl |
 | Durham University Library | 287 | IIIF collection tree |
-| National Library of Wales | 249 | crawl4ai + IIIF manifests |
+| National Library of Wales | 226 | crawl4ai + IIIF manifests |
 | Huntington Library | 190 | CONTENTdm API + IIIF |
 | British Library | 178 | Playwright + HTML scraping |
+| Parker Library | 176 | Manual HTML + IIIF manifests |
+| Yale (Takamiya) | 139 | Direct IIIF |
 | UCLA | 115 | Direct IIIF |
 | National Library of Scotland | 104 | IIIF collection tree |
+| Trinity College Cambridge | 10 | Playwright + IIIF manifests |
 | Lambeth Palace Library | 2 | CUDL IIIF subset |
-| **Total** | **3,142** | |
+| **Total** | **3,444** | |
 
 ### Import Methods Overview
 
@@ -170,6 +173,13 @@ Return a technical assessment with:
 
 All importers follow a consistent pattern. Create new scripts in `scripts/importers/`:
 
+**CRITICAL REQUIREMENTS:**
+- ✅ **Two-phase operation** (discovery → import)
+- ✅ **Checkpoint/resume support** (save progress after each item)
+- ✅ **Interruptible** (can be stopped and resumed safely)
+- ✅ **Progress logging** (show X/Y completed)
+- ✅ **Background-ready** (imports >10 minutes must support this)
+
 ```python
 #!/usr/bin/env python3
 """
@@ -177,11 +187,20 @@ All importers follow a consistent pattern. Create new scripts in `scripts/import
 
 [Brief description of data source and import method]
 
+Two-phase process with checkpoint resumability:
+  Phase 1 (Discovery): [Description of how manuscripts are discovered]
+  Phase 2 (Import): [Description of manifest fetching and database insertion]
+
 Usage:
     python scripts/importers/[repo].py                    # Dry-run mode
     python scripts/importers/[repo].py --execute          # Actually import
+    python scripts/importers/[repo].py --resume --execute # Resume interrupted import
     python scripts/importers/[repo].py --test             # First 5 only
     python scripts/importers/[repo].py --verbose          # Detailed logging
+    python scripts/importers/[repo].py --discover-only    # Discovery phase only
+    python scripts/importers/[repo].py --skip-discovery   # Use cached discovery data
+
+Note: Full import takes ~[X] minutes. Use --resume to continue if interrupted.
 """
 
 import argparse
@@ -191,12 +210,16 @@ import re
 import sqlite3
 import sys
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Optional
 
 # Project paths
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 DB_PATH = PROJECT_ROOT / "database" / "compilatio.db"
+CACHE_DIR = PROJECT_ROOT / "scripts" / "importers" / "cache"
+DISCOVERY_CACHE = CACHE_DIR / "[repo]_discovery.json"
+PROGRESS_FILE = CACHE_DIR / "[repo]_progress.json"
 
 # Repository-specific constants
 REPO_NAME = "[Full Repository Name]"
@@ -222,6 +245,24 @@ USER_AGENT = "Compilatio/1.0 (Academic manuscript research; IIIF aggregator)"
 Every importer must implement:
 
 ```python
+# Progress/Checkpoint Management (REQUIRED)
+def load_progress(progress_path: Path) -> dict:
+    """Load progress from checkpoint file."""
+    pass
+
+def save_progress(progress: dict, progress_path: Path):
+    """Save progress to checkpoint file."""
+    pass
+
+def mark_completed(progress: dict, item_id: str, progress_path: Path):
+    """Mark an item as completed and save checkpoint."""
+    pass
+
+def mark_failed(progress: dict, item_id: str, progress_path: Path):
+    """Mark an item as failed and save checkpoint."""
+    pass
+
+# Data Fetching
 def fetch_json(url: str) -> Optional[dict]:
     """Fetch URL and parse as JSON with error handling."""
     pass
@@ -234,6 +275,7 @@ def parse_manifest(manifest_data: dict, manifest_url: str) -> Optional[dict]:
     """Phase 2: Parse IIIF manifest into database record."""
     pass
 
+# Database Operations
 def ensure_repository(cursor) -> int:
     """Create or get repository ID in database."""
     pass
@@ -242,13 +284,26 @@ def manuscript_exists(cursor, shelfmark: str, repo_id: int) -> Optional[int]:
     """Check if manuscript already exists."""
     pass
 
-def import_[repo](db_path, dry_run=True, test_mode=False, verbose=False):
-    """Main import function."""
+# Main Functions
+def import_[repo](db_path, dry_run=True, test_mode=False, verbose=False, resume=False):
+    """Main import function with checkpoint support."""
     pass
 
 def main():
     """CLI entry point."""
     pass
+```
+
+**Progress File Structure:**
+
+```json
+{
+  "last_updated": "2026-01-31T22:30:00Z",
+  "total_discovered": 850,
+  "completed_ids": ["B.1.1", "B.1.2", ...],
+  "failed_ids": ["B.2.5"],
+  "phase": "import"
+}
 ```
 
 ### Database Record Fields
@@ -273,35 +328,35 @@ Each manuscript record must include:
 
 ### CLI Arguments
 
-Standard arguments for all importers:
+**Required arguments for all importers:**
 
 ```python
 parser.add_argument('--execute', action='store_true',
     help='Actually execute the import (default is dry-run)')
 parser.add_argument('--test', action='store_true',
-    help='Test mode: limit to first 5 manuscripts')
+    help='Test mode: limit to first page of results')
 parser.add_argument('--verbose', '-v', action='store_true',
     help='Show detailed logging')
 parser.add_argument('--db', type=Path, default=DB_PATH,
     help='Path to database')
 parser.add_argument('--limit', type=int, default=None,
     help='Limit number of manuscripts to process')
-```
 
-Optional arguments for specific needs:
-
-```python
-# For multi-collection repositories
-parser.add_argument('--collection', '-c', type=str,
-    help='Specific collection to import')
-
-# For checkpoint/resume support
+# Checkpoint/resume support (REQUIRED for all importers)
 parser.add_argument('--resume', action='store_true',
     help='Resume from last checkpoint')
 parser.add_argument('--discover-only', action='store_true',
     help='Only run discovery phase')
 parser.add_argument('--skip-discovery', action='store_true',
     help='Use cached discovery data')
+```
+
+**Optional arguments for specific needs:**
+
+```python
+# For multi-collection repositories
+parser.add_argument('--collection', '-c', type=str,
+    help='Specific collection to import')
 ```
 
 ---
@@ -315,7 +370,7 @@ parser.add_argument('--skip-discovery', action='store_true',
    python scripts/importers/[repo].py
    ```
 
-2. **Test mode** (first 5):
+2. **Test mode** (first page only):
    ```bash
    python scripts/importers/[repo].py --test --verbose
    ```
@@ -325,15 +380,42 @@ parser.add_argument('--skip-discovery', action='store_true',
    python scripts/importers/[repo].py --limit 50 --verbose
    ```
 
-4. **Full dry run** (verify all records):
+4. **Discovery only** (cache shelfmarks):
    ```bash
-   python scripts/importers/[repo].py --verbose
+   python scripts/importers/[repo].py --discover-only
    ```
 
-5. **Execute** (write to database):
+5. **Full dry run** (verify all records):
    ```bash
-   python scripts/importers/[repo].py --execute
+   python scripts/importers/[repo].py --skip-discovery --verbose
    ```
+
+6. **Execute** (write to database):
+   ```bash
+   python scripts/importers/[repo].py --skip-discovery --execute
+   ```
+
+7. **Resume if interrupted**:
+   ```bash
+   python scripts/importers/[repo].py --resume --execute
+   ```
+
+### Checkpoint/Resume Testing
+
+Always test checkpoint functionality:
+
+```bash
+# Start an import
+python scripts/importers/[repo].py --execute --limit 10
+
+# Interrupt with Ctrl+C after 5 complete
+
+# Resume - should skip first 5
+python scripts/importers/[repo].py --resume --execute
+
+# Check progress file
+cat scripts/importers/cache/[repo]_progress.json
+```
 
 ### Validation Checklist
 
@@ -347,6 +429,10 @@ Before considering an import complete:
 - [ ] Date parsing produces reasonable values
 - [ ] No duplicate records created
 - [ ] Collection groupings are sensible
+- [ ] **Checkpoint/resume works** (test interruption and resumption)
+- [ ] **Progress file updates** after each successful import
+- [ ] **Failed items tracked** in progress file
+- [ ] **Dry-run mode works** without creating checkpoint files
 
 ### Quick Database Checks
 
@@ -613,9 +699,57 @@ Since all automated access is blocked, manually save page source from browser:
 
 **Estimated Manuscripts:** 538-560
 
-### 2. John Rylands Library (University of Manchester)
+### 2. Trinity College Cambridge (Wren Library)
 
-**Status:** High Priority - Second Target
+**Status:** Partially Imported - Discovery Issue
+
+**Technical Details:**
+- **Platform:** Custom catalog (James Catalogue of Western Manuscripts)
+- **Collection:** ~850 digitized medieval manuscripts (per documentation)
+- **IIIF Support:** Yes, Presentation API v2
+- **Website:** [mss-cat.trin.cam.ac.uk](https://mss-cat.trin.cam.ac.uk)
+- **Manifest URL Pattern:** `https://mss-cat.trin.cam.ac.uk/manuscripts/{shelfmark}.json`
+- **Viewer URL Pattern:** `https://mss-cat.trin.cam.ac.uk/manuscripts/uv/view.php?n={shelfmark}`
+
+**Import Script:** `scripts/importers/trinity_cambridge.py`
+
+**Current Status (2026-01-31):**
+- **Imported:** 10 manuscripts
+- **Failed:** 1 (B.1.2 - invalid manifest JSON)
+- **Issue:** Discovery phase only found 11 manuscripts
+
+**Discovery Problem:**
+The Playwright-based scraper checks the "Digitised Copies Only" checkbox and submits the search, but only receives one page of results with 11 shelfmarks. The pagination ("Next" button) is not found, suggesting either:
+1. The search interface has changed
+2. JavaScript-driven pagination not being captured
+3. Different search parameters needed to expose full collection
+
+**Shelfmark Pattern:** `[A-Z].\d+.\d+` (e.g., B.1.1, B.16.17, O.1.2, R.3.4)
+
+**Known Working Shelfmarks:**
+- B.1.1 - Glossed Jeremiah and Lamentations (213 images)
+- B.1.3 - Gregory the Great, In Ezechielem (147 images)
+- B.1.4 - Gregory the Great, Dialogi (172 images)
+- B.1.5 - John Cassian, Collationes patrum (68 images)
+- B.1.6 - Glossed Epistles of St Paul (135 images)
+- B.1.7 - Ambrose, Expositio Psalmi cxviii (157 images)
+- B.1.8 - William of Tournai, Flores Bernardi (321 images)
+- B.1.9 - Tractatus De Viciis (188 images)
+- B.1.10 - Glossed Gospel of St Matthew (145 images)
+- B.16.17 - Odonis Morimundensis (133 images)
+
+**Next Steps:**
+1. Investigate the James Catalogue site structure for alternative discovery methods
+2. Check for IIIF collection manifest endpoint
+3. Look for sitemap or API that lists all digitized manuscripts
+4. Consider manual shelfmark list compilation if automation fails
+5. The M.R. James catalog (1900-1904) may provide a complete shelfmark reference
+
+**Estimated Remaining:** ~840 manuscripts (if 850 total digitized)
+
+### 3. John Rylands Library (University of Manchester)
+
+**Status:** High Priority - Next Target
 
 **Technical Details:**
 - **Collection:** Major medieval manuscript collection
@@ -633,7 +767,7 @@ Since all automated access is blocked, manually save page source from browser:
 - Latin, Greek, and vernacular manuscripts
 - Significant Anglo-Saxon and Middle English texts
 
-### 3. Trinity College Dublin
+### 4. Trinity College Dublin
 
 **Status:** Candidate
 
@@ -647,7 +781,7 @@ Since all automated access is blocked, manually save page source from browser:
 - API availability
 - Manuscript scope vs. all collections
 
-### 4. Bibliothèque nationale de France (Gallica)
+### 5. Bibliothèque nationale de France (Gallica)
 
 **Status:** Future Consideration
 
@@ -658,7 +792,7 @@ Since all automated access is blocked, manually save page source from browser:
 
 **Note:** Very large collection, would need scoping to medieval manuscripts only.
 
-### 5. e-codices (Virtual Manuscript Library of Switzerland)
+### 6. e-codices (Virtual Manuscript Library of Switzerland)
 
 **Status:** Future Consideration
 
@@ -678,24 +812,46 @@ Since all automated access is blocked, manually save page source from browser:
    - Document IIIF/API infrastructure
    - Map metadata fields
    - Create technical assessment
+   - **Estimate total import time** (>10 min = needs background support)
 
 2. **Development Phase** (use general-purpose subagent)
    - Create importer script in `scripts/importers/`
-   - Follow standard patterns from existing importers
+   - Follow standard patterns from existing importers (e.g., `huntington.py`, `trinity_cambridge.py`)
+   - **REQUIRED: Implement checkpoint/resume support**
+   - **REQUIRED: Two-phase operation** (discovery → import)
+   - **REQUIRED: Progress tracking** after each item
    - Implement discovery and parsing functions
-   - Add checkpoint/resume for large collections
 
 3. **Testing Phase**
    - Dry-run validation
    - Test mode with verbose logging
+   - **Test checkpoint/resume** (interrupt and resume)
    - Limited run verification
-   - Full execution
+   - Full execution with `--execute`
 
 4. **Sync Phase**
    - Export SQLite to MySQL format
    - Upload to oldbooks via FTP/cPanel
    - Import via phpMyAdmin
    - Verify production counts
+
+### Background Execution (for imports >10 minutes)
+
+For long-running imports:
+
+```bash
+# Start in background
+python scripts/importers/[repo].py --execute > import_[repo].log 2>&1 &
+
+# Monitor progress
+tail -f import_[repo].log
+
+# Or check progress file
+watch -n 5 'cat scripts/importers/cache/[repo]_progress.json | jq'
+
+# If process dies, resume
+python scripts/importers/[repo].py --resume --execute
+```
 
 ### Parallel Subagent Pattern
 
@@ -745,13 +901,19 @@ python scripts/importers/[repo].py
 # 2. Test
 python scripts/importers/[repo].py --test --verbose
 
-# 3. Execute
-python scripts/importers/[repo].py --execute
+# 3. Discovery only
+python scripts/importers/[repo].py --discover-only
 
-# 4. Export
+# 4. Execute (with checkpoints)
+python scripts/importers/[repo].py --skip-discovery --execute
+
+# 5. If interrupted, resume
+python scripts/importers/[repo].py --resume --execute
+
+# 6. Export
 ./scripts/sync_to_production.sh
 
-# 5. Upload and import via phpMyAdmin
+# 7. Upload and import via phpMyAdmin
 ```
 
 ### Database verification
