@@ -51,6 +51,7 @@
 | TCC thumbnails slow | Open — thumbnails load very slowly in viewer, investigate |
 | UCLA thumbnails | Open — some not displaying on browse page |
 | favicon.ico 404 | Open |
+| ~~Lambeth Palace URL~~ | Fixed 2026-02-02 — `catalogue_url` set to NULL; domain hijacked |
 | ~~Parker shelfmarks~~ | Fixed 2026-02-01 |
 | ~~TCC thumbnails~~ | Fixed 2026-02-01 |
 | ~~Bodleian thumbnails~~ | Fixed 2026-01-28 |
