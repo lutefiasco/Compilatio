@@ -63,3 +63,21 @@ Key tables:
 2. Repository: see collections with manuscript counts
 3. Collection: see manuscripts
 4. Manuscript: OpenSeadragon viewer with metadata sidebar + thumbnail grid
+
+## Deployment
+
+Production is at https://oldbooks.humspace.ucla.edu/ (PHP/MySQL on UCLA Humspace).
+
+**Deploy workflow:**
+```bash
+./scripts/deploy_production.sh
+```
+
+This runs pre-flight checks (git status, file sync, database export, SSH connectivity), then asks whether to deploy files, database, or both.
+
+**Individual scripts:**
+- `scripts/build_php.py` — Convert src/ → php_deploy/ (transforms API URLs)
+- `scripts/export_mysql.py` — Export SQLite → MySQL-compatible SQL
+- `scripts/verify_deploy.py` — Run all pre-flight checks
+
+**Important:** Never edit php_deploy/ directly. Always edit src/ and run `build_php.py`.

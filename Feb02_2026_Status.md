@@ -38,6 +38,7 @@ Comprehensive status of the Compilatio IIIF manuscript aggregator project.
 
 | Date | Task |
 |------|------|
+| 2026-02-03 | Deployment automation — `deploy_production.sh` with pre-flight checks, SSH sync |
 | 2026-02-02 | Harvard/Houghton Library import — 238 manuscripts via Biblissima discovery |
 | 2026-02-02 | John Rylands Library import — 138 manuscripts via Biblissima discovery |
 | 2026-02-01 | Database sync to production (4,352 manuscripts at that time) |
@@ -69,14 +70,27 @@ Comprehensive status of the Compilatio IIIF manuscript aggregator project.
 
 **Key constraint:** mod_rewrite is unavailable on Humspace. All JavaScript must use `/api/index.php?action=...` URLs, not `/api/...` directly.
 
-**Deployment flow:**
-1. Export SQLite to MySQL-compatible SQL
-2. Upload files from `php_deploy/` (NOT `src/`)
-3. Import data via phpMyAdmin
+**Automated deployment:**
+```bash
+./scripts/deploy_production.sh
+```
+
+This script runs pre-flight checks and deploys via SSH/rsync:
+1. Verifies git is clean and synced with origin
+2. Checks `php_deploy/` is in sync with `src/`
+3. Validates MySQL export is current
+4. Tests SSH connectivity
+5. Asks what to deploy (files, database, or both)
+6. Deploys via rsync (files) and MySQL CLI (database)
+
+**Individual scripts:**
+```bash
+python3 scripts/build_php.py       # Convert src/ → php_deploy/
+python3 scripts/export_mysql.py    # Export SQLite → MySQL SQL
+python3 scripts/verify_deploy.py   # Run all pre-flight checks
+```
 
 See **[Production Deployment Guide](docs/plans/Production-Deployment-Guide.md)** for full instructions.
-
-**Sync scripts:** [PLACEHOLDER — automated deployment scripts in development]
 
 ---
 
@@ -126,10 +140,14 @@ src/                         # Local development files
   images/border-*.jpg
 php_deploy/                  # Production files (PHP/MySQL)
   api/index.php              # PHP API
-  (mirrors src/ with different API URLs)
+  (auto-generated from src/ via build_php.py)
 scripts/
   importers/                 # All repository importers
-  sync_to_production.sh      # SQLite → MySQL export
+  deploy_production.sh       # Main deployment orchestrator
+  build_php.py               # src/ → php_deploy/ converter
+  export_mysql.py            # SQLite → MySQL exporter
+  verify_deploy.py           # Pre-flight checks
+mysql_export/                # Exported SQL files (not in git)
 docs/
   plans/                     # Current planning docs
   plans/archived/            # Historical design docs
@@ -188,6 +206,9 @@ python server.py
 
 # Run an importer (example)
 python scripts/importers/bodleian.py --execute
+
+# Deploy to production
+./scripts/deploy_production.sh
 ```
 
 ---
@@ -216,4 +237,4 @@ Additional repositories that could be added:
 
 ---
 
-*Last updated: 2026-02-02*
+*Last updated: 2026-02-03*

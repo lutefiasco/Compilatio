@@ -12,6 +12,61 @@
 
 ---
 
+## Automated Deployment (Recommended)
+
+```bash
+./scripts/deploy_production.sh
+```
+
+This script:
+1. Runs pre-flight checks (git status, file sync, database export, SSH)
+2. Asks what to deploy: files, database, or both
+3. Uses rsync for files and MySQL CLI for database import
+
+**Pre-requisites:**
+- SSH key authorized on server (see SSH Setup below)
+- `~/.my.cnf` configured on server for MySQL access
+
+**Individual scripts:**
+```bash
+# Convert src/ → php_deploy/ (run after editing src/)
+python3 scripts/build_php.py
+
+# Check if php_deploy is in sync
+python3 scripts/build_php.py --check
+
+# Export SQLite to MySQL-compatible SQL
+python3 scripts/export_mysql.py
+
+# Check if export is current
+python3 scripts/export_mysql.py --check
+
+# Run all verification checks
+python3 scripts/verify_deploy.py
+```
+
+---
+
+## SSH Setup
+
+SSH access uses key authentication:
+
+- **Host:** oldbooks.humspace.ucla.edu
+- **User:** oldbooks
+- **Key:** `~/.ssh/id_ed25519`
+
+The key must be manually added to `~/.ssh/authorized_keys` on the server (cPanel SSH key manager does not work correctly).
+
+MySQL credentials are stored in `~/.my.cnf` on the server for passwordless database access.
+
+---
+
+## Manual Deployment (Fallback)
+
+If automated deployment is unavailable, follow these manual steps:
+
+---
+
 ## Pre-Deployment Checklist
 
 Before deploying, verify ALL JavaScript files use production API URLs:
@@ -236,9 +291,13 @@ Run `DELETE FROM manuscripts;` before importing again.
 | `src/` | Local development (Python server) | `/api/repositories` |
 | `php_deploy/` | Production (PHP/MySQL) | `/api/index.php?action=repositories` |
 
-**NEVER copy directly from `src/` to `php_deploy/`** without updating API calls.
+**NEVER edit php_deploy/ directly.** Always edit `src/` and run:
 
-If you modify files in `src/`, manually port changes to `php_deploy/` and update all fetch calls to use the `apiUrl()` helper or direct `/api/index.php?action=...` URLs.
+```bash
+python3 scripts/build_php.py
+```
+
+This automatically transforms API URLs from `${API_BASE}/endpoint` to `apiUrl('action')` calls.
 
 ---
 
@@ -246,4 +305,5 @@ If you modify files in `src/`, manually port changes to `php_deploy/` and update
 
 | Date | Notes |
 |------|-------|
+| 2026-02-03 | Added automated deployment scripts (deploy_production.sh, build_php.py, export_mysql.py, verify_deploy.py) |
 | 2026-02-01 | Initial guide based on deployment lessons learned |

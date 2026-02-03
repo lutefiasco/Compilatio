@@ -88,7 +88,7 @@
         // Fetch totals and repository list
         (async function() {
             try {
-                const resp = await fetch('/api/index.php?action=repositories');
+                const resp = await fetch('/api/repositories');
                 const repos = await resp.json();
 
                 // Calculate totals

@@ -4,8 +4,6 @@
 (function() {
     'use strict';
 
-    const ITEMS_PER_PAGE = 24;
-
     // API helper - builds URLs without mod_rewrite
     function apiUrl(action, params = {}) {
         const url = new URL('/api/index.php', window.location.origin);
@@ -17,6 +15,8 @@
         }
         return url.toString();
     }
+
+    const ITEMS_PER_PAGE = 24;
 
     // State
     let currentRepo = null;

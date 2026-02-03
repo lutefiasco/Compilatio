@@ -9,10 +9,13 @@
         const url = new URL('/api/index.php', window.location.origin);
         url.searchParams.set('action', action);
         for (const [key, value] of Object.entries(params)) {
-            url.searchParams.set(key, value);
+            if (value !== undefined && value !== null) {
+                url.searchParams.set(key, value);
+            }
         }
         return url.toString();
     }
+
 
     // DOM Elements
     const featuredCard = document.getElementById('featured-card');
