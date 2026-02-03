@@ -145,44 +145,29 @@ From manifest metadata array:
 
 ## John Rylands Library (University of Manchester)
 
-**Status:** Initial research started, paused
+**Status:** Complete - imported 138 manuscripts (2026-02-02)
 
-**Source:** Manchester Digital Collections
-- Main site: https://www.digitalcollections.manchester.ac.uk
-- Medieval manuscripts collection
+**Importer:** `scripts/importers/john_rylands.py`
 
-### IIIF Access
+### Technical Details
 
-**Manifest URL pattern (from Biblissima):**
+**Discovery:** Biblissima IIIF Collections search
+- URL: `https://iiif.biblissima.fr/collections/search?q=manchester+rylands`
+- 138 manuscripts with MS-* shelfmarks (excludes PR-* printed materials)
+
+**Manifest URL pattern:**
 ```
 https://www.digitalcollections.manchester.ac.uk/iiif/{item-id}
 ```
 
-**Example item IDs:**
-- MS-LATIN-00394
-- MS-LATIN-00500
-- MS-ENGLISH-00094
-- MS-HEBREW-00007
+**Manifest format:** IIIF Presentation API v2
 
-**Manifest format:** Appears to be IIIF compliant
+### Implementation Notes
 
-### View URL Pattern
-
-```
-https://www.digitalcollections.manchester.ac.uk/view/{item-id}/{page}
-```
-
-### Discovery
-
-- Blog post mentions MDC is IIIF compliant
-- May have collection-level IIIF manifest
-- Need to explore API endpoints further
-
-### Notes
-
-- License: CC BY-NC 4.0
-- Significant medieval Latin manuscript holdings
-- Research paused in favor of Yale Takamiya
+- Two-phase import: Biblissima discovery → MDC manifest fetch
+- Shelfmark normalization: MS-LATIN-00006 → "Latin MS 6"
+- Collections: Latin, English, Hebrew, French, Italian, Gaster Hebrew, etc.
+- Uses BeautifulSoup for HTML parsing (no JS rendering needed)
 
 ---
 
@@ -294,13 +279,56 @@ https://parker.stanford.edu/parker/browse/browse-by-manuscript-number?per_page=9
 ### UCLA
 - 115 manuscripts (pre-existing)
 
+### John Rylands Library
+- Importer: `scripts/importers/john_rylands.py`
+- Source: Biblissima discovery + MDC IIIF manifests
+- 138 manuscripts (Latin, English, Hebrew, etc.)
+
+### Harvard Houghton Library
+- Importer: `scripts/importers/harvard.py`
+- Source: Biblissima discovery + Harvard DRS manifests
+- 238 manuscripts (Latin, Typographic, Greek, etc.)
+
 ---
 
 ## Future Repositories
 
-### Harvard (Houghton Library)
-- No research yet
-- Listed as future target
+Potential repositories for future expansion:
+
+| Repository | Estimated MSS | Notes |
+|------------|---------------|-------|
+| Walters Art Museum | ~300 | IIIF compliant |
+| Morgan Library | ~300 | Corsair collection |
+| Bibliothèque nationale | ~200 | Gallica IIIF |
+| Bayerische Staatsbibliothek | ~150 | BSB IIIF |
+
+---
+
+## Harvard Houghton Library (Detailed)
+
+**Status:** Complete - imported 238 manuscripts (2026-02-02)
+
+**Importer:** `scripts/importers/harvard.py`
+
+### Technical Details
+
+**Discovery:** Biblissima IIIF Collections search
+- URL: `https://iiif.biblissima.fr/collections/search?q=houghton+harvard`
+- 240 discovered, 238 imported (2 duplicates)
+
+**Manifest URL pattern:**
+```
+https://iiif.lib.harvard.edu/manifests/drs:{DRS_ID}
+```
+
+**Manifest format:** IIIF Presentation API v2
+
+### Implementation Notes
+
+- Two-phase import: Biblissima discovery → Harvard DRS manifest fetch
+- Shelfmark extraction from manifest labels (embedded in title strings)
+- Patterns: MS Lat, MS Typ, MS Gr, MS Richardson, etc.
+- Uses BeautifulSoup for HTML parsing (no JS rendering needed)
 
 ---
 
@@ -308,8 +336,9 @@ https://parker.stanford.edu/parker/browse/browse-by-manuscript-number?per_page=9
 
 | Repository | Discovery Method | Manifest Format | Auth Required |
 |------------|------------------|-----------------|---------------|
-| Trinity Cambridge | Playwright/crawl4ai | IIIF v2 | No (public) |
-| John Rylands | TBD | IIIF v2? | No |
+| Trinity Cambridge | Shelfmark enumeration | IIIF v2 | No (public) |
+| John Rylands | Biblissima scrape | IIIF v2 | No |
+| Harvard Houghton | Biblissima scrape | IIIF v2 | No |
 | Yale Beinecke | JSON API | IIIF v3 | No |
 | Parker Library | Manual HTML | IIIF v2 | No (bot blocked) |
 | Bodleian | TEI XML files | IIIF v2 | No |
