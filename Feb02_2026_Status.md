@@ -39,8 +39,9 @@ Comprehensive status of the Compilatio IIIF manuscript aggregator project.
 
 ## Priority TODO
 
-1. Search functionality
-2. Investigate TCC thumbnail slow loading in viewer
+1. **Trinity College Dublin import** — thousands of IIIF manuscripts at digitalcollections.tcd.ie
+2. Search functionality
+3. Investigate TCC thumbnail slow loading in viewer
 
 ---
 
@@ -132,6 +133,7 @@ All importers located in `scripts/importers/`:
 |-------|--------|
 | TCC thumbnails slow in viewer | Open — thumbnails load slowly |
 | UCLA thumbnails | Open — some not displaying on browse page |
+| Harvard data cleanup | Open — one Slavic MS miscategorized; Richardson typo in shelfmark |
 | favicon.ico 404 | Open |
 | ~~Lambeth Palace URL~~ | Fixed 2026-02-02 — `catalogue_url` set to NULL; domain hijacked |
 | ~~Parker shelfmarks~~ | Fixed 2026-02-01 |
