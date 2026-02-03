@@ -26,3 +26,10 @@ compilatio_deploy.zip
 
 # Temporary export files
 mysql_export/
+
+# Script caches and progress files
+scripts/.tcc_thumbnail_progress.json
+scripts/importers/cache/
+
+# Test scripts (local only)
+scripts/test_*.py
