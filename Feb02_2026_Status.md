@@ -4,6 +4,17 @@ Comprehensive status of the Compilatio IIIF manuscript aggregator project.
 
 ---
 
+## Last Production Deployment
+
+| Field | Value |
+|-------|-------|
+| Date | 2026-02-03 19:24 |
+| Deployed | Files + Database |
+| Repositories | 14 |
+| Manuscripts | 4,728 |
+
+---
+
 ## Current Data Summary
 
 | Repository | Manuscripts | Notes |
@@ -122,6 +133,12 @@ All importers located in `scripts/importers/`:
 | TCC thumbnails slow in viewer | Open — thumbnails load slowly |
 | UCLA thumbnails | Open — some not displaying on browse page |
 | favicon.ico 404 | Open |
+| ~~Lambeth Palace URL~~ | Fixed 2026-02-02 — `catalogue_url` set to NULL; domain hijacked |
+| ~~Parker shelfmarks~~ | Fixed 2026-02-01 |
+| ~~TCC thumbnails~~ | Fixed 2026-02-01 |
+| ~~Bodleian thumbnails~~ | Fixed 2026-01-28 |
+| ~~BL duplicate shelfmarks~~ | Fixed |
+| ~~Viewer dropdown (TCC)~~ | Fixed |
 
 ---
 
@@ -160,7 +177,6 @@ docs/
 **Active:**
 - `README.md` — Project overview and quick start
 - `CLAUDE.md` — AI assistant instructions
-- `Compilatio_Project_Status.md` — Quick status reference
 - `docs/plans/Production-Deployment-Guide.md` — Deployment instructions
 - `docs/plans/Repository_Import_Research.md` — Technical notes on sources
 - `docs/plans/Initial_Dev_Plan.md` — Phase history and database recreation
@@ -171,11 +187,6 @@ docs/
 
 **Historical (Archived):**
 - `docs/plans/archived/` — Historical design documents
-
-**Deprecated:**
-- `PLAN_four_enhancements.md` — All items complete, historical only
-- `Compilatio_Expansions.md` — Superseded by this document
-- `DB_Ideas.md` — Discussed laptop-server sync, now replaced by production deployment flow
 
 ---
 

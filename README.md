@@ -109,8 +109,6 @@ See [Production Deployment Guide](docs/plans/Production-Deployment-Guide.md) for
 
 See [Feb02_2026_Status.md](Feb02_2026_Status.md) for comprehensive project status.
 
-See [Compilatio_Project_Status.md](Compilatio_Project_Status.md) for quick reference.
-
 ---
 
 *Last updated: 2026-02-03*
