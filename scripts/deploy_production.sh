@@ -40,7 +40,16 @@ echo "   Compilatio Production Deployment"
 echo "========================================"
 echo ""
 
-# Step 1: Run verification
+# Step 1: Build php_deploy/ from src/
+echo "Building php_deploy/ from src/..."
+if ! python3 scripts/build_php.py; then
+    echo ""
+    echo -e "${RED}Build failed. Deployment aborted.${NC}"
+    exit 1
+fi
+echo ""
+
+# Step 2: Run verification
 echo "Running pre-flight checks..."
 echo ""
 
@@ -52,7 +61,7 @@ fi
 
 echo ""
 
-# Step 2: Ask what to deploy
+# Step 3: Ask what to deploy
 echo "What would you like to deploy?"
 echo ""
 echo "  1) Files only      - Upload php_deploy/ to production"
@@ -83,7 +92,7 @@ esac
 
 echo ""
 
-# Step 3: Deploy files
+# Step 4: Deploy files
 if [ "$DEPLOY_FILES" = true ]; then
     echo "----------------------------------------"
     echo "Deploying files..."
@@ -106,7 +115,7 @@ if [ "$DEPLOY_FILES" = true ]; then
     echo ""
 fi
 
-# Step 4: Deploy database
+# Step 5: Deploy database
 if [ "$DEPLOY_DB" = true ]; then
     echo "----------------------------------------"
     echo "Deploying database..."
@@ -147,8 +156,8 @@ REMOTE_SCRIPT
     echo ""
 fi
 
-# Step 5: Update local status document
-STATUS_FILE="Compilatio_Project_Status.md"
+# Step 6: Update local status document
+STATUS_FILE="Feb02_2026_Status.md"
 DEPLOY_DATE=$(date "+%Y-%m-%d %H:%M")
 
 # Determine what was deployed
@@ -178,7 +187,7 @@ if [ -f "$STATUS_FILE" ]; then
     echo "Updated ${STATUS_FILE} with deployment timestamp"
 fi
 
-# Step 6: Summary
+# Step 7: Summary
 echo ""
 echo "========================================"
 echo "   Deployment Complete"
