@@ -2,6 +2,17 @@
 
 **For comprehensive project status, see [Feb02_2026_Status.md](Feb02_2026_Status.md).**
 
+## Last Production Deployment
+
+| Field | Value |
+|-------|-------|
+| Date | 2026-02-03 19:24 |
+| Deployed | Files + Database |
+| Repositories | 14 |
+| Manuscripts | 4,728 |
+
+---
+
 ## Priority TODO
 
 1. **Sync database to production** — John Rylands (138) + Harvard (238) imports

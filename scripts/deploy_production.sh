@@ -147,7 +147,39 @@ REMOTE_SCRIPT
     echo ""
 fi
 
-# Step 5: Summary
+# Step 5: Update local status document
+STATUS_FILE="Compilatio_Project_Status.md"
+DEPLOY_DATE=$(date "+%Y-%m-%d %H:%M")
+
+# Determine what was deployed
+if [ "$DEPLOY_FILES" = true ] && [ "$DEPLOY_DB" = true ]; then
+    DEPLOYED="Files + Database"
+elif [ "$DEPLOY_FILES" = true ]; then
+    DEPLOYED="Files only"
+else
+    DEPLOYED="Database only"
+fi
+
+# Get counts from local database
+REPO_COUNT=$(sqlite3 database/compilatio.db "SELECT COUNT(*) FROM repositories;")
+MS_COUNT=$(sqlite3 database/compilatio.db "SELECT COUNT(*) FROM manuscripts;")
+MS_COUNT_FORMATTED=$(printf "%'d" $MS_COUNT)
+
+# Update the status file
+if [ -f "$STATUS_FILE" ]; then
+    # Use sed to update the deployment section
+    sed -i.bak -E "
+        /^\| Date \|/s/\| .* \$/| ${DEPLOY_DATE} |/
+        /^\| Deployed \|/s/\| .* \$/| ${DEPLOYED} |/
+        /^\| Repositories \|/s/\| .* \$/| ${REPO_COUNT} |/
+        /^\| Manuscripts \|/s/\| .* \$/| ${MS_COUNT_FORMATTED} |/
+    " "$STATUS_FILE"
+    rm -f "${STATUS_FILE}.bak"
+    echo "Updated ${STATUS_FILE} with deployment timestamp"
+fi
+
+# Step 6: Summary
+echo ""
 echo "========================================"
 echo "   Deployment Complete"
 echo "========================================"
@@ -157,8 +189,9 @@ if [ "$DEPLOY_FILES" = true ]; then
     echo "  Files:    https://${PROD_HOST}/"
 fi
 if [ "$DEPLOY_DB" = true ]; then
-    echo "  Database: Synced to MySQL"
+    echo "  Database: ${REPO_COUNT} repos, ${MS_COUNT_FORMATTED} manuscripts"
 fi
+echo "  Logged:   ${STATUS_FILE}"
 
 echo ""
 echo "Test the site: https://${PROD_HOST}/"
