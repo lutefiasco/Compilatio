@@ -16,18 +16,20 @@ CREATE TABLE repositories (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Manuscripts table
+-- Note: date_display, language, folios changed to TEXT (2026-02-03) to accommodate
+-- longer values from Bodleian and Cambridge manuscripts
 CREATE TABLE manuscripts (
     id INT AUTO_INCREMENT PRIMARY KEY,
     repository_id INT NOT NULL,
     shelfmark VARCHAR(255) NOT NULL,
     collection VARCHAR(255),
-    date_display VARCHAR(255),
+    date_display TEXT,
     date_start INT,
     date_end INT,
     contents TEXT,
     provenance TEXT,
-    language VARCHAR(100),
-    folios VARCHAR(100),
+    language TEXT,
+    folios TEXT,
     iiif_manifest_url TEXT NOT NULL,
     thumbnail_url TEXT,
     source_url TEXT,
