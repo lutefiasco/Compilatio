@@ -15,15 +15,14 @@
 
 ## Priority TODO
 
-1. **Sync database to production** — John Rylands (138) + Harvard (238) imports
-2. Search functionality
-3. Investigate TCC thumbnail slow loading in viewer
+1. Search functionality
+2. Investigate TCC thumbnail slow loading in viewer
 
 **Completed:**
+- Production sync (2026-02-03) — 14 repos, 4,728 manuscripts deployed via automated script
 - Deployment automation (2026-02-03) — `./scripts/deploy_production.sh` with pre-flight checks
 - Harvard/Houghton Library import (2026-02-02) — 238 manuscripts via Biblissima discovery
 - John Rylands Library import (2026-02-02) — 138 manuscripts via Biblissima discovery
-- Database sync to production (2026-02-01) — see [deployment guide](docs/plans/Production-Deployment-Guide.md)
 
 ---
 

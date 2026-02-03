@@ -28,9 +28,8 @@ Comprehensive status of the Compilatio IIIF manuscript aggregator project.
 
 ## Priority TODO
 
-1. **Sync database to production** — John Rylands (138) + Harvard (238) imports need deployment
-2. Search functionality
-3. Investigate TCC thumbnail slow loading in viewer
+1. Search functionality
+2. Investigate TCC thumbnail slow loading in viewer
 
 ---
 
@@ -38,10 +37,10 @@ Comprehensive status of the Compilatio IIIF manuscript aggregator project.
 
 | Date | Task |
 |------|------|
+| 2026-02-03 | Production sync — 14 repos, 4,728 manuscripts deployed |
 | 2026-02-03 | Deployment automation — `deploy_production.sh` with pre-flight checks, SSH sync |
 | 2026-02-02 | Harvard/Houghton Library import — 238 manuscripts via Biblissima discovery |
 | 2026-02-02 | John Rylands Library import — 138 manuscripts via Biblissima discovery |
-| 2026-02-01 | Database sync to production (4,352 manuscripts at that time) |
 | 2026-02-01 | Trinity College Cambridge thumbnails fixed |
 | 2026-02-01 | Parker Library shelfmarks fixed |
 | 2026-01-31 | Parker Library complete import (560 manuscripts) |
