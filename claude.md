@@ -1,10 +1,10 @@
 # Compilatio
 
-IIIF manuscript aggregator for medieval manuscripts from British repositories (Bodleian, British Library) and eventually Huntington.
+IIIF manuscript aggregator for medieval manuscripts. 14 repositories, 4,728 manuscripts including Bodleian, British Library, Cambridge, Harvard, Yale, Huntington, and others.
 
 ## Project Status
 
-See [Compilatio_Project_Status.md](Compilatio_Project_Status.md) for current implementation status and next steps.
+See [Feb02_2026_Status.md](Feb02_2026_Status.md) for current implementation status and next steps.
 
 ## Core Concept
 
@@ -23,22 +23,25 @@ See [Compilatio_Project_Status.md](Compilatio_Project_Status.md) for current imp
 ## Project Structure
 
 ```
-server.py              # Starlette app
+server.py              # Starlette app (local dev)
 database/
   schema.sql           # SQLite schema
-  compilatio.db        # Database
-src/
+  compilatio.db        # Database (not in git)
+src/                   # Local development files (edit these)
   index.html           # Landing page
   browse.html          # Repository/collection/manuscript browser
-  viewer.html          # Manuscript viewer (OpenSeadragon, self-contained)
+  viewer.html          # Manuscript viewer (OpenSeadragon)
+  about.html           # About page
   css/styles.css       # Main stylesheet
-  images/
-    border-top.jpg     # Decoration from MS. Ashmole 764
-    border-right.jpg   # Right margin decoration
-  js/
-    script.js          # Landing page functionality
-    browse.js          # Browse page navigation
-  archive/             # Old UV-based viewer and test files
+  js/script.js, browse.js
+  images/border-*.jpg  # Decoration from MS. Ashmole 764
+php_deploy/            # Production files (auto-generated, don't edit)
+  api/index.php        # PHP API
+scripts/
+  deploy_production.sh # Main deployment orchestrator
+  build_php.py         # src/ → php_deploy/ converter
+  export_mysql.py      # SQLite → MySQL exporter
+  importers/           # All repository importers
 ```
 
 ## Database Schema
