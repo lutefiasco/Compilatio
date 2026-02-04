@@ -8,10 +8,10 @@ Comprehensive status of the Compilatio IIIF manuscript aggregator project.
 
 | Field | Value |
 |-------|-------|
-| Date | 2026-02-03 19:24 |
-| Deployed | Files + Database |
-| Repositories | 14 |
-| Manuscripts | 4,728 |
+| Date | 2026-02-04 15:00 |
+| Deployed | Database |
+| Repositories | 15 |
+| Manuscripts | 4,756 |
 
 ---
 
@@ -32,16 +32,17 @@ Comprehensive status of the Compilatio IIIF manuscript aggregator project.
 | John Rylands Library | 138 | Latin, English, Hebrew via Biblissima |
 | UCLA | 115 | Some thumbnails missing |
 | National Library of Scotland | 104 | Gaelic, Early Scottish |
+| Trinity College Dublin | 28 | Book of Armagh, Book of Durrow, Book of Dimma, etc. (Book of Kells excluded) |
 | Lambeth Palace Library | 2 | CUDL subset only |
-| **Total** | **4,728** | |
+| **Total** | **4,756** | |
 
 ---
 
 ## Priority TODO
 
-1. **Trinity College Dublin import** — thousands of IIIF manuscripts at digitalcollections.tcd.ie
-2. Search functionality
-3. Investigate TCC thumbnail slow loading in viewer
+1. Search functionality
+2. Investigate TCC thumbnail slow loading in viewer
+3. TCD expansion — 69 additional curated manuscripts in HTML list not yet in Archive discovery
 
 ---
 
@@ -49,6 +50,8 @@ Comprehensive status of the Compilatio IIIF manuscript aggregator project.
 
 | Date | Task |
 |------|------|
+| 2026-02-04 | Trinity College Dublin import — 28 manuscripts (Book of Armagh, Book of Durrow, Book of Dimma, Book of Mulling, Dublin Apocalypse, Piers Plowman, etc.) |
+| 2026-02-04 | Production sync — 15 repos, 4,756 manuscripts deployed |
 | 2026-02-03 | Production sync — 14 repos, 4,728 manuscripts deployed |
 | 2026-02-03 | Deployment automation — `deploy_production.sh` with pre-flight checks, SSH sync |
 | 2026-02-02 | Harvard/Houghton Library import — 238 manuscripts via Biblissima discovery |
@@ -124,6 +127,7 @@ All importers located in `scripts/importers/`:
 | `parker.py` | Parker Library | HTML parsing | Manual download required |
 | `trinity_cambridge.py` | Trinity Cambridge | Shelfmark enumeration | — |
 | `yale_takamiya.py` | Yale Beinecke | JSON API | — |
+| `trinity_dublin.py` | Trinity College Dublin | Internet Archive CDX | New 2026-02-04, Book of Kells excluded |
 
 ---
 
@@ -249,4 +253,4 @@ Additional repositories that could be added:
 
 ---
 
-*Last updated: 2026-02-03*
+*Last updated: 2026-02-04*
