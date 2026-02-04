@@ -4,7 +4,7 @@ IIIF manuscript aggregator for medieval manuscripts. 14 repositories, 4,728 manu
 
 ## Project Status
 
-See [Feb02_2026_Status.md](Feb02_2026_Status.md) for current implementation status and next steps.
+See [Feb04_2026_Status.md](Feb04_2026_Status.md) for current implementation status and next steps.
 
 ## Core Concept
 
@@ -84,3 +84,7 @@ This runs pre-flight checks (git status, file sync, database export, SSH connect
 - `scripts/verify_deploy.py` — Run all pre-flight checks
 
 **Important:** Never edit php_deploy/ directly. Always edit src/ and run `build_php.py`.
+
+## Documentation Maintenance
+
+Planning documents (status files, import plans, expansion docs) should be updated frequently as work progresses. Keep them current with latest findings, completed tasks, and next steps.

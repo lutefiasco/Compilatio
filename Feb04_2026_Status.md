@@ -8,10 +8,10 @@ Comprehensive status of the Compilatio IIIF manuscript aggregator project.
 
 | Field | Value |
 |-------|-------|
-| Date | 2026-02-04 15:00 |
+| Date | 2026-02-04 15:30 |
 | Deployed | Database |
-| Repositories | 15 |
-| Manuscripts | 4,756 |
+| Repositories | 14 |
+| Manuscripts | 4,728 |
 
 ---
 
@@ -32,9 +32,8 @@ Comprehensive status of the Compilatio IIIF manuscript aggregator project.
 | John Rylands Library | 138 | Latin, English, Hebrew via Biblissima |
 | UCLA | 115 | Some thumbnails missing |
 | National Library of Scotland | 104 | Gaelic, Early Scottish |
-| Trinity College Dublin | 28 | ⚠️ IIIF broken — Cloudflare CAPTCHA blocks manifests/images |
 | Lambeth Palace Library | 2 | CUDL subset only |
-| **Total** | **4,756** | |
+| **Total** | **4,728** | |
 
 ---
 
@@ -42,10 +41,7 @@ Comprehensive status of the Compilatio IIIF manuscript aggregator project.
 
 1. Search functionality
 2. Investigate TCC thumbnail slow loading in viewer
-3. **TCD fix** — Current 28 manuscripts broken (digitalcollections.tcd.ie behind Cloudflare CAPTCHA)
-   - Option A: Import 40 Irish manuscripts from ISOS (working IIIF, different MS range 1283-1698)
-   - Option B: Remove/disable broken TCD entries until CAPTCHA issue resolved
-   - Option C: Manual manifest extraction via browser session
+3. **TCD re-import** — Consider importing 40 Irish manuscripts from ISOS (working IIIF, MS 1283-1698 range)
 
 ---
 
@@ -53,9 +49,8 @@ Comprehensive status of the Compilatio IIIF manuscript aggregator project.
 
 | Date | Task |
 |------|------|
-| 2026-02-04 | TCD IIIF issue discovered — Cloudflare CAPTCHA blocks all manifests; ISOS identified as alternative (40 Irish MSS) |
-| 2026-02-04 | Trinity College Dublin import — 28 manuscripts (metadata only, IIIF broken) |
-| 2026-02-04 | Production sync — 15 repos, 4,756 manuscripts deployed |
+| 2026-02-04 | TCD removed from production — IIIF broken (Cloudflare CAPTCHA); ISOS identified as alternative (40 Irish MSS) |
+| 2026-02-04 | Production sync — 14 repos, 4,728 manuscripts deployed |
 | 2026-02-03 | Production sync — 14 repos, 4,728 manuscripts deployed |
 | 2026-02-03 | Deployment automation — `deploy_production.sh` with pre-flight checks, SSH sync |
 | 2026-02-02 | Harvard/Houghton Library import — 238 manuscripts via Biblissima discovery |
@@ -131,7 +126,7 @@ All importers located in `scripts/importers/`:
 | `parker.py` | Parker Library | HTML parsing | Manual download required |
 | `trinity_cambridge.py` | Trinity Cambridge | Shelfmark enumeration | — |
 | `yale_takamiya.py` | Yale Beinecke | JSON API | — |
-| `trinity_dublin.py` | Trinity College Dublin | Internet Archive CDX | ⚠️ Broken — CAPTCHA blocks IIIF |
+| `trinity_dublin.py` | Trinity College Dublin | Internet Archive CDX | ❌ Disabled — CAPTCHA blocks IIIF; data removed |
 
 ---
 
@@ -139,7 +134,6 @@ All importers located in `scripts/importers/`:
 
 | Issue | Status |
 |-------|--------|
-| **TCD IIIF broken** | Open — digitalcollections.tcd.ie behind Cloudflare CAPTCHA; manifests return HTML not JSON |
 | TCC thumbnails slow in viewer | Open — thumbnails load slowly |
 | UCLA thumbnails | Open — some not displaying on browse page |
 | Harvard data cleanup | Open — one Slavic MS miscategorized; Richardson typo in shelfmark |
@@ -258,11 +252,11 @@ Additional repositories that could be added:
 
 ---
 
-## ISOS (Irish Script on Screen) — Alternative TCD Source
+## ISOS (Irish Script on Screen) — Future TCD Source
 
 **URL:** https://www.isos.dias.ie/
 
-ISOS provides working IIIF for 40 TCD Irish manuscripts (MS 1283-1698 range). These are **different manuscripts** from our current TCD import (MS 35-667 Latin manuscripts).
+ISOS provides working IIIF for 40 TCD Irish manuscripts (MS 1283-1698 range). TCD's main digital collections site (digitalcollections.tcd.ie) is blocked by Cloudflare CAPTCHA, so those 28 Latin manuscripts (MS 35-667) were removed from Compilatio. ISOS offers a different set of Irish-language manuscripts that could be imported.
 
 **Available manuscripts:** MS 1283, 1299, 1301, 1302, 1310, 1312, 1313, 1314/2, 1314/4, 1315, 1316, 1317, 1318 (Yellow Book of Lecan), 1319/2/1, 1319/2/6, 1319/2/7, 1319/2/8, 1319/2/9, 1321, 1323, 1326, 1333, 1334, 1336 (Seanchus Mór), 1337, 1339 (Book of Leinster), 1340, 1341, 1343, 1357, 1386, 1387, 1388, 1398/71, 1432, 1433, 1435, 1436, 1437, 1698
 
@@ -275,4 +269,4 @@ ISOS provides working IIIF for 40 TCD Irish manuscripts (MS 1283-1698 range). Th
 
 ---
 
-*Last updated: 2026-02-04 (TCD IIIF issue documented)*
+*Last updated: 2026-02-04 (TCD removed from production)*
