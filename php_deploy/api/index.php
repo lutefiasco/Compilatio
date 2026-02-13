@@ -139,8 +139,8 @@ function getRepository(PDO $pdo, int $id): ?array {
 function getManuscripts(PDO $pdo, array $params): array {
     $repoId = isset($params['repository_id']) ? (int)$params['repository_id'] : null;
     $collection = $params['collection'] ?? null;
-    $limit = min((int)($params['limit'] ?? 50), 200);
-    $offset = (int)($params['offset'] ?? 0);
+    $limit = max(1, min((int)($params['limit'] ?? 50), 200));
+    $offset = max(0, (int)($params['offset'] ?? 0));
 
     // Build WHERE clause
     $where = [];
