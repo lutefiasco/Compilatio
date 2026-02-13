@@ -3,12 +3,6 @@
 
 RewriteEngine On
 
-# Prevent direct access to config file
-<Files "config.php">
-    Order Allow,Deny
-    Deny from all
-</Files>
-
 # API URL Rewriting
 # /api/repositories -> api/index.php?action=repositories
 RewriteRule ^api/repositories$ api/index.php?action=repositories [L,QSA]
@@ -30,3 +24,11 @@ Options -Indexes
 
 # Default charset
 AddDefaultCharset UTF-8
+
+# Security headers
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+    Header set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+</IfModule>
