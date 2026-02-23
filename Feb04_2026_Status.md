@@ -8,10 +8,10 @@ Comprehensive status of the Compilatio IIIF manuscript aggregator project.
 
 | Field | Value |
 |-------|-------|
-| Date | 2026-02-13 12:52 |
-| Deployed | Files only |
+| Date | 2026-02-22 |
+| Deployed | Files + Database |
 | Repositories | 14 |
-| Manuscripts | 4,728 |
+| Manuscripts | 4,935 |
 
 ---
 
@@ -26,14 +26,14 @@ Comprehensive status of the Compilatio IIIF manuscript aggregator project.
 | Durham University Library | 287 | IIIF collection tree |
 | Harvard Houghton Library | 238 | Latin, Typographic via Biblissima |
 | National Library of Wales | 226 | Peniarth |
-| Huntington Library | 190 | Ellesmere + HM collection |
+| Huntington Library | 397 | Ellesmere + HM collection (207 medieval HM added 2026-02-22) |
 | British Library | 178 | Royal, Harley, Cotton |
 | Yale Beinecke | 139 | Takamiya collection |
 | John Rylands Library | 138 | Latin, English, Hebrew via Biblissima |
 | UCLA | 115 | Some thumbnails missing |
 | National Library of Scotland | 104 | Gaelic, Early Scottish |
 | Lambeth Palace Library | 2 | CUDL subset only |
-| **Total** | **4,728** | |
+| **Total** | **4,935** | |
 
 ---
 
@@ -63,6 +63,7 @@ This registers new manuscripts in the concordance so Anglicana, Cotton, and othe
 
 | Date | Task |
 |------|------|
+| 2026-02-22 | Huntington HM expansion — 207 medieval manuscripts imported, concordance updated, deployed to production (4,935 total) |
 | 2026-02-04 | TCD removed from production — IIIF broken (Cloudflare CAPTCHA); ISOS identified as alternative (40 Irish MSS) |
 | 2026-02-04 | Production sync — 14 repos, 4,728 manuscripts deployed |
 | 2026-02-03 | Production sync — 14 repos, 4,728 manuscripts deployed |
@@ -301,4 +302,4 @@ Discovery cache: `data/huntington_hm_discovery.json`
 
 ---
 
-*Last updated: 2026-02-22 (concordance section added; Huntington discovery)*
+*Last updated: 2026-02-22 (207 medieval Huntington HM manuscripts imported and deployed; concordance updated to 4,935 Compilatio rows)*
