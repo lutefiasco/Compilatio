@@ -13,6 +13,22 @@ See [Feb04_2026_Status.md](Feb04_2026_Status.md) for current implementation stat
 - OpenSeadragon viewer with custom controls
 - Dark theme, manuscript-forward design
 
+## Concordance — Cross-Project Shelfmark Matching
+
+**ALWAYS use the concordance when shelfmarks are involved.** Any time you cross-reference manuscripts across projects, look up external catalogue URLs, or match shelfmark variants, use `~/Geekery/Scriptorium/database/concordance.db` — not ad hoc `LIKE '%shelfmark%'` queries. The concordance is the authoritative source of truth for shelfmark forms across all projects.
+
+The concordance is a **controlled vocabulary** (12,545 rows as of Feb 2026) with permanent, stable IDs used as foreign keys across all projects. It was seeded from Compilatio (4,746 manuscripts) and is the primary canonical source. The `concordance` table has a `compilatio_id` column that links back to `manuscripts.id` in this database.
+
+**New manuscripts must be registered in the concordance.** Any importer that adds manuscripts to Compilatio must also update the concordance so other projects (Anglicana, Cotton, etc.) can cross-reference them. After running an importer with `--execute`, run:
+
+```bash
+cd ~/Geekery/Scriptorium && source .venv/bin/activate && python3 tools/build_concordance.py --update
+```
+
+This will match new Compilatio manuscripts against the concordance (or create new rows for them) and log full provenance. Never use `--rebuild` — the concordance now uses append-only `--init`/`--update` to preserve permanent IDs.
+
+**Audit:** `python3 tools/build_concordance.py --audit` — shows per-project coverage, cross-project overlap, and potential issues.
+
 ## Tech Stack
 
 - **Backend**: Python/Starlette

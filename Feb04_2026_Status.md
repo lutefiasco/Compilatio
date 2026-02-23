@@ -8,8 +8,8 @@ Comprehensive status of the Compilatio IIIF manuscript aggregator project.
 
 | Field | Value |
 |-------|-------|
-| Date | 2026-02-04 15:30 |
-| Deployed | Database |
+| Date | 2026-02-13 12:52 |
+| Deployed | Files only |
 | Repositories | 14 |
 | Manuscripts | 4,728 |
 
@@ -37,11 +37,25 @@ Comprehensive status of the Compilatio IIIF manuscript aggregator project.
 
 ---
 
+## Concordance Integration
+
+The Scriptorium concordance (`~/Geekery/Scriptorium/database/concordance.db`) is a cross-project controlled vocabulary with 12,545 rows seeded from Compilatio (4,746 MSS, 37.8% of total). Every manuscript in Compilatio has a corresponding concordance row via the `compilatio_id` FK.
+
+**After any import that adds new manuscripts, run:**
+```bash
+cd ~/Geekery/Scriptorium && source .venv/bin/activate && python3 tools/build_concordance.py --update
+```
+
+This registers new manuscripts in the concordance so Anglicana, Cotton, and other projects can cross-reference them.
+
+---
+
 ## Priority TODO
 
 1. Search functionality
 2. Investigate TCC thumbnail slow loading in viewer
 3. **TCD re-import** — Consider importing 40 Irish manuscripts from ISOS (working IIIF, MS 1283-1698 range)
+4. **Huntington HM expansion** — 208 medieval MSS (pre-1500) missing from Compilatio; see discovery below
 
 ---
 
@@ -269,4 +283,22 @@ ISOS provides working IIIF for 40 TCD Irish manuscripts (MS 1283-1698 range). TC
 
 ---
 
-*Last updated: 2026-02-04 (TCD removed from production)*
+## Huntington HM Expansion (Discovered 2026-02-22)
+
+CONTENTdm discovery run found **1,000 HM manuscripts** in the API (1,001 reported; `maxRecords/1000` cap truncates the last one). Compilatio currently has **163 HM manuscripts** (topped at HM 946). The gap:
+
+| Date range | New MSS available | Notes |
+|-----------|------------------|-------|
+| Medieval (<1500) | **208** | Core target for Compilatio |
+| Early modern (1500–1700) | 73 | Borderline |
+| Modern (>1700) | 484 | Out of scope (journals, albums, etc.) |
+| No date in CONTENTdm metadata | 72 | Requires manifest-fetch to determine |
+| **Total new** | **837** | |
+
+Discovery cache: `data/huntington_hm_discovery.json`
+
+**Next step:** Run a date-filtered import (`date_end < 1500` or similar) to bring in the ~208 medieval MSS. After import, run `build_concordance.py --update` to register them.
+
+---
+
+*Last updated: 2026-02-22 (concordance section added; Huntington discovery)*
