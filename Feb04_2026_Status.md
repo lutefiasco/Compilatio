@@ -26,14 +26,14 @@ Comprehensive status of the Compilatio IIIF manuscript aggregator project.
 | Durham University Library | 287 | IIIF collection tree |
 | Harvard Houghton Library | 238 | Latin, Typographic via Biblissima |
 | National Library of Wales | 226 | Peniarth |
-| Huntington Library | 397 | Ellesmere + HM collection (207 medieval HM added 2026-02-22) |
+| Huntington Library | 196 | Ellesmere + HM collection (6 fully-digitized medieval HM added 2026-02-22) |
 | British Library | 178 | Royal, Harley, Cotton |
 | Yale Beinecke | 139 | Takamiya collection |
 | John Rylands Library | 138 | Latin, English, Hebrew via Biblissima |
 | UCLA | 115 | Some thumbnails missing |
 | National Library of Scotland | 104 | Gaelic, Early Scottish |
 | Lambeth Palace Library | 2 | CUDL subset only |
-| **Total** | **4,935** | |
+| **Total** | **4,735** | |
 
 ---
 
@@ -63,7 +63,7 @@ This registers new manuscripts in the concordance so Anglicana, Cotton, and othe
 
 | Date | Task |
 |------|------|
-| 2026-02-22 | Huntington HM expansion — 207 medieval manuscripts imported, concordance updated, deployed to production (4,935 total) |
+| 2026-02-22 | Huntington HM expansion — 6 fully-digitized medieval HM manuscripts added (>50 images); 200 Digital Scriptorium stubs discarded (4,741 total) |
 | 2026-02-04 | TCD removed from production — IIIF broken (Cloudflare CAPTCHA); ISOS identified as alternative (40 Irish MSS) |
 | 2026-02-04 | Production sync — 14 repos, 4,728 manuscripts deployed |
 | 2026-02-03 | Production sync — 14 repos, 4,728 manuscripts deployed |
@@ -298,8 +298,8 @@ CONTENTdm discovery run found **1,000 HM manuscripts** in the API (1,001 reporte
 
 Discovery cache: `data/huntington_hm_discovery.json`
 
-**Next step:** Run a date-filtered import (`date_end < 1500` or similar) to bring in the ~208 medieval MSS. After import, run `build_concordance.py --update` to register them.
+**Outcome:** Of 207 medieval MSS discovered, only 6 had >50 images (fully digitized). The remaining 200 were Digital Scriptorium stubs (1–50 representative images, not full scans) and were discarded. The 6 keepers: mssHM 81170, 3027, 27523, 83694, 1086, 1140.
 
 ---
 
-*Last updated: 2026-02-22 (207 medieval Huntington HM manuscripts imported and deployed; concordance updated to 4,935 Compilatio rows)*
+*Last updated: 2026-02-22 (Huntington HM: 6 fully-digitized MSS kept, 200 Digital Scriptorium stubs discarded; deploy script fixed for non-interactive use)*

@@ -4,11 +4,19 @@
 #
 # This script orchestrates the deployment process:
 # 1. Runs all pre-flight verification checks
-# 2. Asks what to deploy (files, database, or both)
-# 3. Executes the deployment
+# 2. Deploys files and/or database
+# 3. Updates local status document
 #
 # Usage:
-#   ./scripts/deploy_production.sh
+#   ./scripts/deploy_production.sh [files|db|both]
+#
+#   files  - Upload php_deploy/ to production only
+#   db     - Sync MySQL database only
+#   both   - Files and database (default if argument omitted: prompts interactively)
+#
+# Examples:
+#   ./scripts/deploy_production.sh both    # non-interactive full deploy
+#   ./scripts/deploy_production.sh db      # database only, no prompt
 #
 # Prerequisites:
 #   - SSH key authorized on oldbooks.humspace.ucla.edu
@@ -61,32 +69,40 @@ fi
 
 echo ""
 
-# Step 3: Ask what to deploy
-echo "What would you like to deploy?"
-echo ""
-echo "  1) Files only      - Upload php_deploy/ to production"
-echo "  2) Database only   - Sync MySQL database"
-echo "  3) Both            - Files and database"
-echo "  4) Cancel"
-echo ""
-read -p "Choice [1-4]: " choice
-
-case $choice in
-    1)
+# Step 3: Determine what to deploy (CLI arg or interactive prompt)
+case "${1:-}" in
+    files)
         DEPLOY_FILES=true
         DEPLOY_DB=false
         ;;
-    2)
+    db)
         DEPLOY_FILES=false
         DEPLOY_DB=true
         ;;
-    3)
+    both)
         DEPLOY_FILES=true
         DEPLOY_DB=true
         ;;
-    4|*)
-        echo "Cancelled."
-        exit 0
+    "")
+        echo "What would you like to deploy?"
+        echo ""
+        echo "  1) Files only      - Upload php_deploy/ to production"
+        echo "  2) Database only   - Sync MySQL database"
+        echo "  3) Both            - Files and database"
+        echo "  4) Cancel"
+        echo ""
+        read -p "Choice [1-4]: " choice
+        case $choice in
+            1) DEPLOY_FILES=true;  DEPLOY_DB=false ;;
+            2) DEPLOY_FILES=false; DEPLOY_DB=true  ;;
+            3) DEPLOY_FILES=true;  DEPLOY_DB=true  ;;
+            4|*) echo "Cancelled."; exit 0 ;;
+        esac
+        ;;
+    *)
+        echo "Unknown argument: $1"
+        echo "Usage: $0 [files|db|both]"
+        exit 1
         ;;
 esac
 
@@ -157,7 +173,7 @@ REMOTE_SCRIPT
 fi
 
 # Step 6: Update local status document
-STATUS_FILE="Feb02_2026_Status.md"
+STATUS_FILE="Feb04_2026_Status.md"
 DEPLOY_DATE=$(date "+%Y-%m-%d %H:%M")
 
 # Determine what was deployed
