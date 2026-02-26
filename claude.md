@@ -104,3 +104,5 @@ This runs pre-flight checks (git status, file sync, database export, SSH connect
 ## Documentation Maintenance
 
 Planning documents (status files, import plans, expansion docs) should be updated frequently as work progresses. Keep them current with latest findings, completed tasks, and next steps.
+
+**Always check `~/Geekery/Scriptorium/docs/active-planning.md`** — this is the cross-project planning index. If your change affects project status, active work items, or known issues, update it there too. This applies across all related projects (Scriptorium, CONR, RONR, Anglicana, Connundra, Compilatio).
