@@ -38,6 +38,16 @@ A quick-and-dirty site that assembles completely digitized medieval manuscripts 
 - **Frontend:** Vanilla HTML/CSS/JavaScript
 - **Viewer:** OpenSeadragon 4.1.1
 
+## Database Sync
+
+**Serving is the source of truth** for `compilatio.db`. The database is gitignored and synced to the laptop via Scriptorium's sync infrastructure. The dashboard also monitors production MySQL on oldbooks.ucla.edu and tracks the last SQL export date.
+
+- Single project: `~/Geekery/Scriptorium/tools/sync/sync_compilatio.sh`
+- All projects: `~/Geekery/Scriptorium/tools/sync/sync_all.sh`
+- Dashboard: `http://serving:8000/dashboard/`
+
+See [Scriptorium Master Sync Guide](../Scriptorium/docs/Master_Sync.md) for setup details.
+
 ## Local Development
 
 ```bash
