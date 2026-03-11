@@ -1,5 +1,12 @@
 # Compilatio
 
+> **Development note:** A read-only mirror of Compilatio runs as a sub-app in
+> **[Scriptorium](../Scriptorium/)** at `~/Geekery/Scriptorium/apps/compilatio/`
+> for local/Tailscale access. This directory remains the primary development
+> location for importers, the database, and the UCLA production deployment.
+> See [Scriptorium/Compilatio_Status.md](../Scriptorium/Compilatio_Status.md)
+> for the current project overview.
+
 A quick-and-dirty site that assembles completely digitized medieval manuscripts (mostly from UK repositories) in one location. It's not at all groundbreaking, but it is a bit of a convenience in making visible what's available.
 
 **Live site:** https://oldbooks.humspace.ucla.edu/
