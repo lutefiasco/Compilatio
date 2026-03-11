@@ -1,0 +1,29 @@
+https://oldbooks.humspace.ucla.edu/viewer.html?ms=4824
+<iframe src="https://digitalcollections.tcd.ie/uv/uv.html#?manifest=https://digitalcollections.tcd.ie/concern/works/9g54xt27c/manifest&c=0&m=0&s=0&cv=0&config=https://digitalcollections.tcd.ie/uv/uv-config.json&locales=en-GB:English (GB),cy-GB:Cymraeg,fr-FR:Français (FR),sv-SE:Svenska,xx-XX:English (GB) (xx-XX)&xywh=-5076,426,20137,12754&r=0" width="560" height="420" allowfullscreen frameborder="0"></iframe>
+
+https://oldbooks.humspace.ucla.edu/viewer.html?ms=4837
+<iframe src="https://digitalcollections.tcd.ie/uv/uv.html#?manifest=https://digitalcollections.tcd.ie/concern/works/w3763h300/manifest&c=0&m=0&s=0&cv=0&config=https://digitalcollections.tcd.ie/uv/uv-config.json&locales=en-GB:English (GB),cy-GB:Cymraeg,fr-FR:Français (FR),sv-SE:Svenska,xx-XX:English (GB) (xx-XX)&xywh=-6472,-727,22942,14531&r=0" width="560" height="420" allowfullscreen frameborder="0"></iframe>
+
+https://oldbooks.humspace.ucla.edu/viewer.html?ms=4832
+<iframe src="https://digitalcollections.tcd.ie/uv/uv.html#?manifest=https://digitalcollections.tcd.ie/concern/works/m039kd288/manifest&c=0&m=0&s=0&cv=0&config=https://digitalcollections.tcd.ie/uv/uv-config.json&locales=en-GB:English (GB),cy-GB:Cymraeg,fr-FR:Français (FR),sv-SE:Svenska,xx-XX:English (GB) (xx-XX)&xywh=-6352,-707,22307,14128&r=0" width="560" height="420" allowfullscreen frameborder="0"></iframe>
+
+https://oldbooks.humspace.ucla.edu/viewer.html?ms=4821
+<iframe src="https://digitalcollections.tcd.ie/uv/uv.html#?manifest=https://digitalcollections.tcd.ie/concern/works/8p58pm63q/manifest&c=0&m=0&s=0&cv=0&config=https://digitalcollections.tcd.ie/uv/uv-config.json&locales=en-GB:English (GB),cy-GB:Cymraeg,fr-FR:Français (FR),sv-SE:Svenska,xx-XX:English (GB) (xx-XX)&xywh=-302,-45,1403,888&r=0" width="560" height="420" allowfullscreen frameborder="0"></iframe>
+
+https://oldbooks.humspace.ucla.edu/viewer.html?ms=4835
+<iframe src="https://digitalcollections.tcd.ie/uv/uv.html#?manifest=https://digitalcollections.tcd.ie/concern/works/td96k7721/manifest&c=0&m=0&s=0&cv=0&config=https://digitalcollections.tcd.ie/uv/uv-config.json&locales=en-GB:English (GB),cy-GB:Cymraeg,fr-FR:Français (FR),sv-SE:Svenska,xx-XX:English (GB) (xx-XX)&xywh=-3809,-436,13749,8708&r=0" width="560" height="420" allowfullscreen frameborder="0"></iframe>
+
+https://oldbooks.humspace.ucla.edu/viewer.html?ms=4840
+<iframe src="https://digitalcollections.tcd.ie/uv/uv.html#?manifest=https://digitalcollections.tcd.ie/concern/works/xw42nf17j/manifest&c=0&m=0&s=0&cv=0&config=https://digitalcollections.tcd.ie/uv/uv-config.json&locales=en-GB:English (GB),cy-GB:Cymraeg,fr-FR:Français (FR),sv-SE:Svenska,xx-XX:English (GB) (xx-XX)&xywh=-302,-45,1403,888&r=0" width="560" height="420" allowfullscreen frameborder="0"></iframe>
+
+https://oldbooks.humspace.ucla.edu/viewer.html?ms=4816
+<iframe src="https://digitalcollections.tcd.ie/uv/uv.html#?manifest=https://digitalcollections.tcd.ie/concern/works/3r0751981/manifest&c=0&m=0&s=0&cv=0&config=https://digitalcollections.tcd.ie/uv/uv-config.json&locales=en-GB:English (GB),cy-GB:Cymraeg,fr-FR:Français (FR),sv-SE:Svenska,xx-XX:English (GB) (xx-XX)&xywh=-302,-45,1403,888&r=0" width="560" height="420" allowfullscreen frameborder="0"></iframe>
+
+https://oldbooks.humspace.ucla.edu/viewer.html?ms=4819
+<iframe src="https://digitalcollections.tcd.ie/uv/uv.html#?manifest=https://digitalcollections.tcd.ie/concern/works/7p88cp52b/manifest&c=0&m=0&s=0&cv=0&config=https://digitalcollections.tcd.ie/uv/uv-config.json&locales=en-GB:English (GB),cy-GB:Cymraeg,fr-FR:Français (FR),sv-SE:Svenska,xx-XX:English (GB) (xx-XX)&xywh=-302,-45,1403,888&r=0" width="560" height="420" allowfullscreen frameborder="0"></iframe>
+
+https://oldbooks.humspace.ucla.edu/viewer.html?ms=4833
+<iframe src="https://digitalcollections.tcd.ie/uv/uv.html#?manifest=https://digitalcollections.tcd.ie/concern/works/mw22vd17v/manifest&c=0&m=0&s=0&cv=0&config=https://digitalcollections.tcd.ie/uv/uv-config.json&locales=en-GB:English (GB),cy-GB:Cymraeg,fr-FR:Français (FR),sv-SE:Svenska,xx-XX:English (GB) (xx-XX)&xywh=-4106,-455,14342,9084&r=0" width="560" height="420" allowfullscreen frameborder="0"></iframe>
+
+https://oldbooks.humspace.ucla.edu/viewer.html?ms=4825
+<iframe src="https://digitalcollections.tcd.ie/uv/uv.html#?manifest=https://digitalcollections.tcd.ie/concern/works/d504rq89v/manifest&c=0&m=0&s=0&cv=0&config=https://digitalcollections.tcd.ie/uv/uv-config.json&locales=en-GB:English (GB),cy-GB:Cymraeg,fr-FR:Français (FR),sv-SE:Svenska,xx-XX:English (GB) (xx-XX)&xywh=-3850,-407,12844,8135&r=0" width="560" height="420" allowfullscreen frameborder="0"></iframe>

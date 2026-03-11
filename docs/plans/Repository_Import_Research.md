@@ -143,6 +143,72 @@ From manifest metadata array:
 
 ---
 
+## Trinity College Dublin (TCD)
+
+**Status:** Import in progress (2026-02-04)
+
+**Importer:** `scripts/importers/trinity_dublin.py`
+
+### Access Challenges
+
+TCD Digital Collections has aggressive CAPTCHA protection on ALL endpoints:
+- Main site: Cloudflare reCAPTCHA v3
+- Dublin Core XML exports: CAPTCHA-blocked
+- Manifest endpoints: CAPTCHA-blocked
+- robots.txt: CAPTCHA-blocked
+
+**Solution:** Use Internet Archive CDX API to fetch cached Dublin Core XML exports.
+
+### Technical Details
+
+**Discovery:** Internet Archive CDX API
+```
+https://web.archive.org/cdx/search/cdx?url=digitalcollections.tcd.ie/export/dublinCore*
+```
+- Returns ~890 archived Dublin Core XML records
+- Filter to medieval manuscripts (MS 1-700 range)
+- Use `id_` suffix in URL to get raw content (not Archive wrapper HTML)
+
+**Archived Dublin Core URL pattern:**
+```
+https://web.archive.org/web/{timestamp}id_/https://digitalcollections.tcd.ie/export/dublinCore.xml?id={work_id}
+```
+
+**IIIF Manifest URL pattern:**
+```
+https://digitalcollections.tcd.ie/concern/works/{work_id}/manifest
+```
+
+**Work ID format:** Opaque alphanumeric (e.g., `m039k970n`, `wm117t53k`)
+
+**DOI pattern:** `https://doi.org/10.48495/{work_id}`
+
+### Implementation Notes
+
+- Two-phase import: Archive.org discovery → Dublin Core XML parsing
+- Checkpoint/resume support for interruption recovery
+- Rate limiting: 0.5s delay between Archive.org requests
+- Handles gzip-compressed Archive responses
+- Book of Kells (MS 58) excluded per project requirements
+- Backup source: 101 manuscripts extracted from saved HTML files (Medieval Latin + Romance Language collections)
+
+### Notable Manuscripts Found
+
+- MS 30: Codex Montfortianus (New Testament)
+- MS 50: Ricemarch Psalter (c. 1079)
+- MS 52: Book of Armagh (c. 807)
+- MS 59: Book of Dimma
+- MS 60: Book of Mulling
+- MS 64: Dublin Apocalypse
+- MS 124: Gilbert's Commentary
+- MS 177: Book of St Albans
+- MS 212: Piers Plowman
+- MS 267: Waldensian poems
+- MS 360: Canterbury book catalogue
+- MS 631: Anglo-Saxon Chronicle
+
+---
+
 ## John Rylands Library (University of Manchester)
 
 **Status:** Complete - imported 138 manuscripts (2026-02-02)
