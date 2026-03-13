@@ -869,8 +869,25 @@
         // THUMBNAIL SIDEBAR
         // =============================================
 
+        // Lazy-load thumbnails as they scroll into view
+        const thumbObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (!entry.isIntersecting) return;
+                const img = entry.target;
+                if (img.dataset.src) {
+                    img.src = img.dataset.src;
+                    delete img.dataset.src;
+                }
+                thumbObserver.unobserve(img);
+            });
+        }, { root: null, rootMargin: '200px' });
+
         function buildThumbnails() {
             thumbGrid.innerHTML = '';
+
+            const placeholder = 'data:image/svg+xml,' + encodeURIComponent(
+                '<svg xmlns="http://www.w3.org/2000/svg" width="80" height="107" fill="%232a2a2a"><rect width="80" height="107"/></svg>'
+            );
 
             canvases.forEach((canvas, i) => {
                 const item = document.createElement('div');
@@ -878,19 +895,12 @@
                 item.dataset.index = i;
 
                 const img = document.createElement('img');
-                img.loading = 'lazy';
                 img.alt = canvas.label || `Page ${i + 1}`;
-                // Use a transparent placeholder until real thumbnail loads
-                img.src = 'data:image/svg+xml,' + encodeURIComponent(
-                    '<svg xmlns="http://www.w3.org/2000/svg" width="80" height="107" fill="%232a2a2a"><rect width="80" height="107"/></svg>'
-                );
+                img.src = placeholder;
                 if (canvas.thumbnailUrl) {
-                    // Set real source after placeholder
-                    const realSrc = canvas.thumbnailUrl;
-                    img.onload = null;
+                    img.dataset.src = canvas.thumbnailUrl;
                     img.onerror = () => { /* keep placeholder */ };
-                    // Defer to allow layout to settle
-                    requestAnimationFrame(() => { img.src = realSrc; });
+                    thumbObserver.observe(img);
                 }
 
                 const label = document.createElement('div');
