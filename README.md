@@ -1,13 +1,6 @@
 # Compilatio
 
-> **Development note:** A read-only mirror of Compilatio runs as a sub-app in
-> **[Scriptorium](../Scriptorium/)** at `~/Geekery/Scriptorium/apps/compilatio/`
-> for local/Tailscale access. This directory remains the primary development
-> location for importers, the database, and the UCLA production deployment.
-> See [Scriptorium/Compilatio_Status.md](../Scriptorium/Compilatio_Status.md)
-> for the current project overview.
-
-A quick-and-dirty site that assembles completely digitized medieval manuscripts (mostly from UK repositories) in one location. It's not at all groundbreaking, but it is a bit of a convenience in making visible what's available.
+A browseable aggregator of fully digitized medieval manuscripts from major UK and US repositories, built on IIIF. Not groundbreaking, but a convenience in making visible what's available in one place.
 
 **Live site:** https://oldbooks.humspace.ucla.edu/
 
@@ -22,20 +15,20 @@ A quick-and-dirty site that assembles completely digitized medieval manuscripts 
 | Durham University Library | 287 |
 | Harvard Houghton Library | 238 |
 | National Library of Wales | 226 |
-| Huntington Library | 190 |
+| Huntington Library | 196 |
 | British Library | 178 |
 | Yale Beinecke (Takamiya) | 139 |
 | John Rylands Library | 138 |
 | UCLA Library | 115 |
 | National Library of Scotland | 104 |
 | Lambeth Palace Library | 2 |
-| **Total** | **4,728** |
+| **Total** | **4,734** |
 
 ## Features
 
 - Browse by repository, collection, and manuscript
-- OpenSeadragon IIIF viewer with metadata sidebar
-- Visual attribution to source institutions
+- OpenSeadragon IIIF viewer with metadata sidebar and thumbnail grid
+- Visual attribution to source institutions with links to original catalogues
 - Dark theme, manuscript-forward design
 
 ## Tech Stack
@@ -45,31 +38,39 @@ A quick-and-dirty site that assembles completely digitized medieval manuscripts 
 - **Frontend:** Vanilla HTML/CSS/JavaScript
 - **Viewer:** OpenSeadragon 4.1.1
 
-## Database Sync
-
-**Serving is the source of truth** for `compilatio.db`. The database is gitignored and synced to the laptop via Scriptorium's sync infrastructure. The dashboard also monitors production MySQL on oldbooks.ucla.edu and tracks the last SQL export date.
-
-- Single project: `~/Geekery/Scriptorium/tools/sync/sync_compilatio.sh`
-- All projects: `~/Geekery/Scriptorium/tools/sync/sync_all.sh`
-- Dashboard: `http://serving:8000/dashboard/`
-
-See [Scriptorium Master Sync Guide](../Scriptorium/docs/Master_Sync.md) for setup details.
-
 ## Local Development
 
 ```bash
-# Clone and set up
 git clone https://github.com/lutefiasco/Compilatio.git
 cd Compilatio
-
-# Install dependencies
 pip install -r requirements.txt
-
-# Run the development server
 python server.py
 ```
 
 Visit http://localhost:8000
+
+## Project Structure
+
+```
+server.py              # Starlette development server
+database/
+  schema.sql           # SQLite schema
+  compilatio.db        # Database (not in repo — see Database Recreation)
+src/                   # Development source files
+  index.html           # Landing page
+  browse.html          # Repository/collection/manuscript browser
+  viewer.html          # Manuscript viewer (OpenSeadragon)
+  about.html           # About page
+  css/styles.css
+  js/script.js, browse.js
+  images/border-*.jpg  # Decoration from MS. Ashmole 764
+php_deploy/            # Production files (auto-generated from src/)
+  api/index.php        # PHP API
+scripts/
+  importers/           # Repository-specific import scripts
+  build_php.py         # src/ → php_deploy/ converter
+  export_mysql.py      # SQLite → MySQL exporter
+```
 
 ## Database Recreation
 
@@ -86,46 +87,63 @@ python scripts/importers/british_library.py --collection cotton --execute
 python scripts/importers/british_library.py --collection harley --execute
 python scripts/importers/british_library.py --collection royal --execute
 
-# Other repositories (see docs/plans/Initial_Dev_Plan.md for full list)
+# Other repositories
 python scripts/importers/cambridge.py --execute
 python scripts/importers/durham.py --execute
-# ... etc.
+python scripts/importers/harvard.py --execute
+python scripts/importers/huntington.py --execute
+python scripts/importers/john_rylands.py --execute
+python scripts/importers/lambeth.py --execute
+python scripts/importers/nls.py --execute
+python scripts/importers/nlw.py --execute          # requires Python 3.12 + crawl4ai
+python scripts/importers/parker.py --execute
+python scripts/importers/trinity_cambridge.py --execute
+python scripts/importers/yale_takamiya.py --execute
 ```
 
-## Deployment
+All importers support `--test` (limited run), `--verbose`, `--resume` (checkpoint recovery), and `--discover-only` / `--skip-discovery` for two-phase operation.
 
-Deploy to production (https://oldbooks.humspace.ucla.edu/):
+## Importer Scripts
 
-```bash
-# Full deployment with pre-flight checks
-./scripts/deploy_production.sh
-```
+| Script | Repository | Method |
+|--------|------------|--------|
+| `bodleian.py` | Bodleian Library | TEI XML parsing (from GitHub clone) |
+| `british_library.py` | British Library | Playwright (JS rendering) |
+| `cambridge.py` | Cambridge UL | CUDL IIIF API |
+| `durham.py` | Durham UL | IIIF collection tree |
+| `harvard.py` | Harvard Houghton | Biblissima discovery |
+| `huntington.py` | Huntington | CONTENTdm API |
+| `john_rylands.py` | John Rylands | Biblissima discovery |
+| `lambeth.py` | Lambeth Palace | CUDL subset |
+| `nls.py` | NL Scotland | IIIF collection tree |
+| `nlw.py` | NL Wales | crawl4ai discovery |
+| `parker.py` | Parker Library | HTML parsing + IIIF |
+| `trinity_cambridge.py` | Trinity Cambridge | Shelfmark enumeration |
+| `ucla.py` | UCLA | Direct IIIF |
+| `yale_takamiya.py` | Yale Beinecke | JSON API |
 
-The script will:
-1. Verify git is clean and synced
-2. Check php_deploy/ is current
-3. Validate MySQL export
-4. Test SSH connectivity
-5. Ask what to deploy (files, database, or both)
+## Database Schema
 
-**Manual steps:**
-```bash
-# Convert src/ to php_deploy/ (run after editing src/)
-python3 scripts/build_php.py
+Two tables:
 
-# Export database (run after database changes)
-python3 scripts/export_mysql.py
+- **`repositories`** — name, short_name, logo_url, catalogue_url
+- **`manuscripts`** — shelfmark, collection, repository, dates, contents, iiif_manifest_url, thumbnail_url, source_url
 
-# Just run checks without deploying
-python3 scripts/verify_deploy.py
-```
+## Design
 
-See [Production Deployment Guide](docs/plans/Production-Deployment-Guide.md) for detailed documentation.
+- Dark background (#1a1a1a) with ghosted manuscript border decoration
+- Serif headings (Cormorant Garamond) + sans body (Inter)
+- Ivory accent (#e8e4dc)
+- Background decoration: vine scrollwork from Bodleian MS. Ashmole 764 (top + right edges, inverted with warm sepia tint)
+- Source institution attribution always visible
 
-## Project Status
+## Navigation
 
-See [Feb02_2026_Status.md](Feb02_2026_Status.md) for comprehensive project status.
+1. **Landing:** featured manuscript + repository cards with counts
+2. **Repository:** collections with manuscript counts
+3. **Collection:** manuscript list
+4. **Manuscript:** OpenSeadragon viewer with metadata sidebar + thumbnail grid
 
----
+## License
 
-*Last updated: 2026-02-03*
+This project aggregates links to IIIF resources hosted by their respective institutions. No manuscript images are stored or redistributed. All images remain the property of their source institutions.

@@ -33,3 +33,14 @@ scripts/importers/cache/
 
 # Test scripts (local only)
 scripts/test_*.py
+
+# Private docs (local infrastructure, credentials, security audit)
+README.local.md
+CLAUDE.md
+claude.md
+Feb04_2026_Status.md
+Security_Review_02_2026.md
+forkedwasCompilatio_Expansions.md
+docs/plans/Production-Deployment-Guide.md
+docs/plans/2026-02-01-Database-Sync-to-Production.md
+docs/humspace_transition/
