@@ -29,29 +29,12 @@ deploy_production.sh (orchestrator)
 
 ### 1. build_php.py
 
-**Purpose:** Convert `src/` (Python/dev) to `php_deploy/` (PHP/prod)
+**Purpose:** Sync `src/` to `php_deploy/` for production deployment
 
-**Transformations:**
-
-| File Type | Action |
-|-----------|--------|
-| `*.js` | Transform API URLs, inject `apiUrl()` helper |
-| `*.html` | Copy as-is |
-| `*.css` | Copy as-is |
-| `images/*` | Copy as-is |
-
-**API URL Mapping:**
-
-| Development (src/) | Production (php_deploy/) |
-|--------------------|--------------------------|
-| `${API_BASE}/featured` | `apiUrl('featured')` |
-| `${API_BASE}/repositories` | `apiUrl('repositories')` |
-| `${API_BASE}/repositories/${id}` | `apiUrl('repository', id)` |
-| `${API_BASE}/manuscripts` | `apiUrl('manuscripts')` |
-| `${API_BASE}/manuscripts/${id}` | `apiUrl('manuscript', id)` |
+All files are copied as-is — no transformation. Production API routing is handled entirely by `.htaccess` mod_rewrite rules. PHP-only files (`api/index.php`, `includes/config.php`, `.htaccess`) are not overwritten.
 
 **Modes:**
-- `build_php.py` — Run conversion
+- `build_php.py` — Run sync
 - `build_php.py --check` — Verify php_deploy is in sync (exit 0=current, 1=stale)
 
 ### 2. export_mysql.py

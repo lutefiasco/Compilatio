@@ -4,18 +4,7 @@
 (function() {
     'use strict';
 
-    // API helper - builds URLs without mod_rewrite
-    function apiUrl(action, params = {}) {
-        const url = new URL('/api/index.php', window.location.origin);
-        url.searchParams.set('action', action);
-        for (const [key, value] of Object.entries(params)) {
-            if (value !== undefined && value !== null) {
-                url.searchParams.set(key, value);
-            }
-        }
-        return url.toString();
-    }
-
+    const API_BASE = '/api';
     const ITEMS_PER_PAGE = 24;
 
     // State
@@ -91,7 +80,7 @@
         pagination.classList.add('hidden');
 
         try {
-            const response = await fetch(apiUrl('repositories'));
+            const response = await fetch(`${API_BASE}/repositories`);
             if (!response.ok) throw new Error('Failed to fetch');
 
             const repos = await response.json();
@@ -143,7 +132,7 @@
         pagination.classList.add('hidden');
 
         try {
-            const response = await fetch(apiUrl('repository', { id: currentRepo }));
+            const response = await fetch(`${API_BASE}/repositories/${currentRepo}`);
             if (!response.ok) throw new Error('Failed to fetch');
 
             const repo = await response.json();
@@ -203,7 +192,7 @@
         // First get repository info for breadcrumb
         let repoName = 'Repository';
         try {
-            const repoResponse = await fetch(apiUrl('repository', { id: currentRepo }));
+            const repoResponse = await fetch(`${API_BASE}/repositories/${currentRepo}`);
             if (repoResponse.ok) {
                 const repo = await repoResponse.json();
                 repoName = repo.name || repo.short_name;
@@ -229,16 +218,12 @@
         browseSubtitle.textContent = 'Loading manuscripts...';
 
         try {
-            const params = {
-                repository_id: currentRepo,
-                limit: ITEMS_PER_PAGE,
-                offset: currentOffset
-            };
+            let url = `${API_BASE}/manuscripts?repository_id=${currentRepo}&limit=${ITEMS_PER_PAGE}&offset=${currentOffset}`;
             if (currentCollection) {
-                params.collection = currentCollection;
+                url += `&collection=${encodeURIComponent(currentCollection)}`;
             }
 
-            const response = await fetch(apiUrl('manuscripts', params));
+            const response = await fetch(url);
             if (!response.ok) throw new Error('Failed to fetch');
 
             const data = await response.json();

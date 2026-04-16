@@ -74,19 +74,14 @@ The deploy script:
 
 ### build_php.py
 
-Converts `src/` (Python/Starlette dev) to `php_deploy/` (PHP/MySQL prod).
+Syncs `src/` to `php_deploy/` for production deployment.
 
 ```bash
-python3 scripts/build_php.py          # run conversion
+python3 scripts/build_php.py          # run sync
 python3 scripts/build_php.py --check  # verify php_deploy/ is in sync
 ```
 
-**What it does:**
-- Transforms `js/script.js` and `js/browse.js`: removes `API_BASE` constant, injects `apiUrl()` helper, rewrites fetch calls to use query-parameter URLs
-- Copies HTML, CSS, and image files as-is
-
-**What it doesn't do:**
-- Does NOT transform inline JS in `viewer.html` or `about.html`. Those files rely on `.htaccess` mod_rewrite rules (see Known Issues below).
+All files are copied as-is — no transformation. Production API routing is handled entirely by `.htaccess` mod_rewrite rules. The script skips PHP-only files (`api/index.php`, `includes/config.php`, `.htaccess`) that live only in `php_deploy/`.
 
 ### export_mysql.py
 
@@ -139,16 +134,9 @@ Checks (in order):
 
 ## Known Issues
 
-### Dual API routing strategy
+### Dependency on mod_rewrite
 
-The production site uses two API routing approaches simultaneously:
-
-| Files | Strategy | Mechanism |
-|-------|----------|-----------|
-| `js/script.js`, `js/browse.js` | `apiUrl()` query params (`?action=repositories`) | `build_php.py` transforms these |
-| `viewer.html`, `about.html` | REST-style paths (`/api/repositories`) | `.htaccess` mod_rewrite rules |
-
-Both work because `.htaccess` rewrite rules are deployed and active. The `apiUrl()` approach is a vestige of an early period when mod_rewrite wasn't working on Humspace. If mod_rewrite ever breaks again, `viewer.html` and `about.html` will fail while the landing and browse pages will continue working.
+All frontend files use REST-style API paths (`/api/repositories`, `${API_BASE}/manuscripts/123`). These are rewritten to `api/index.php?action=...` by `.htaccess` mod_rewrite rules. If mod_rewrite is ever disabled on Humspace, all API calls will fail. The `.htaccess` file is deployed via rsync and lives in `php_deploy/.htaccess`.
 
 ### Schema changes require manual MySQL ALTER
 
