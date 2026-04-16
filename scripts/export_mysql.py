@@ -76,13 +76,23 @@ def validate_sql_content(content: str, filename: str) -> list:
     if 'INSERT INTO' not in content:
         issues.append(f"{filename}: No INSERT statements found")
 
-    # Check for common escaping issues
-    # Look for unescaped newlines (actual newlines in values, not \n)
+    # Check for unescaped newlines inside string values.
+    # With batched inserts, multi-line INSERT statements are expected —
+    # only flag lines inside a value tuple that look like broken escaping.
     lines = content.split('\n')
+    in_insert = False
     for i, line in enumerate(lines, 1):
-        if line.startswith('INSERT INTO') and not line.rstrip().endswith(';'):
-            # Multi-line INSERT - could indicate unescaped newline
-            issues.append(f"{filename}: Possible unescaped newline at line {i}")
+        if line.startswith('INSERT INTO'):
+            in_insert = True
+            continue
+        if in_insert and line.rstrip().endswith(';'):
+            in_insert = False
+            continue
+        if in_insert:
+            # Lines between INSERT and ; should be value tuples starting with ( or ,
+            stripped = line.strip()
+            if stripped and not stripped.startswith('(') and not stripped.startswith(','):
+                issues.append(f"{filename}: Possible unescaped newline at line {i}")
 
     return issues
 
@@ -102,6 +112,33 @@ def get_db_counts() -> tuple:
     return repo_count, ms_count
 
 
+def count_values_in_inserts(content: str) -> int:
+    """Count total value tuples across all INSERT statements (including batched)."""
+    count = 0
+    for match in re.finditer(r'INSERT INTO \w+ VALUES\s*', content):
+        # Find the rest of the statement after VALUES
+        start = match.end()
+        # Count opening parens that start a value tuple
+        depth = 0
+        i = start
+        while i < len(content) and content[i] != ';':
+            if content[i] == '(':
+                if depth == 0:
+                    count += 1
+                depth += 1
+            elif content[i] == ')':
+                depth -= 1
+            elif content[i] == "'" :
+                # Skip string contents
+                i += 1
+                while i < len(content) and content[i] != "'":
+                    if content[i] == '\\':
+                        i += 1  # skip escaped char
+                    i += 1
+            i += 1
+    return count
+
+
 def get_export_counts() -> tuple:
     """Get counts from exported SQL files."""
     repo_count = 0
@@ -110,12 +147,12 @@ def get_export_counts() -> tuple:
     if REPOS_SQL.exists():
         with open(REPOS_SQL, 'r') as f:
             content = f.read()
-            repo_count = content.count('INSERT INTO repositories VALUES')
+            repo_count = count_values_in_inserts(content)
 
     if MANUSCRIPTS_SQL.exists():
         with open(MANUSCRIPTS_SQL, 'r') as f:
             content = f.read()
-            ms_count = content.count('INSERT INTO manuscripts VALUES')
+            ms_count = count_values_in_inserts(content)
 
     return repo_count, ms_count
 
@@ -197,15 +234,29 @@ def check_export() -> bool:
     return all_ok
 
 
+BATCH_SIZE = 100  # rows per INSERT statement (keeps each under ~1MB)
+
+
 def export_table(cursor, table_name: str, output_path: Path) -> int:
-    """Export a table to MySQL INSERT statements. Returns row count."""
+    """Export a table to batched MySQL INSERT statements. Returns row count."""
     cursor.execute(f"SELECT * FROM {table_name}")
     rows = cursor.fetchall()
 
     with open(output_path, 'w') as f:
-        for row in rows:
-            values = ','.join(escape_mysql(v) for v in row)
-            f.write(f"INSERT INTO {table_name} VALUES({values});\n")
+        f.write("START TRANSACTION;\n\n")
+
+        for i in range(0, len(rows), BATCH_SIZE):
+            batch = rows[i:i + BATCH_SIZE]
+            value_strings = []
+            for row in batch:
+                values = ','.join(escape_mysql(v) for v in row)
+                value_strings.append(f"({values})")
+
+            f.write(f"INSERT INTO {table_name} VALUES\n")
+            f.write(",\n".join(value_strings))
+            f.write(";\n\n")
+
+        f.write("COMMIT;\n")
 
     return len(rows)
 

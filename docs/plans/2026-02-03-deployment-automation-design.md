@@ -62,6 +62,11 @@ deploy_production.sh (orchestrator)
 - `mysql_export/repositories.sql`
 - `mysql_export/manuscripts.sql`
 
+**Format:**
+- Batched INSERTs (100 rows per statement) for faster MySQL import
+- Each file wrapped in `START TRANSACTION;` / `COMMIT;` — if import fails partway, MySQL rolls back and production data is preserved
+- All values escaped for MySQL compatibility (quotes, newlines, null bytes, backslashes)
+
 **Validation Checks:**
 
 | Check | Purpose |
@@ -71,8 +76,8 @@ deploy_production.sh (orchestrator)
 | Newline escaping | `\n`, `\r`, `\t` escaped |
 | NULL handling | Python None → SQL NULL |
 | UTF-8 validation | No invalid characters |
-| Row counts | Match source database |
-| Syntax check | INSERT statements parseable |
+| Row counts | Match source database (counts value tuples across batched INSERTs) |
+| Syntax check | INSERT statements parseable, no broken lines inside value tuples |
 
 **Modes:**
 - `export_mysql.py` — Run export
@@ -84,7 +89,7 @@ deploy_production.sh (orchestrator)
 
 **Checks (in order):**
 
-1. Git working tree clean
+1. Git tracked files clean (untracked files are ignored)
 2. Git branch synced with origin
 3. `php_deploy/` in sync with `src/`
 4. `mysql_export/` valid and current
@@ -94,10 +99,10 @@ deploy_production.sh (orchestrator)
 ```
 === Compilatio Deploy Verification ===
 
-[✓] Git working tree clean
+[✓] Git working tree clean (4 untracked files ignored)
 [✓] Git synced with origin (main)
 [✓] php_deploy/ in sync with src/
-[✓] MySQL export valid (14 repos, 4,728 manuscripts)
+[✓] MySQL export valid (14 repos, 4,735 manuscripts)
 [✓] SSH connection OK
 
 All checks passed. Ready to deploy.
@@ -141,6 +146,8 @@ ssh oldbooks@oldbooks.humspace.ucla.edu '
     mysql -e "SELECT COUNT(*) as repos FROM repositories; SELECT COUNT(*) as manuscripts FROM manuscripts;"
 '
 ```
+
+Each SQL file contains its own `START TRANSACTION;` / `COMMIT;` block, so a partial failure (network drop, encoding error) rolls back cleanly rather than leaving production with missing data.
 
 ## Server Configuration
 

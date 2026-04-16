@@ -9,20 +9,20 @@ A browseable aggregator of fully digitized medieval manuscripts from major UK an
 | Repository | Manuscripts |
 |------------|-------------|
 | Bodleian Library | 1,713 |
+| British Library | 687 |
 | Parker Library (Corpus Christi, Cambridge) | 560 |
 | Trinity College Cambridge | 534 |
 | Cambridge University Library | 304 |
 | Durham University Library | 287 |
 | Harvard Houghton Library | 238 |
 | National Library of Wales | 226 |
-| Huntington Library | 196 |
-| British Library | 178 |
+| Huntington Library | 197 |
 | Yale Beinecke (Takamiya) | 139 |
 | John Rylands Library | 138 |
 | UCLA Library | 115 |
 | National Library of Scotland | 104 |
 | Lambeth Palace Library | 2 |
-| **Total** | **4,734** |
+| **Total** | **5,244** |
 
 ## Features
 
@@ -81,11 +81,11 @@ The database is not included in the repository. To rebuild from source repositor
 ./scripts/setup_bodleian.sh
 python scripts/importers/bodleian.py --execute
 
-# British Library (requires Playwright)
-pip install playwright && playwright install chromium
-python scripts/importers/british_library.py --collection cotton --execute
-python scripts/importers/british_library.py --collection harley --execute
-python scripts/importers/british_library.py --collection royal --execute
+# British Library (JSON API pipeline — replaces old Playwright scraper)
+python scripts/importers/scrape_bl_inventory.py          # Step 1: full inventory
+python scripts/importers/scrape_bl_details.py            # Step 2: filter + fetch details
+python scripts/importers/import_bl.py --execute          # Step 3: import to DB
+python scripts/importers/sync_bl_concordance.py --execute # Step 4: concordance sync
 
 # Other repositories
 python scripts/importers/cambridge.py --execute
@@ -108,7 +108,11 @@ All importers support `--test` (limited run), `--verbose`, `--resume` (checkpoin
 | Script | Repository | Method |
 |--------|------------|--------|
 | `bodleian.py` | Bodleian Library | TEI XML parsing (from GitHub clone) |
-| `british_library.py` | British Library | Playwright (JS rendering) |
+| `scrape_bl_inventory.py` | British Library | JSON API (inventory) |
+| `scrape_bl_details.py` | British Library | JSON API (detail pages) |
+| `import_bl.py` | British Library | JSON → SQLite import |
+| `sync_bl_concordance.py` | British Library | Concordance sync |
+| `british_library.py` | British Library | Legacy Playwright scraper (superseded) |
 | `cambridge.py` | Cambridge UL | CUDL IIIF API |
 | `durham.py` | Durham UL | IIIF collection tree |
 | `harvard.py` | Harvard Houghton | Biblissima discovery |

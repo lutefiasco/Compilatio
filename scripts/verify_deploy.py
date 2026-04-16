@@ -51,15 +51,24 @@ def run_command(cmd: list, capture: bool = True) -> tuple:
 
 
 def check_git_clean() -> tuple:
-    """Check if git working tree is clean. Returns (passed, message)."""
+    """Check if tracked files have uncommitted changes. Untracked files are ignored."""
     success, output = run_command(['git', 'status', '--porcelain'])
     if not success:
         return False, 'Failed to check git status'
 
     if output:
-        # Count changes
-        lines = [l for l in output.split('\n') if l.strip()]
-        return False, f'{len(lines)} uncommitted changes. Commit or stash before deploying.'
+        # Filter to only tracked-file changes (ignore ?? untracked lines)
+        changes = [l for l in output.split('\n') if l.strip() and not l.startswith('??')]
+        untracked = [l for l in output.split('\n') if l.startswith('??')]
+
+        if changes:
+            msg = f'{len(changes)} uncommitted changes to tracked files. Commit or stash before deploying.'
+            if untracked:
+                msg += f' ({len(untracked)} untracked files ignored.)'
+            return False, msg
+
+        if untracked:
+            return True, f'Git working tree clean ({len(untracked)} untracked files ignored)'
 
     return True, 'Git working tree clean'
 
