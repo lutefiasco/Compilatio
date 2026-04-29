@@ -12,6 +12,7 @@ Usage:
     python3 scripts/importers/scrape_bl_inventory.py --restart     # Start fresh
     python3 scripts/importers/scrape_bl_inventory.py --limit 3     # Test: 3 pages
     python3 scripts/importers/scrape_bl_inventory.py --retry-failed
+    python3 scripts/importers/scrape_bl_inventory.py --check       # Compare BL count to local snapshot
 """
 
 import argparse
@@ -20,6 +21,7 @@ import re
 import signal
 import sys
 import time
+from datetime import datetime
 from pathlib import Path
 
 import requests
@@ -366,6 +368,45 @@ def finalize(records: list[dict], failed_pages: list[int]):
         print(f"Removed state file", file=sys.stderr)
 
 
+def check():
+    """Compare BL's reported total against the local inventory snapshot.
+
+    Single HTTP request, no side effects. Useful for deciding whether to
+    bother running a full scrape.
+    """
+    print("Fetching BL page 1 for current total...", file=sys.stderr)
+    first = fetch_json(build_page_url(1))
+    if not first:
+        print("Failed to fetch BL inventory page 1.", file=sys.stderr)
+        sys.exit(1)
+
+    remote_total = first["meta"]["pages"]["total_count"]
+    print(f"BL inventory: {remote_total} results "
+          f"(filter: Western MSS, IIIF available)", file=sys.stderr)
+
+    if not OUTPUT_FILE.exists():
+        print(f"Local snapshot: none ({OUTPUT_FILE.relative_to(PROJECT_ROOT)} missing)",
+              file=sys.stderr)
+        print("Run without --check to scrape.", file=sys.stderr)
+        return
+
+    with open(OUTPUT_FILE) as f:
+        local_records = json.load(f)
+    local_count = len(local_records)
+    mtime = datetime.fromtimestamp(OUTPUT_FILE.stat().st_mtime)
+    print(f"Local snapshot: {local_count} records "
+          f"({OUTPUT_FILE.relative_to(PROJECT_ROOT)}, last modified {mtime:%Y-%m-%d})",
+          file=sys.stderr)
+
+    delta = remote_total - local_count
+    if delta > 0:
+        print(f"Delta: +{delta} results since last scrape", file=sys.stderr)
+    elif delta < 0:
+        print(f"Delta: {delta} results (BL has fewer than local — odd)", file=sys.stderr)
+    else:
+        print("Delta: 0 (no change)", file=sys.stderr)
+
+
 def main():
     global _state
 
@@ -378,9 +419,15 @@ def main():
                         help="Limit to N pages (for testing)")
     parser.add_argument("--retry-failed", action="store_true",
                         help="Re-fetch only pages that failed in a previous run")
+    parser.add_argument("--check", action="store_true",
+                        help="Compare BL's current total to local snapshot, no scrape")
     args = parser.parse_args()
 
     signal.signal(signal.SIGINT, handle_sigint)
+
+    if args.check:
+        check()
+        return
 
     if args.retry_failed:
         retry_failed()

@@ -18,10 +18,12 @@ import argparse
 import json
 import sqlite3
 import sys
+from datetime import datetime
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).parent.parent.parent
 DATA_DIR = PROJECT_ROOT / "data"
+ADDITIONS_DIR = DATA_DIR / "bl_additions"
 DB_PATH = PROJECT_ROOT / "database" / "compilatio.db"
 INPUT_FILE = DATA_DIR / "bl_manuscripts.json"
 
@@ -148,6 +150,7 @@ def run(execute: bool, collection_filter: str | None, verbose: bool):
         repo_id = row[0] if row else 1
 
     stats: dict[str, dict[str, int]] = {}  # collection -> {new, updated, skipped, errors}
+    inserted: list[tuple[str, str]] = []  # (shelfmark, collection) for each successful INSERT
 
     for ms in manuscripts:
         shelfmark = ms.get("shelfmark")
@@ -239,6 +242,7 @@ def run(execute: bool, collection_filter: str | None, verbose: bool):
                         ms.get("source_url"),
                     ))
                     stats[collection]["new"] += 1
+                    inserted.append((shelfmark, collection))
                     if verbose:
                         print(f"  INSERT {shelfmark}", file=sys.stderr)
                 except Exception as e:
@@ -278,6 +282,38 @@ def run(execute: bool, collection_filter: str | None, verbose: bool):
         print(f"\n  This was a DRY RUN. No changes were made.", file=sys.stderr)
         print(f"  Run with --execute to apply changes.", file=sys.stderr)
     print(f"{'=' * 70}\n", file=sys.stderr)
+
+    if execute and inserted:
+        log_path = write_additions_log(inserted)
+        print(f"  Logged {len(inserted)} additions to {log_path.relative_to(PROJECT_ROOT)}\n",
+              file=sys.stderr)
+
+
+def write_additions_log(inserted: list[tuple[str, str]]) -> Path:
+    """Write a per-import markdown record of newly inserted shelfmarks."""
+    ADDITIONS_DIR.mkdir(parents=True, exist_ok=True)
+    now = datetime.now()
+    out_path = ADDITIONS_DIR / f"{now:%Y-%m-%d-%H%M}.md"
+
+    by_collection: dict[str, list[str]] = {}
+    for shelfmark, collection in inserted:
+        by_collection.setdefault(collection, []).append(shelfmark)
+
+    lines = [
+        f"# BL manuscripts added {now:%Y-%m-%d %H:%M}",
+        "",
+        f"{len(inserted)} manuscripts imported into compilatio.db.",
+        "",
+    ]
+    for collection in sorted(by_collection):
+        shelfmarks = sorted(by_collection[collection])
+        lines.append(f"## {collection} ({len(shelfmarks)})")
+        for sm in shelfmarks:
+            lines.append(f"- {sm}")
+        lines.append("")
+
+    out_path.write_text("\n".join(lines))
+    return out_path
 
 
 def main():
