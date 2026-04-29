@@ -30,6 +30,7 @@ PROJECT_ROOT = Path(__file__).parent.parent.parent
 DATA_DIR = PROJECT_ROOT / "data"
 STATE_FILE = DATA_DIR / "bl_inventory_state.json"
 OUTPUT_FILE = DATA_DIR / "bl_inventory.json"
+META_FILE = DATA_DIR / "bl_inventory_meta.json"  # last-scrape stats for --check
 
 BASE_URL = "https://searcharchives.bl.uk/"
 # All digitized Western Manuscripts
@@ -191,6 +192,7 @@ def scrape(limit: int | None = None):
     if existing:
         start_page = existing["last_completed_page"] + 1
         total_pages = existing["total_pages"]
+        total_count = existing.get("total_count")
         records = existing["records"]
         failed_pages = existing.get("failed_pages", [])
         print(f"Resuming from page {start_page}/{total_pages} "
@@ -218,6 +220,7 @@ def scrape(limit: int | None = None):
         _state = {
             "last_completed_page": 1,
             "total_pages": total_pages,
+            "total_count": total_count,
             "records": records,
             "failed_pages": failed_pages,
         }
@@ -245,6 +248,7 @@ def scrape(limit: int | None = None):
             _state = {
                 "last_completed_page": page_num,
                 "total_pages": total_pages,
+                "total_count": total_count,
                 "records": records,
                 "failed_pages": failed_pages,
             }
@@ -263,6 +267,7 @@ def scrape(limit: int | None = None):
         _state = {
             "last_completed_page": page_num,
             "total_pages": total_pages,
+            "total_count": total_count,
             "records": records,
             "failed_pages": failed_pages,
         }
@@ -270,7 +275,7 @@ def scrape(limit: int | None = None):
 
     actual_last = _state["last_completed_page"] if _state else 0
     if actual_last >= total_pages or (limit is not None and actual_last >= max_page):
-        finalize(records, failed_pages)
+        finalize(records, failed_pages, total_count=total_count)
     else:
         print(f"\nStopped at page {actual_last}/{total_pages}. Resume to continue.",
               file=sys.stderr)
@@ -286,12 +291,14 @@ def retry_failed():
         failed_pages = existing.get("failed_pages", [])
         records = existing["records"]
         total_pages = existing["total_pages"]
+        total_count = existing.get("total_count")
     elif failed_file.exists():
         with open(failed_file) as f:
             failed_pages = json.load(f)
         with open(OUTPUT_FILE) as f:
             records = json.load(f)
         total_pages = None
+        total_count = None
     else:
         print("No state file or output file found. Run a full scrape first.", file=sys.stderr)
         sys.exit(1)
@@ -330,18 +337,29 @@ def retry_failed():
         _state = {
             "last_completed_page": existing["last_completed_page"],
             "total_pages": existing["total_pages"],
+            "total_count": total_count,
             "records": records,
             "failed_pages": still_failed,
         }
 
-    finalize(records, still_failed)
+    finalize(records, still_failed, total_count=total_count)
 
 
-def finalize(records: list[dict], failed_pages: list[int]):
+def finalize(records: list[dict], failed_pages: list[int], total_count: int | None = None):
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     with open(OUTPUT_FILE, "w") as f:
         json.dump(records, f, indent=2, ensure_ascii=False)
     print(f"\nWrote {len(records)} records to {OUTPUT_FILE}", file=sys.stderr)
+
+    if total_count is not None:
+        meta = {
+            "total_count": total_count,
+            "manuscript_records": len(records),
+            "scraped_at": datetime.now().isoformat(timespec="seconds"),
+        }
+        with open(META_FILE, "w") as f:
+            json.dump(meta, f, indent=2)
+        print(f"Wrote scrape metadata to {META_FILE}", file=sys.stderr)
 
     # Summary by collection
     collections: dict[str, int] = {}
@@ -369,10 +387,16 @@ def finalize(records: list[dict], failed_pages: list[int]):
 
 
 def check():
-    """Compare BL's reported total against the local inventory snapshot.
+    """Compare BL's current total_count against the count from our last scrape.
 
-    Single HTTP request, no side effects. Useful for deciding whether to
-    bother running a full scrape.
+    Single HTTP request, no side effects. The comparison is total_count vs
+    total_count (apples to apples) — not against the filtered manuscript
+    record count, which is always smaller because total_count includes
+    item-level and other non-manuscript records.
+
+    A nonzero delta means the BL has added or removed records matching the
+    filter since our last scrape; some fraction of any growth will be new
+    digitized manuscripts.
     """
     print("Fetching BL page 1 for current total...", file=sys.stderr)
     first = fetch_json(build_page_url(1))
@@ -384,27 +408,30 @@ def check():
     print(f"BL inventory: {remote_total} results "
           f"(filter: Western MSS, IIIF available)", file=sys.stderr)
 
-    if not OUTPUT_FILE.exists():
-        print(f"Local snapshot: none ({OUTPUT_FILE.relative_to(PROJECT_ROOT)} missing)",
+    if not META_FILE.exists():
+        print(f"Local baseline: none ({META_FILE.relative_to(PROJECT_ROOT)} missing)",
               file=sys.stderr)
-        print("Run without --check to scrape.", file=sys.stderr)
+        print("Run a full scrape to establish a baseline.", file=sys.stderr)
         return
 
-    with open(OUTPUT_FILE) as f:
-        local_records = json.load(f)
-    local_count = len(local_records)
-    mtime = datetime.fromtimestamp(OUTPUT_FILE.stat().st_mtime)
-    print(f"Local snapshot: {local_count} records "
-          f"({OUTPUT_FILE.relative_to(PROJECT_ROOT)}, last modified {mtime:%Y-%m-%d})",
-          file=sys.stderr)
+    with open(META_FILE) as f:
+        meta = json.load(f)
+    last_total = meta["total_count"]
+    last_ms = meta.get("manuscript_records")
+    scraped_at = meta.get("scraped_at", "unknown")
+    ms_str = f", {last_ms} were manuscripts" if last_ms is not None else ""
+    print(f"Last scrape: {last_total} results{ms_str} "
+          f"({scraped_at})", file=sys.stderr)
 
-    delta = remote_total - local_count
+    delta = remote_total - last_total
     if delta > 0:
-        print(f"Delta: +{delta} results since last scrape", file=sys.stderr)
+        print(f"Delta: +{delta} results since last scrape — full re-scrape may surface new MSS",
+              file=sys.stderr)
     elif delta < 0:
-        print(f"Delta: {delta} results (BL has fewer than local — odd)", file=sys.stderr)
+        print(f"Delta: {delta} results (BL has fewer than last scrape — records may have been withdrawn)",
+              file=sys.stderr)
     else:
-        print("Delta: 0 (no change)", file=sys.stderr)
+        print("Delta: 0 — nothing new to scrape", file=sys.stderr)
 
 
 def main():
