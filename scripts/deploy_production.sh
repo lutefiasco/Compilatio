@@ -57,6 +57,18 @@ if ! python3 scripts/build_php.py; then
 fi
 echo ""
 
+# Step 1b: Regenerate MySQL export from the live SQLite database.
+# Mirrors the php_deploy build above so both deploy artifacts are always fresh
+# before verify_deploy.py checks them (otherwise a DB deploy is blocked on a
+# stale export the operator has to remember to regenerate by hand).
+echo "Regenerating MySQL export from database/compilatio.db..."
+if ! python3 scripts/export_mysql.py; then
+    echo ""
+    echo -e "${RED}MySQL export failed. Deployment aborted.${NC}"
+    exit 1
+fi
+echo ""
+
 # Step 2: Run verification
 echo "Running pre-flight checks..."
 echo ""
