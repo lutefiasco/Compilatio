@@ -4,29 +4,52 @@ Forward-looking work items for the Compilatio IIIF manuscript aggregator. Newest
 For current production state (deployment, data summary, importer scripts, known issues)
 see `Feb04_2026_Status.md` at the repo root.
 
-Last updated: 2026-06-27.
+Last updated: 2026-06-29.
+
+---
+
+## Recently landed
+
+### BL Charters & Rolls (Cotton / Harley) — ✅ LANDED 2026-06-29  *(opened 2026-06-27)*
+
+**107 British Library charters & rolls are now in Compilatio**, each with a working IIIF
+viewer and the cross-project IIIF dot they previously lacked. Breakdown by press / class:
+
+| Collection | Count | Presses / classes |
+|---|---|---|
+| Cotton Charters | 59 | Roman-numeral charter classes IV–XXIII (heaviest VIII ×25, XII ×11) |
+| Cotton Rolls | 1 | Roll XIV |
+| Harley Charters | 44 | charter classes 43–112 (43 C ×8, 57 B ×6, 83 A ×3) |
+| Harley Rolls | 3 | Roll Y ×2, Roll T ×1 |
+
+These fold into the existing **British Library** repository, which rises **687 → 794 MSS**.
+Compilatio's overall total is now **5,351 manuscripts across 14 repositories** (was 5,244).
+
+Native shelfmark forms are preserved verbatim (`Cotton Charter VIII 11`, `Harley Roll Y 6`)
+so they match the Scriptorium concordance, where all 107 are now linked — `compilatio_id`
+backfilled, concordance Compilatio links **5,283 → 5,390**, no duplicate rows.
+
+*Why only these 107?* Of the full Cotton/Harley charter & roll holdings, only this subset
+currently carries a real `bl.digirati.io` IIIF manifest; the rest are legacy
+`FullDisplay.aspx` / `access.bl.uk` viewers marked "digital images currently unavailable."
+Most still-dark items are *rolls*; the charters are largely live. Revisit as the BL
+digitises more.
+
+Importer: `scripts/importers/import_bl_charters_rolls.py` (reads cotton.db + harley.db,
+keeps the manifest-bearing subset, native forms, upserts by repo+shelfmark, dry-run
+default; 11 unit tests on manifest-unwrap + collection classification). A latent bug in the
+shared `Scriptorium/tools/build_concordance.py` `seed_compilatio` — which silently dropped
+the Compilatio link whenever another project had seeded the same shelfmark first — was
+fixed (TDD, 2 tests) as part of this work, so cross-project linkage is durable going
+forward. DBs backed up to Offside first. **Production deploy still pending** — the new
+viewers appear on oldbooks.humspace.ucla.edu only after a deploy.
 
 ---
 
 ## Open items
 
-### 1. BL Charters & Rolls (Cotton / Harley) — pending ingest  *(added 2026-06-27)*
-
-The "MSS on Rails" projects now hold the BL charter/roll records natively: **Harley
-77 charters + 12 rolls**, **Cotton 45 rolls** (+ 209 charters). After the 2026-06-27
-`catalogue_url` correction (Scriptorium `tools/fix_charter_roll_catalogue_urls.py`),
-each row carries the searcharchives catalogue URL and, where one exists, a BL
-`digitised_url`. **We want these materials in Compilatio** so the charters/rolls gain
-IIIF viewers and the cross-project IIIF dot — today they have neither.
-
-**Caveat — only a subset is IIIF-ingestable now.** The Harley rolls carry real IIIF
-manifests (`iiif.bl.uk` / `bl.digirati.io`); but most charter and Cotton-roll links are
-the legacy `FullDisplay.aspx` / `access.bl.uk` viewers marked "digital images currently
-unavailable" (no IIIF manifest). Ingest the manifest-bearing subset first; revisit the
-rest as the BL digitises them. Candidate manifests are discoverable from the on-Rails
-DBs' `digitised_url` (filter to `iiif.bl.uk` / `digirati`) or by querying the BL IIIF
-endpoint by `bl_record_id`. Folds into the existing **British Library** repository
-(178 MSS today), not a new source.
+*None currently tracked here.* See **Pointers** below and `Feb04_2026_Status.md` for the
+near-term TODO and repository-expansion candidates.
 
 ---
 
@@ -44,6 +67,14 @@ place:
 
 ## Change record
 
+- **2026-06-29** — Ground-truthed item 1 against the on-Rails DBs: **107** charter/roll
+  records carry a real IIIF manifest (103 charters + 4 rolls), all already present in the
+  Scriptorium concordance (keyed by `cotton_id`/`harley_id`, native forms) but unlinked to
+  Compilatio. Corrected the caveat above — it had charters/rolls inverted. Built
+  `scripts/importers/import_bl_charters_rolls.py` (reads cotton.db + harley.db, keeps the
+  manifest-bearing subset, preserves native shelfmark forms, upserts by repo+shelfmark,
+  dry-run default; 11 unit tests on manifest-unwrap + collection classification) →
+  4 collections: Cotton Charters / Cotton Rolls / Harley Charters / Harley Rolls.
 - **2026-06-27** — Doc created. Inaugural item: ingest the Cotton/Harley BL charters &
   rolls (now carrying IIIF/digitised manifests after the Scriptorium catalogue_url fix)
   into Compilatio's BL coverage, manifest-bearing subset first. (Moved here from a note
