@@ -173,7 +173,7 @@ function getManuscripts(PDO $pdo, array $params): array {
         FROM manuscripts m
         JOIN repositories r ON r.id = m.repository_id
         $whereSQL
-        ORDER BY m.collection, m.shelfmark
+        ORDER BY m.collection, COALESCE(m.sort_key, m.shelfmark)
         LIMIT ? OFFSET ?
     ";
 

@@ -57,6 +57,16 @@ if ! python3 scripts/build_php.py; then
 fi
 echo ""
 
+# Step 1a2: Refresh shelfmark sort keys so any newly imported manuscripts
+# sort numerically. Idempotent; importers don't set sort_key themselves.
+echo "Refreshing shelfmark sort keys..."
+if ! python3 scripts/sort_keys.py; then
+    echo ""
+    echo -e "${RED}Sort-key backfill failed. Deployment aborted.${NC}"
+    exit 1
+fi
+echo ""
+
 # Step 1b: Regenerate MySQL export from the live SQLite database.
 # Mirrors the php_deploy build above so both deploy artifacts are always fresh
 # before verify_deploy.py checks them (otherwise a DB deploy is blocked on a
@@ -164,6 +174,11 @@ if [ "$DEPLOY_DB" = true ]; then
     # Import to MySQL
     ssh "${PROD_USER}@${PROD_HOST}" bash << 'REMOTE_SCRIPT'
         set -e
+
+        # One-time migration (2026-07-11): the export's positional INSERTs
+        # include sort_key, so the column must exist. Errors (column already
+        # exists) are ignored; a real problem surfaces in the import below.
+        mysql -e "ALTER TABLE manuscripts ADD COLUMN sort_key VARCHAR(255);" 2>/dev/null || true
 
         echo "Clearing existing data..."
         mysql -e "SET FOREIGN_KEY_CHECKS=0; DELETE FROM manuscripts; DELETE FROM repositories; SET FOREIGN_KEY_CHECKS=1;"

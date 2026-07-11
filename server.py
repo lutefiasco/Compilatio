@@ -128,7 +128,7 @@ async def api_manuscripts(request):
         FROM manuscripts m
         JOIN repositories r ON r.id = m.repository_id
         {where_sql}
-        ORDER BY m.collection, m.shelfmark
+        ORDER BY m.collection, COALESCE(m.sort_key, m.shelfmark)
         LIMIT ? OFFSET ?
     """, query_params + [limit, offset])
 

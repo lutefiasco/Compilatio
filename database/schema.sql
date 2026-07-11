@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS manuscripts (
     source_url TEXT,
     image_count INTEGER,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    sort_key TEXT,  -- shelfmark with digit runs zero-padded; maintained by scripts/sort_keys.py
     FOREIGN KEY (repository_id) REFERENCES repositories(id),
     UNIQUE(repository_id, shelfmark)
 );
