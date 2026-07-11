@@ -219,15 +219,23 @@ MS_COUNT_FORMATTED=$(printf "%'d" $MS_COUNT)
 
 # Update the status file
 if [ -f "$STATUS_FILE" ]; then
-    # Use sed to update the deployment section
+    # Rewrite each row of the "Last Production Deployment" table wholesale,
+    # scoped to that section — "| Date |" also appears as a Recent
+    # Completions column header further down.
     sed -i.bak -E "
-        /^\| Date \|/s/\| .* \$/| ${DEPLOY_DATE} |/
-        /^\| Deployed \|/s/\| .* \$/| ${DEPLOYED} |/
-        /^\| Repositories \|/s/\| .* \$/| ${REPO_COUNT} |/
-        /^\| Manuscripts \|/s/\| .* \$/| ${MS_COUNT_FORMATTED} |/
+        /^## Last Production Deployment/,/^---/ {
+            s/^\| Date \|.*/| Date | ${DEPLOY_DATE} |/
+            s/^\| Deployed \|.*/| Deployed | ${DEPLOYED} |/
+            s/^\| Repositories \|.*/| Repositories | ${REPO_COUNT} |/
+            s/^\| Manuscripts \|.*/| Manuscripts | ${MS_COUNT_FORMATTED} |/
+        }
     " "$STATUS_FILE"
     rm -f "${STATUS_FILE}.bak"
-    echo "Updated ${STATUS_FILE} with deployment timestamp"
+    if grep -q "| Date | ${DEPLOY_DATE} |" "$STATUS_FILE"; then
+        echo "Updated ${STATUS_FILE} with deployment timestamp"
+    else
+        echo "WARNING: failed to stamp ${STATUS_FILE} — update it by hand"
+    fi
 fi
 
 # Step 7: Summary
