@@ -10,13 +10,14 @@
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
     <div class="container">
         <header>
             <h1><a href="index.html">Compilatio</a></h1>
             <p class="subtitle">Medieval Manuscript Aggregator</p>
         </header>
 
-        <main class="about-main">
+        <main class="about-main" id="main-content" tabindex="-1">
             <nav class="breadcrumb" aria-label="Breadcrumb">
                 <a href="index.html">Home</a>
                 <span class="breadcrumb-separator">/</span>
@@ -54,7 +55,7 @@
             <section class="about-section">
                 <h2 class="section-title">Technical</h2>
                 <p class="about-text">
-                    Built with <a href="https://openseadragon.github.io/" target="_blank" rel="noopener">OpenSeadragon</a>
+                    Built with <a href="https://openseadragon.github.io/" target="_blank" rel="noopener">OpenSeadragon<span class="visually-hidden"> (opens in a new window)</span></a>
                     for deep-zoom viewing. 
                 </p>
             </section>
@@ -89,7 +90,7 @@
             <section class="about-section">
                 <h2 class="section-title">Contact</h2>
                 <p class="about-text">
-                    Developed by <a href="https://english.ucla.edu/people-faculty/matthew%E2%80%A8-fisher/" target="_blank" rel="noopener">Matthew Fisher</a>,
+                    Developed by <a href="https://english.ucla.edu/people-faculty/matthew%E2%80%A8-fisher/" target="_blank" rel="noopener">Matthew Fisher<span class="visually-hidden"> (opens in a new window)</span></a>,
                     Department of English, UCLA.
                 </p>
             </section>
@@ -118,7 +119,7 @@
                 repos.forEach(r => {
                     const li = document.createElement('li');
                     const link = r.catalogue_url
-                        ? `<a href="${r.catalogue_url}" target="_blank" rel="noopener">${r.name}</a>`
+                        ? `<a href="${r.catalogue_url}" target="_blank" rel="noopener">${r.name}<span class="visually-hidden"> (opens in a new window)</span></a>`
                         : r.name;
                     li.innerHTML = `${link} <span class="source-count">(${r.manuscript_count || 0})</span>`;
                     list.appendChild(li);

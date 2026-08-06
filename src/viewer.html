@@ -521,6 +521,38 @@
             border: 0;
         }
 
+        /* Skip link (2.4.1). Off-screen until focused -- display:none would
+           make it unfocusable and therefore useless. Matters here because the
+           thumbnail strip can hold hundreds of items between the toolbar and
+           the image. */
+        .skip-link {
+            position: absolute;
+            left: -9999px;
+            top: 0;
+            z-index: 200;
+            padding: 0.5rem 0.9rem;
+            background: var(--accent);
+            color: #1a1a1a;
+            font-size: 0.85rem;
+            text-decoration: none;
+        }
+        .skip-link:focus {
+            left: 0;
+        }
+
+        /* Reduced motion (2.3.3). Near-zero rather than none, so anything
+           listening for transitionend/animationend still fires. */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
+
         /* User select prevention during drag */
         body.dragging {
             user-select: none;
@@ -638,6 +670,8 @@
     </style>
 </head>
 <body>
+    <a class="skip-link" href="#main-content">Skip to viewer</a>
+
     <!-- Site header -->
     <header class="site-header">
         <h1><a href="index.html">Compilatio</a></h1>
@@ -661,7 +695,7 @@
     <!-- Everything below is the page's primary content. <main> carries the flex
          column that <body> used to hold directly, so the landmark is free of
          layout consequences. -->
-    <main class="viewer-main" id="main-content">
+    <main class="viewer-main" id="main-content" tabindex="-1">
 
     <!-- Viewer header toolbar. role="group" rather than role="toolbar": toolbar
          promises roving arrow-key focus, which this control set does not yet
@@ -1032,8 +1066,12 @@
         // CANVAS DISPLAY
         // =============================================
 
-        function showCanvas(index) {
+        // fromUser distinguishes a page the reader asked for from one the page
+        // opened by itself on load. Only the former may scroll the thumbnail
+        // strip -- see updateThumbnailSelection().
+        function showCanvas(index, fromUser = false) {
             if (index < 0 || index >= canvases.length) return;
+            pageChangeFromUser = fromUser;
             currentIndex = index;
             const canvas = canvases[index];
 
@@ -1106,6 +1144,9 @@
             });
         }, { root: null, rootMargin: '200px' });
 
+        // Set by showCanvas(): was this page change asked for by the reader?
+        let pageChangeFromUser = false;
+
         function buildThumbnails() {
             thumbGrid.innerHTML = '';
 
@@ -1147,7 +1188,7 @@
                 item.appendChild(label);
 
                 item.addEventListener('click', () => {
-                    showCanvas(i);
+                    showCanvas(i, true);
                 });
 
                 thumbGrid.appendChild(item);
@@ -1174,10 +1215,32 @@
                 item.tabIndex = isActive ? 0 : -1;
             });
 
-            // Scroll active thumbnail into view
+            // Scroll the active thumbnail into view -- but ONLY when the reader
+            // asked for this page, never when the viewer opened it on load.
+            //
+            // Calling scrollIntoView() moves Chrome's sequential focus
+            // navigation starting point to the scrolled element, and it does so
+            // even when nothing actually scrolls (on load the strip is already
+            // at the top, scrollTop stays 0, and the starting point still
+            // moves). That parked the starting point inside the thumbnail
+            // panel, and because the roving tabindex leaves exactly one
+            // thumbnail tabbable, the first Tab landed past it on the divider:
+            // skipping the skip link, the header, all three selects, the whole
+            // toolbar and every thumbnail. Going forwards, a keyboard user
+            // could not reach any control. Confirmed against the deployed site,
+            // so it predates the skip link rather than being caused by it, and
+            // confirmed as the cause by no-op'ing scrollIntoView, after which
+            // the first Tab reaches the skip link.
+            //
+            // Gating on "first render" is not enough: updateThumbnailSelection()
+            // runs more than once during load, so the second call still fired.
             const active = thumbGrid.querySelector('.thumb-item.active');
-            if (active) {
-                active.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            if (active && pageChangeFromUser) {
+                // Honour prefers-reduced-motion (2.3.3). CSS scroll-behavior
+                // does not govern the option passed here, so the media query
+                // has to be read in script.
+                const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                active.scrollIntoView({ block: 'nearest', behavior: reduce ? 'auto' : 'smooth' });
             }
         }
 
@@ -1230,10 +1293,10 @@
         // =============================================
 
         function initNavigation() {
-            btnFirst.addEventListener('click', () => showCanvas(0));
-            btnPrev.addEventListener('click', () => showCanvas(currentIndex - 1));
-            btnNext.addEventListener('click', () => showCanvas(currentIndex + 1));
-            btnLast.addEventListener('click', () => showCanvas(canvases.length - 1));
+            btnFirst.addEventListener('click', () => showCanvas(0, true));
+            btnPrev.addEventListener('click', () => showCanvas(currentIndex - 1, true));
+            btnNext.addEventListener('click', () => showCanvas(currentIndex + 1, true));
+            btnLast.addEventListener('click', () => showCanvas(canvases.length - 1, true));
 
             // Folio input: jump to matching canvas on Enter
             folioInput.addEventListener('keydown', (e) => {
@@ -1283,7 +1346,7 @@
             }
 
             if (idx >= 0) {
-                showCanvas(idx);
+                showCanvas(idx, true);
             } else {
                 // Flash the input to indicate no match
                 folioInput.style.borderColor = '#c9917a';
@@ -1324,19 +1387,19 @@
                 switch (e.key) {
                     case 'ArrowLeft':
                         e.preventDefault();
-                        showCanvas(currentIndex - 1);
+                        showCanvas(currentIndex - 1, true);
                         break;
                     case 'ArrowRight':
                         e.preventDefault();
-                        showCanvas(currentIndex + 1);
+                        showCanvas(currentIndex + 1, true);
                         break;
                     case 'Home':
                         e.preventDefault();
-                        showCanvas(0);
+                        showCanvas(0, true);
                         break;
                     case 'End':
                         e.preventDefault();
-                        showCanvas(canvases.length - 1);
+                        showCanvas(canvases.length - 1, true);
                         break;
                     case 'f':
                         e.preventDefault();
@@ -1616,7 +1679,7 @@
             }
 
             if (ms.source_url) {
-                html += `<a href="${esc(ms.source_url)}" class="source-link" target="_blank">View at Source</a>`;
+                html += `<a href="${esc(ms.source_url)}" class="source-link" target="_blank" rel="noopener">View at Source<span class="visually-hidden"> (opens in a new window)</span></a>`;
             }
 
             metaContent.innerHTML = html;

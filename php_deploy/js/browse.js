@@ -24,6 +24,22 @@
     const paginationInfo = document.getElementById('pagination-info');
     const pageInput = document.getElementById('page-input');
     const totalPagesSpan = document.getElementById('total-pages');
+    const browseStatus = document.getElementById('browse-status');
+
+    /* Navigation here swaps innerHTML without a page load. Sighted users see
+       the grid change; a screen reader is told nothing, and focus stays on a
+       link that no longer exists (4.1.3, 2.4.3).
+
+       Focus moves to the heading, which is what announces the new view --
+       the live region carries only the result count, which the heading does
+       not convey. Putting the same text in both would speak it twice. */
+    let userNavigated = false;
+
+    function announceView(status) {
+        if (!userNavigated) return;   // the first render IS the page load
+        browseTitle.focus();
+        browseStatus.textContent = status || '';
+    }
 
     document.addEventListener('DOMContentLoaded', () => {
         // Parse URL parameters
@@ -105,6 +121,7 @@
             browseContent.querySelectorAll('.repo-card').forEach(card => {
                 card.addEventListener('click', (e) => {
                     e.preventDefault();
+                    userNavigated = true;
                     currentRepo = card.dataset.repoId;
                     currentCollection = null;
                     currentOffset = 0;
@@ -112,6 +129,8 @@
                     loadCollections();
                 });
             });
+
+            announceView(`${repos.length} repositories`);
 
         } catch (err) {
             console.error('Failed to load repositories:', err);
@@ -172,12 +191,15 @@
             browseContent.querySelectorAll('.collection-card').forEach(card => {
                 card.addEventListener('click', (e) => {
                     e.preventDefault();
+                    userNavigated = true;
                     currentCollection = card.dataset.collection;
                     currentOffset = 0;
                     updateUrl();
                     loadManuscripts();
                 });
             });
+
+            announceView(`${collections.length} collections`);
 
         } catch (err) {
             console.error('Failed to load collections:', err);
@@ -259,6 +281,8 @@
             // Update pagination
             updatePagination();
 
+            announceView(`${totalItems} manuscripts`);
+
         } catch (err) {
             console.error('Failed to load manuscripts:', err);
             browseContent.innerHTML = '<div class="empty-state"><p>Unable to load manuscripts</p></div>';
@@ -298,6 +322,7 @@
      */
     function goToPrevPage() {
         if (currentOffset > 0) {
+            userNavigated = true;
             currentOffset = Math.max(0, currentOffset - ITEMS_PER_PAGE);
             updateUrl();
             loadManuscripts();
@@ -310,6 +335,7 @@
      */
     function goToNextPage() {
         if (currentOffset + ITEMS_PER_PAGE < totalItems) {
+            userNavigated = true;
             currentOffset += ITEMS_PER_PAGE;
             updateUrl();
             loadManuscripts();
@@ -369,6 +395,8 @@
 
                 e.preventDefault();
                 const href = link.getAttribute('href');
+
+                userNavigated = true;
 
                 if (href === 'browse.html') {
                     currentRepo = null;

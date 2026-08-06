@@ -119,6 +119,28 @@ body::after {
     -webkit-mask-image: linear-gradient(to left, black 0%, black 50%, transparent 100%);
 }
 
+/* Skip link (WCAG 2.4.1 Bypass Blocks). Positioned off-screen until focused
+   rather than display:none -- a hidden element is not focusable, so it could
+   never be reached by the keyboard users it exists for. It matters most on
+   browse, where 24 manuscript cards sit between the header and the
+   pagination. */
+.skip-link {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    z-index: 200;
+    padding: 0.6rem 1rem;
+    background: var(--accent);
+    color: #1a1a1a;
+    font-size: 0.85rem;
+    text-decoration: none;
+    border-radius: 0 0 2px 0;
+}
+
+.skip-link:focus {
+    left: 0;
+}
+
 a {
     color: var(--accent);
     text-decoration: none;
@@ -1379,4 +1401,37 @@ code {
 .footer-sep {
     color: var(--text-muted);
     margin: 0 0.3rem;
+}
+
+/* ============================================
+   REDUCED MOTION (WCAG 2.3.3)
+   ============================================ */
+
+/* The card lift on hover, the loading spinner and the smooth scrolls all
+   ignored the OS setting. Motion is reduced to effectively nothing rather than
+   removed outright: a 0.01ms duration still fires transitionend/animationend,
+   so any script waiting on those events keeps working. The spinner keeps
+   turning, slowly -- it is the only indication that a fetch is in flight, and
+   freezing it would read as a hung page. */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    .loading-spinner {
+        animation-duration: 1.5s !important;
+        animation-iteration-count: infinite !important;
+    }
+
+    .repo-card:hover,
+    .collection-card:hover,
+    .ms-card:hover,
+    .featured-card:hover {
+        transform: none !important;
+    }
 }
