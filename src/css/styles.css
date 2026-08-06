@@ -76,7 +76,12 @@ body::before {
     background-position: center top;
     background-repeat: no-repeat;
     filter: invert(0.72) sepia(0.55) saturate(1) brightness(0.6);
-    opacity: 0.24;
+    /* Raised from 0.24 (2026-08-06). The decorations were tuned by eye in
+       January against the pre-AA palette; lifting the text tokens in 9013152
+       left them reading fainter by comparison without their own values ever
+       changing. See .subtitle / .section-title below -- the two decorations
+       and those two colours are now a set, and moving one needs the other. */
+    opacity: 0.34;
     pointer-events: none;
     z-index: 0;
     mask-image: linear-gradient(to bottom, black 0%, black 40%, transparent 100%);
@@ -96,7 +101,7 @@ body::after {
     background-position: right center;
     background-repeat: no-repeat;
     filter: invert(0.72) sepia(0.55) saturate(1) brightness(0.6);
-    opacity: 0.20;
+    opacity: 0.28;   /* was 0.20 -- see body::before */
     pointer-events: none;
     z-index: 0;
     mask-image: linear-gradient(to left, black 0%, black 50%, transparent 100%);
@@ -180,10 +185,14 @@ h1 a:hover {
     color: inherit;
 }
 
+/* --text-secondary, not --text-muted: this is one of the few pieces of text
+   that sits directly on the page background inside the ghost decoration,
+   rather than on an opaque card. Measured on real composited pixels it reads
+   4.70 against the brightened ghost at --text-muted, and 5.99 here. */
 .subtitle {
     font-family: 'Inter', sans-serif;
     font-size: 0.85rem;
-    color: var(--text-muted);
+    color: var(--text-secondary);
     font-weight: 400;
     letter-spacing: 0.2em;
     text-transform: uppercase;
@@ -193,10 +202,12 @@ h1 a:hover {
    SECTION TITLES
    ============================================ */
 
+/* Same reasoning as .subtitle: section titles sit on the bare page background
+   and pass under the fixed top decoration as you scroll. */
 .section-title {
     font-family: 'Cormorant Garamond', Georgia, serif;
     font-size: 1.4rem;
-    color: var(--text-muted);
+    color: var(--text-secondary);
     font-weight: 400;
     letter-spacing: 0.08em;
     margin-bottom: 1.5rem;
@@ -1274,8 +1285,16 @@ code {
     margin: 0 auto;
 }
 
+/* Carded like .repo-card (2026-08-06). About is the one long page whose prose
+   runs the full scroll under the fixed top decoration, so every paragraph
+   passes through the ghost in turn. An opaque surface takes the decoration out
+   from under the text entirely rather than negotiating with it, which is also
+   why the cards on the front page never needed adjusting. */
 .about-section {
     margin-bottom: 2.5rem;
+    background: #232323;
+    border-radius: 2px;
+    padding: 1.5rem;
 }
 
 .about-section + .about-section {
