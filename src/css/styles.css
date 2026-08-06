@@ -114,6 +114,33 @@ a:hover {
 }
 
 /* ============================================
+   LINKS IN PROSE  (WCAG 1.4.1 Use of Color)
+   ============================================
+   A link sitting inside a block of text must be distinguishable from the text
+   around it by something other than colour. Technique G183 permits colour alone
+   IF the link reaches 3:1 against the surrounding copy -- the ivory accent does
+   not come close:
+
+       #e8e4dc vs --text            (body copy)      1.12:1
+       #e8e4dc vs --text-secondary  (.about-text)    1.83:1
+       #e8e4dc vs --text-muted      (.footer-text)   2.33:1
+
+   So prose links are underlined. Structural links are deliberately NOT: the
+   site title, the repo/collection/manuscript cards and the button-styled
+   .info-link are each the whole of their block, with no adjacent non-link text
+   to be mistaken for, so an underline would cost design and buy nothing. If you
+   add a new context where a link sits beside ordinary text, add it here. */
+
+.about-text a,
+.footer-text a,
+.source-list a,
+.breadcrumb a {
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.15em;
+}
+
+/* ============================================
    LAYOUT
    ============================================ */
 
