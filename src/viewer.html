@@ -327,6 +327,9 @@
             gap: 4px;
             padding: 4px;
         }
+        /* .thumb-item is a <button> (it must be keyboard-operable). These
+           declarations undo the UA button styling so it still paints exactly
+           like the <div> it replaced -- do not remove them. */
         .thumb-item {
             cursor: pointer;
             border: 2px solid transparent;
@@ -334,6 +337,15 @@
             overflow: hidden;
             background: #232323;
             transition: border-color 0.15s;
+            display: block;
+            width: 100%;
+            padding: 0;
+            margin: 0;
+            font: inherit;
+            color: inherit;
+            text-align: center;
+            appearance: none;
+            -webkit-appearance: none;
         }
         .thumb-item:hover {
             border-color: var(--border-ui);
@@ -349,6 +361,7 @@
             background: #2a2a2a;
         }
         .thumb-item .thumb-label {
+            display: block;
             font-size: 0.65rem;
             color: var(--text-muted);
             text-align: center;
@@ -490,6 +503,21 @@
             background: #555;
         }
 
+        /* Available to screen readers, invisible on screen. Used for the
+           status live region, which must be announced but must not disturb
+           a layout built around a fixed-height viewport. */
+        .visually-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
         /* User select prevention during drag */
         body.dragging {
             user-select: none;
@@ -532,30 +560,35 @@
          implement, and a promise the widget cannot keep is worse than none. -->
     <div class="viewer-header" id="viewer-header" role="group" aria-label="Page navigation">
         <div class="nav-controls">
-            <button id="btn-first" title="First page" disabled>
-                <svg viewBox="0 0 14 14"><line x1="3" y1="3" x2="3" y2="11"/><polyline points="11,3 6,7 11,11"/></svg>
+            <button id="btn-first" type="button" aria-label="First page" title="First page" disabled>
+                <svg viewBox="0 0 14 14" aria-hidden="true" focusable="false"><line x1="3" y1="3" x2="3" y2="11"/><polyline points="11,3 6,7 11,11"/></svg>
             </button>
-            <button id="btn-prev" title="Previous page" disabled>
-                <svg viewBox="0 0 14 14"><polyline points="10,3 5,7 10,11"/></svg>
+            <button id="btn-prev" type="button" aria-label="Previous page" title="Previous page" disabled>
+                <svg viewBox="0 0 14 14" aria-hidden="true" focusable="false"><polyline points="10,3 5,7 10,11"/></svg>
             </button>
-            <input type="text" class="folio-input" id="folio-input" placeholder="folio" title="Type a folio label and press Enter" disabled>
-            <button id="btn-next" title="Next page" disabled>
-                <svg viewBox="0 0 14 14"><polyline points="4,3 9,7 4,11"/></svg>
+            <input type="text" class="folio-input" id="folio-input" placeholder="folio" aria-label="Go to folio" title="Type a folio label and press Enter" disabled>
+            <button id="btn-next" type="button" aria-label="Next page" title="Next page" disabled>
+                <svg viewBox="0 0 14 14" aria-hidden="true" focusable="false"><polyline points="4,3 9,7 4,11"/></svg>
             </button>
-            <button id="btn-last" title="Last page" disabled>
-                <svg viewBox="0 0 14 14"><polyline points="3,3 8,7 3,11"/><line x1="11" y1="3" x2="11" y2="11"/></svg>
+            <button id="btn-last" type="button" aria-label="Last page" title="Last page" disabled>
+                <svg viewBox="0 0 14 14" aria-hidden="true" focusable="false"><polyline points="3,3 8,7 3,11"/><line x1="11" y1="3" x2="11" y2="11"/></svg>
             </button>
             <span class="image-counter" id="image-counter"></span>
         </div>
         <div class="mode-controls">
-            <button id="btn-single" title="Single page view" class="active">
-                <svg viewBox="0 0 16 16"><rect x="3" y="2" width="10" height="12" rx="1"/></svg>
+            <button id="btn-single" type="button" aria-label="Single page view" aria-pressed="true" title="Single page view" class="active">
+                <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><rect x="3" y="2" width="10" height="12" rx="1"/></svg>
             </button>
-            <button id="btn-fullscreen" title="Full screen">
-                <svg viewBox="0 0 16 16"><polyline points="2,6 2,2 6,2"/><polyline points="10,2 14,2 14,6"/><polyline points="14,10 14,14 10,14"/><polyline points="6,14 2,14 2,10"/></svg>
+            <button id="btn-fullscreen" type="button" aria-label="Full screen" aria-pressed="false" title="Full screen">
+                <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><polyline points="2,6 2,2 6,2"/><polyline points="10,2 14,2 14,6"/><polyline points="14,10 14,14 10,14"/><polyline points="6,14 2,14 2,10"/></svg>
             </button>
         </div>
     </div>
+
+    <!-- Position changes are otherwise silent: the counter and folio field
+         update visually with nothing announced. role="status" + polite means a
+         screen-reader user hears the new folio without losing their place. -->
+    <p id="viewer-status" class="visually-hidden" role="status" aria-live="polite"></p>
 
     <!-- Viewer body: three panels -->
     <div class="viewer-body" id="viewer-body">
@@ -571,26 +604,30 @@
             <div class="thumb-grid" id="thumb-grid"></div>
         </nav>
 
-        <!-- Resizable divider. Pointer-only for now, so it is hidden from
-             assistive tech rather than exposed as an inoperable control. -->
-        <div class="divider" id="divider" aria-hidden="true"></div>
+        <!-- Resizable divider. Now a real separator widget: focusable, with
+             arrow-key resizing, so the thumbnail panel is adjustable without a
+             pointer. aria-valuenow is the panel width in px, kept in sync by
+             initDivider(). -->
+        <div class="divider" id="divider" role="separator" tabindex="0"
+             aria-orientation="vertical" aria-label="Resize thumbnail panel"
+             aria-valuemin="90" aria-valuemax="400" aria-valuenow="220"></div>
 
         <!-- Image panel -->
         <section class="image-panel" id="image-panel" aria-label="Manuscript image">
             <div id="osd-viewer"></div>
             <!-- Custom OSD controls: vertical stack, top-left -->
             <div class="osd-controls" id="osd-controls">
-                <button id="osd-zoom-in" title="Zoom in">
-                    <svg viewBox="0 0 16 16"><line x1="8" y1="4" x2="8" y2="12"/><line x1="4" y1="8" x2="12" y2="8"/></svg>
+                <button id="osd-zoom-in" type="button" aria-label="Zoom in" title="Zoom in">
+                    <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><line x1="8" y1="4" x2="8" y2="12"/><line x1="4" y1="8" x2="12" y2="8"/></svg>
                 </button>
-                <button id="osd-zoom-out" title="Zoom out">
-                    <svg viewBox="0 0 16 16"><line x1="4" y1="8" x2="12" y2="8"/></svg>
+                <button id="osd-zoom-out" type="button" aria-label="Zoom out" title="Zoom out">
+                    <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><line x1="4" y1="8" x2="12" y2="8"/></svg>
                 </button>
-                <button id="osd-home" title="Fit to page">
-                    <svg viewBox="0 0 16 16"><rect x="3" y="3" width="10" height="10" rx="1"/></svg>
+                <button id="osd-home" type="button" aria-label="Fit to page" title="Fit to page">
+                    <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><rect x="3" y="3" width="10" height="10" rx="1"/></svg>
                 </button>
-                <button id="osd-rotate" title="Rotate right">
-                    <svg viewBox="0 0 16 16"><path d="M12,7 A4.5,4.5 0 1,1 8,3"/><polyline points="8,1 8,3.5 10.5,3.5"/></svg>
+                <button id="osd-rotate" type="button" aria-label="Rotate right" title="Rotate right">
+                    <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M12,7 A4.5,4.5 0 1,1 8,3"/><polyline points="8,1 8,3.5 10.5,3.5"/></svg>
                 </button>
             </div>
             <div class="viewer-placeholder" id="viewer-placeholder">Select a manuscript above to view it.</div>
@@ -642,6 +679,7 @@
         const loadingOverlay = document.getElementById('loading-overlay');
         const folioInput = document.getElementById('folio-input');
         const imageCounter = document.getElementById('image-counter');
+        const viewerStatus = document.getElementById('viewer-status');
         const btnFirst = document.getElementById('btn-first');
         const btnPrev = document.getElementById('btn-prev');
         const btnNext = document.getElementById('btn-next');
@@ -657,6 +695,7 @@
             initDivider();
             initNavigation();
             initKeyboard();
+            initThumbnailKeyboard();
 
             // Load repositories from API
             try {
@@ -909,6 +948,37 @@
             osdViewer.open(tileSource);
             updateNavState();
             updateThumbnailSelection();
+            announcePosition();
+        }
+
+        /**
+         * Give the current page a spoken identity.
+         *
+         * Two separate problems, one function:
+         *  - The deep-zoom image is a <canvas>. It is focusable and pannable
+         *    with the keyboard, but a canvas has no intrinsic text, so without
+         *    a label it announces as nothing at all (WCAG 1.1.1).
+         *  - Turning a page changes only the counter and the folio field, both
+         *    silently, so a non-sighted user has no way to tell that anything
+         *    happened (WCAG 4.1.3).
+         */
+        function announcePosition() {
+            const canvas = canvases[currentIndex];
+            if (!canvas) return;
+            const shelfmark = (currentManuscript && currentManuscript.shelfmark) || '';
+            const folio = canvas.label || `page ${currentIndex + 1}`;
+            const where = `${folio} — image ${currentIndex + 1} of ${canvases.length}`;
+
+            viewerStatus.textContent = where;
+
+            // OSD builds its canvas asynchronously, so re-query each time
+            // rather than caching a node that may have been replaced.
+            const osdCanvas = document.querySelector('#osd-viewer .openseadragon-canvas');
+            if (osdCanvas) {
+                osdCanvas.setAttribute('role', 'img');
+                osdCanvas.setAttribute('aria-label',
+                    shelfmark ? `${shelfmark}, ${where}` : where);
+            }
         }
 
         // =============================================
@@ -936,12 +1006,22 @@
             );
 
             canvases.forEach((canvas, i) => {
-                const item = document.createElement('div');
+                // <button>, not <div>: these were click-only divs with no
+                // tabindex, role or key handling, so the page strip was simply
+                // unusable without a mouse (WCAG 2.1.1, 4.1.2). A real button
+                // gets Enter/Space, the focus ring, and a button role for free.
+                const item = document.createElement('button');
+                item.type = 'button';
                 item.className = 'thumb-item';
                 item.dataset.index = i;
+                item.setAttribute('aria-label', canvas.label
+                    ? `Page ${i + 1} of ${canvases.length}: ${canvas.label}`
+                    : `Page ${i + 1} of ${canvases.length}`);
 
                 const img = document.createElement('img');
-                img.alt = canvas.label || `Page ${i + 1}`;
+                // The button's aria-label already names the page; an alt here
+                // would make screen readers announce the same words twice.
+                img.alt = '';
                 img.src = placeholder;
                 if (canvas.thumbnailUrl) {
                     img.dataset.src = canvas.thumbnailUrl;
@@ -949,10 +1029,11 @@
                     thumbObserver.observe(img);
                 }
 
-                const label = document.createElement('div');
+                const label = document.createElement('span');
                 label.className = 'thumb-label';
                 label.textContent = canvas.label || `${i + 1}`;
                 label.title = canvas.label || `Page ${i + 1}`;
+                label.setAttribute('aria-hidden', 'true');
 
                 item.appendChild(img);
                 item.appendChild(label);
@@ -963,12 +1044,26 @@
 
                 thumbGrid.appendChild(item);
             });
+
+            updateThumbnailSelection();
         }
 
         function updateThumbnailSelection() {
             const items = thumbGrid.querySelectorAll('.thumb-item');
             items.forEach((item, i) => {
-                item.classList.toggle('active', i === currentIndex);
+                const isActive = i === currentIndex;
+                item.classList.toggle('active', isActive);
+                // aria-current carries the selection to assistive tech; the
+                // .active class is only paint.
+                if (isActive) {
+                    item.setAttribute('aria-current', 'true');
+                } else {
+                    item.removeAttribute('aria-current');
+                }
+                // Roving tabindex: exactly one thumbnail is in the tab order,
+                // so Tab does not have to walk 200+ buttons to leave the strip.
+                // Arrow keys move between them (see initThumbnailKeyboard).
+                item.tabIndex = isActive ? 0 : -1;
             });
 
             // Scroll active thumbnail into view
@@ -976,6 +1071,50 @@
             if (active) {
                 active.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
             }
+        }
+
+        /**
+         * Arrow-key navigation within the thumbnail strip.
+         *
+         * Focus moves, but the page is NOT loaded until Enter/Space. Following
+         * focus would fire an OSD open() for every arrow press, so arrowing
+         * through a 200-image manuscript would queue 200 manifest loads.
+         *
+         * Left/Up = previous, Right/Down = next. The grid is 1-2 columns
+         * depending on a user-draggable divider, so a true 2-D model would be
+         * unpredictable; a linear one always does what it looks like it does.
+         *
+         * stopPropagation matters: initKeyboard() binds Arrow keys on document
+         * for page navigation. This listener sits on the grid and therefore
+         * runs first, so without it every arrow press would both move focus
+         * AND turn the page.
+         */
+        function initThumbnailKeyboard() {
+            thumbGrid.addEventListener('keydown', (e) => {
+                const items = [...thumbGrid.querySelectorAll('.thumb-item')];
+                if (!items.length) return;
+                const from = items.indexOf(document.activeElement);
+                if (from === -1) return;
+
+                let to = null;
+                switch (e.key) {
+                    case 'ArrowLeft':
+                    case 'ArrowUp':    to = from - 1; break;
+                    case 'ArrowRight':
+                    case 'ArrowDown':  to = from + 1; break;
+                    case 'Home':       to = 0; break;
+                    case 'End':        to = items.length - 1; break;
+                    default: return;
+                }
+                if (to === null || to < 0 || to >= items.length) return;
+
+                e.preventDefault();
+                e.stopPropagation();
+                items[from].tabIndex = -1;
+                items[to].tabIndex = 0;
+                items[to].focus();
+                items[to].scrollIntoView({ block: 'nearest' });
+            });
         }
 
         // =============================================
@@ -1053,6 +1192,15 @@
             }
         }
 
+        // Drive aria-pressed from the fullscreenchange EVENT, not from the
+        // click handler: the user can also leave fullscreen with Escape or the
+        // browser's own chrome, and a toggle that lies about its state is
+        // worse than one that never claims a state at all.
+        document.addEventListener('fullscreenchange', () => {
+            btnFullscreen.setAttribute('aria-pressed',
+                document.fullscreenElement ? 'true' : 'false');
+        });
+
         // =============================================
         // KEYBOARD SHORTCUTS
         // =============================================
@@ -1094,8 +1242,38 @@
         // RESIZABLE DIVIDER
         // =============================================
 
+        const THUMB_MIN = 90, THUMB_MAX = 400;
+
+        /** Single place that resizes the panel, so pointer and keyboard paths
+         *  cannot drift apart on clamping or on reporting aria-valuenow. */
+        function setThumbWidth(px) {
+            const w = Math.max(THUMB_MIN, Math.min(THUMB_MAX, Math.round(px)));
+            thumbPanel.style.width = w + 'px';
+            divider.setAttribute('aria-valuenow', String(w));
+            return w;
+        }
+
         function initDivider() {
             let isDragging = false;
+
+            // Keyboard resizing. Without this the divider is pointer-only, so
+            // the panel width is simply unavailable to a keyboard user
+            // (WCAG 2.1.1). Step of 20px, or 60px with Shift for coarse moves.
+            divider.addEventListener('keydown', (e) => {
+                const current = thumbPanel.getBoundingClientRect().width;
+                const step = e.shiftKey ? 60 : 20;
+                let next = null;
+                switch (e.key) {
+                    case 'ArrowLeft':  next = current - step; break;
+                    case 'ArrowRight': next = current + step; break;
+                    case 'Home':       next = THUMB_MIN; break;
+                    case 'End':        next = THUMB_MAX; break;
+                    default: return;
+                }
+                e.preventDefault();
+                e.stopPropagation();   // don't also turn the page
+                setThumbWidth(next);
+            });
 
             divider.addEventListener('mousedown', (e) => {
                 isDragging = true;
@@ -1111,8 +1289,7 @@
                 const metaWidth = metaSidebar.getBoundingClientRect().width;
                 // thumbPanel left edge = bodyRect.left + metaWidth
                 const thumbLeft = bodyRect.left + metaWidth;
-                const newWidth = Math.max(90, Math.min(400, e.clientX - thumbLeft));
-                thumbPanel.style.width = newWidth + 'px';
+                setThumbWidth(e.clientX - thumbLeft);
             });
 
             document.addEventListener('mouseup', () => {
@@ -1138,8 +1315,7 @@
                 const metaSidebar = document.getElementById('meta-sidebar');
                 const metaWidth = metaSidebar.getBoundingClientRect().width;
                 const thumbLeft = bodyRect.left + metaWidth;
-                const newWidth = Math.max(90, Math.min(400, touch.clientX - thumbLeft));
-                thumbPanel.style.width = newWidth + 'px';
+                setThumbWidth(touch.clientX - thumbLeft);
             }, { passive: true });
 
             document.addEventListener('touchend', () => {
