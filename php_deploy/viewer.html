@@ -527,6 +527,111 @@
         body.dragging * {
             cursor: col-resize !important;
         }
+
+        /* === NARROW / HIGH-ZOOM LAYOUT ===
+           WCAG 1.4.10 Reflow and 1.4.4 Resize text. The three-panel row has a
+           hard floor of ~626px (200 sidebar + 6 divider + 220 thumbnails + 200
+           image); below that a body locked to 100vh with overflow:hidden
+           clipped content with no way to scroll to it. Here the row becomes a
+           column, the thumbnail rail wraps into a grid, and the page scrolls.
+
+           640px is reached at 400% zoom on any window >= 1600px, and at 200%
+           on a 1280px window. Nothing in this block applies above it, so the
+           desktop layout is untouched. Panels are NOT reordered: the image is
+           the natural focus, but moving it visually ahead of the DOM would put
+           focus order out of step with reading order (2.4.3). The sidebar is
+           capped instead, so the image sits just below the fold. */
+        @media (max-width: 640px) {
+            /* The fixed-height body is what made the overflow unreachable. */
+            body {
+                height: auto;
+                min-height: 100vh;
+                overflow: visible;
+            }
+
+            /* Chrome rows wrap rather than running off-screen. */
+            .site-header,
+            .selector-bar,
+            .viewer-header,
+            .nav-controls {
+                flex-wrap: wrap;
+            }
+            .viewer-header {
+                height: auto;
+                min-height: 36px;
+                padding: 4px 0.5rem;
+                gap: 4px;
+            }
+            /* A <select> is as wide as its longest option unless constrained,
+               and the manuscript list is far wider than 320px. */
+            .selector-bar select {
+                flex: 1 1 100%;
+                width: 100%;
+                min-width: 0;
+                max-width: 100%;
+            }
+            /* Absolute positioning would sit on top of the wrapped nav row. */
+            .mode-controls {
+                position: static;
+                margin-left: auto;
+            }
+
+            /* Explicit flex:none throughout. A flex:1 child (flex-basis 0) in a
+               column whose height is now auto has no definite space to fill;
+               every panel below carries its own height instead. */
+            .viewer-main {
+                flex: none;
+            }
+            .viewer-body {
+                flex: none;
+                flex-direction: column;
+                overflow: visible;
+            }
+
+            .meta-sidebar {
+                width: 100%;
+                min-width: 0;
+                max-height: 30vh;
+                border-right: none;
+                border-bottom: 1px solid #2a2a2a;
+            }
+
+            /* The thumbnail rail becomes a full-width block and its existing
+               auto-fill grid wraps into rows on its own -- roughly four
+               columns at 320px. A horizontal filmstrip was the other option
+               and was rejected: it would have scrolled sideways inside a page
+               that scrolls down, which is the two-dimensional scrolling 1.4.10
+               exists to prevent. Capped height rather than full height because
+               213 pages unwrapped would be some 5,000px of page above the
+               image.
+
+               !important because setThumbWidth() writes an inline width for
+               the divider drag; without it, anyone who had ever resized the
+               panel would keep that pixel width here. */
+            .thumb-panel {
+                width: 100% !important;
+                min-width: 0;
+                max-width: none;
+                height: 34vh;
+                min-height: 180px;
+                border-right: none;
+                border-bottom: 1px solid #2a2a2a;
+            }
+
+            /* The divider resizes along an axis this layout does not have. */
+            .divider {
+                display: none;
+            }
+
+            /* #osd-viewer is height:100%, so its parent needs a definite
+               height once the flex chain no longer supplies one. */
+            .image-panel {
+                flex: none;
+                min-width: 0;
+                height: 65vh;
+                min-height: 320px;
+            }
+        }
     </style>
 </head>
 <body>
