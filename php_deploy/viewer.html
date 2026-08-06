@@ -22,13 +22,16 @@
          */
 
         :root {
-            /* Worst-case ratios across every surface on this page. */
-            --text: #d8d8d8;            /* 10.07:1 - body copy                */
-            --text-heading: #f5f3ef;    /* 12.95:1 - headings, shelfmarks     */
-            --text-secondary: #aaaaaa;  /*  6.18:1 - supporting prose         */
-            --text-muted: #969696;      /*  4.85:1 - FLOOR for body-size text.
+            /* Worst-case ratios across every surface on this page, measured on
+               composited pixels. Kept in step with css/styles.css by hand --
+               this page links no stylesheet, so nothing enforces that. Softened
+               2026-08-06; warm greys rather than neutral. */
+            --text: #c4c0b8;            /*  7.16:1 - body copy                */
+            --text-heading: #ddd9d1;    /*  9.46:1 - headings, shelfmarks     */
+            --text-secondary: #aeaaa2;  /*  5.44:1 - supporting prose         */
+            --text-muted: #9b978f;      /*  4.72:1 - FLOOR for body-size text.
                                            Dimmer than this fails 1.4.3.      */
-            --accent: #e8e4dc;          /* 11.32:1 - links, ivory accent      */
+            --accent: #d6d1c7;          /*  8.44:1 - links, ivory accent      */
             --border-ui: #757575;       /*  3.12:1 - control borders (1.4.11) */
             --border-subtle: #2a2a2a;   /* decorative rules only              */
             --focus: #e8e4dc;           /* 11.3:1+ everywhere (2.4.7)         */

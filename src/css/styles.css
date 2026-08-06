@@ -16,16 +16,27 @@
    ======================================== */
 
 :root {
-    /* --- Text scale. Ratios below are the WORST case across all four
-       surfaces above (i.e. measured against the lightest, #2a2a2a). --- */
-    --text: #d8d8d8;            /* 10.07:1 - body copy                      */
-    --text-heading: #f5f3ef;    /* 12.95:1 - headings, shelfmarks           */
-    --text-secondary: #aaaaaa;  /*  6.18:1 - supporting prose               */
-    --text-muted: #969696;      /*  4.85:1 - labels, counts, captions.
+    /* --- Text scale. Ratios are the WORST case measured on COMPOSITED
+       PIXELS, not computed against a declared background token. The real
+       worst surface is not #2a2a2a: the ghost decorations composite over
+       #1a1a1a and reach rgb(46,44,42), which is lighter still, so a
+       value-based figure understates the risk wherever a decoration sits
+       under text. Re-measure with tools/a11y/measure_composited_contrast.mjs
+       in Scriptorium, at several scroll offsets -- the decorations are
+       position:fixed, so the answer depends on where the page is scrolled.
+
+       Softened 2026-08-06. The values these replaced cleared AA by roughly
+       double and read as paper-white on a near-black ground. Greys are warm
+       rather than neutral: at equal luminance a warm grey reads softer, and
+       it keys to the ivory accent instead of fighting it. --- */
+    --text: #c4c0b8;            /*  7.16:1 - body copy                      */
+    --text-heading: #ddd9d1;    /*  9.46:1 - headings, shelfmarks           */
+    --text-secondary: #aeaaa2;  /*  5.44:1 - supporting prose               */
+    --text-muted: #9b978f;      /*  4.72:1 - labels, counts, captions.
                                    THIS IS THE FLOOR for body-size text.
                                    Anything dimmer fails 1.4.3 (needs 4.5).  */
 
-    --accent: #e8e4dc;          /* 11.32:1 - links, ivory accent            */
+    --accent: #d6d1c7;          /*  8.44:1 - links, ivory accent            */
 
     /* --- Borders --- */
     --border-ui: #757575;       /*  3.12:1 - borders of inputs/selects and
