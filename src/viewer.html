@@ -14,14 +14,39 @@
          * OpenSeadragon-based IIIF viewer.
          * Three-panel layout: Metadata sidebar | Thumbnail grid | OSD image
          * Thumbnail panel resizable to 1 or 2 columns.
+         *
+         * This page is self-contained: it deliberately does NOT load
+         * css/styles.css. The token block below mirrors the one there, so the
+         * two must be kept in step by hand. Surfaces used here: #1a1a1a page,
+         * #1e1e1e chrome, #232323 selector bar, #2a2a2a inputs, #141414 image well.
          */
 
+        :root {
+            /* Worst-case ratios across every surface on this page. */
+            --text: #d8d8d8;            /* 10.07:1 - body copy                */
+            --text-heading: #f5f3ef;    /* 12.95:1 - headings, shelfmarks     */
+            --text-secondary: #aaaaaa;  /*  6.18:1 - supporting prose         */
+            --text-muted: #969696;      /*  4.85:1 - FLOOR for body-size text.
+                                           Dimmer than this fails 1.4.3.      */
+            --accent: #e8e4dc;          /* 11.32:1 - links, ivory accent      */
+            --border-ui: #757575;       /*  3.12:1 - control borders (1.4.11) */
+            --border-subtle: #2a2a2a;   /* decorative rules only              */
+            --focus: #e8e4dc;           /* 11.3:1+ everywhere (2.4.7)         */
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        /* Focus visibility (WCAG 2.4.7). One ring for everything focusable.
+           Never add `outline: none` without an equally visible replacement. */
+        :focus-visible {
+            outline: 2px solid var(--focus);
+            outline-offset: 2px;
+        }
 
         body {
             font-family: 'Inter', -apple-system, sans-serif;
             background: #1a1a1a;
-            color: #d8d8d8;
+            color: var(--text);
             overflow: hidden;
             height: 100vh;
             display: flex;
@@ -41,7 +66,7 @@
         .site-header h1 {
             font-family: 'Cormorant Garamond', Georgia, serif;
             font-size: 1.3rem;
-            color: #f5f3ef;
+            color: var(--text-heading);
             font-weight: 300;
             letter-spacing: 0.1em;
         }
@@ -51,11 +76,11 @@
         }
         .site-header .back-link {
             margin-left: auto;
-            color: #888;
+            color: var(--text-muted);
             font-size: 0.8rem;
             text-decoration: none;
         }
-        .site-header .back-link:hover { color: #e8e4dc; }
+        .site-header .back-link:hover { color: var(--accent); }
 
         /* === SELECTOR BAR === */
         .selector-bar {
@@ -71,18 +96,17 @@
             padding: 0.3rem 0.5rem;
             font-family: inherit;
             font-size: 0.8rem;
-            color: #d8d8d8;
+            color: var(--text);
             background: #1a1a1a;
-            border: 1px solid #333;
+            border: 1px solid var(--border-ui);
             border-radius: 2px;
         }
         .selector-bar select:focus {
-            outline: none;
-            border-color: #e8e4dc;
+            border-color: var(--focus);
         }
         .selector-bar .count {
             font-size: 0.75rem;
-            color: #888;
+            color: var(--text-muted);
         }
 
         /* === VIEWER HEADER (navigation toolbar) === */
@@ -105,7 +129,7 @@
         .nav-controls button {
             background: transparent;
             border: none;
-            color: #aaa;
+            color: var(--text-secondary);
             padding: 4px 6px;
             cursor: pointer;
             border-radius: 2px;
@@ -120,7 +144,7 @@
             fill: currentColor;
         }
         .nav-controls button:hover {
-            color: #e8e4dc;
+            color: var(--accent);
             background: #333;
         }
         .nav-controls button:disabled {
@@ -133,19 +157,18 @@
             padding: 3px 8px;
             font-family: inherit;
             font-size: 0.8rem;
-            color: #d8d8d8;
+            color: var(--text);
             background: #2a2a2a;
-            border: 1px solid #444;
+            border: 1px solid var(--border-ui);
             border-radius: 2px;
             text-align: center;
         }
         .nav-controls .folio-input:focus {
-            outline: none;
-            border-color: #e8e4dc;
+            border-color: var(--focus);
         }
         .nav-controls .image-counter {
             font-size: 0.75rem;
-            color: #888;
+            color: var(--text-muted);
             margin-left: 10px;
             white-space: nowrap;
         }
@@ -159,7 +182,7 @@
         .mode-controls button {
             background: transparent;
             border: none;
-            color: #888;
+            color: var(--text-muted);
             padding: 4px 6px;
             cursor: pointer;
             border-radius: 2px;
@@ -176,12 +199,23 @@
             stroke-width: 1.5;
         }
         .mode-controls button:hover {
-            color: #e8e4dc;
+            color: var(--accent);
             background: #333;
         }
         .mode-controls button.active {
-            color: #e8e4dc;
+            color: var(--accent);
             background: #333;
+        }
+
+        /* === MAIN LANDMARK ===
+           <main> was introduced purely as a landmark (WCAG 1.3.1 / 2.4.1). It
+           takes over the flex column that <body> previously applied to the
+           toolbar and viewer body directly, so the geometry is unchanged. */
+        .viewer-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
         }
 
         /* === VIEWER BODY (three panels) === */
@@ -202,21 +236,23 @@
             padding: 0.75rem;
             flex-shrink: 0;
         }
-        .meta-sidebar h3 {
+        /* The shelfmark is the page's subject heading: <h2>, directly under the
+           site <h1>. It was an <h3>, which skipped a level (WCAG 1.3.1). */
+        .meta-sidebar h2 {
             font-family: 'Cormorant Garamond', Georgia, serif;
             font-size: 1.05rem;
-            color: #f5f3ef;
+            color: var(--text-heading);
             font-weight: 400;
             margin-bottom: 0.3rem;
             line-height: 1.3;
         }
         .meta-sidebar .meta-repo {
-            color: #999;
+            color: var(--text-muted);
             font-size: 0.75rem;
             margin-bottom: 0.15rem;
         }
         .meta-sidebar .meta-date {
-            color: #888;
+            color: var(--text-muted);
             font-size: 0.75rem;
             margin-bottom: 0.5rem;
         }
@@ -225,29 +261,29 @@
         }
         .meta-sidebar summary {
             font-size: 0.75rem;
-            color: #aaa;
+            color: var(--text-secondary);
             cursor: pointer;
             padding: 0.2rem 0;
             text-transform: uppercase;
             letter-spacing: 0.05em;
         }
         .meta-sidebar summary:hover {
-            color: #e8e4dc;
+            color: var(--accent);
         }
         .meta-sidebar .meta-text {
             font-size: 0.75rem;
-            color: #999;
+            color: var(--text-muted);
             line-height: 1.5;
             padding: 0.3rem 0;
         }
         .meta-sidebar .meta-list {
             font-size: 0.75rem;
-            color: #999;
+            color: var(--text-muted);
             line-height: 1.5;
             padding: 0.2rem 0;
         }
         .meta-sidebar .meta-list dt {
-            color: #aaa;
+            color: var(--text-secondary);
             font-weight: 500;
             margin-top: 0.2rem;
         }
@@ -259,7 +295,7 @@
             display: inline-block;
             margin-top: 0.5rem;
             padding: 0.3rem 0.6rem;
-            background: #e8e4dc;
+            background: var(--accent);
             color: #1a1a1a;
             text-decoration: none;
             border-radius: 2px;
@@ -270,7 +306,7 @@
             background: #fff;
         }
         .meta-sidebar .meta-placeholder {
-            color: #555;
+            color: var(--text-muted);
             font-size: 0.8rem;
         }
 
@@ -300,10 +336,10 @@
             transition: border-color 0.15s;
         }
         .thumb-item:hover {
-            border-color: #555;
+            border-color: var(--border-ui);
         }
         .thumb-item.active {
-            border-color: #e8e4dc;
+            border-color: var(--accent);
         }
         .thumb-item img {
             width: 100%;
@@ -314,7 +350,7 @@
         }
         .thumb-item .thumb-label {
             font-size: 0.65rem;
-            color: #999;
+            color: var(--text-muted);
             text-align: center;
             padding: 2px 2px 3px;
             white-space: nowrap;
@@ -322,7 +358,7 @@
             text-overflow: ellipsis;
         }
         .thumb-item.active .thumb-label {
-            color: #e8e4dc;
+            color: var(--accent);
         }
 
         /* Resizable divider between thumbnails and image */
@@ -336,7 +372,7 @@
         }
         .divider:hover,
         .divider.dragging {
-            background: #e8e4dc;
+            background: var(--accent);
         }
         .divider::after {
             content: '';
@@ -346,7 +382,7 @@
             transform: translate(-50%, -50%);
             width: 2px;
             height: 30px;
-            background: #555;
+            background: var(--border-ui);
             border-radius: 1px;
         }
         .divider:hover::after,
@@ -371,7 +407,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #555;
+            color: var(--text-muted);
             font-size: 0.9rem;
         }
         .viewer-placeholder.hidden {
@@ -426,7 +462,7 @@
             align-items: center;
             justify-content: center;
             background: rgba(20, 20, 20, 0.8);
-            color: #888;
+            color: var(--text-muted);
             font-size: 0.85rem;
             z-index: 10;
             pointer-events: none;
@@ -473,7 +509,7 @@
     </header>
 
     <!-- Manuscript selector -->
-    <div class="selector-bar">
+    <nav class="selector-bar" aria-label="Manuscript selection">
         <select id="repo-select" aria-label="Repository">
             <option value="">-- Select repository --</option>
         </select>
@@ -484,10 +520,17 @@
             <option value="">-- Select manuscript --</option>
         </select>
         <span class="count" id="ms-count"></span>
-    </div>
+    </nav>
 
-    <!-- Viewer header toolbar -->
-    <div class="viewer-header" id="viewer-header">
+    <!-- Everything below is the page's primary content. <main> carries the flex
+         column that <body> used to hold directly, so the landmark is free of
+         layout consequences. -->
+    <main class="viewer-main" id="main-content">
+
+    <!-- Viewer header toolbar. role="group" rather than role="toolbar": toolbar
+         promises roving arrow-key focus, which this control set does not yet
+         implement, and a promise the widget cannot keep is worse than none. -->
+    <div class="viewer-header" id="viewer-header" role="group" aria-label="Page navigation">
         <div class="nav-controls">
             <button id="btn-first" title="First page" disabled>
                 <svg viewBox="0 0 14 14"><line x1="3" y1="3" x2="3" y2="11"/><polyline points="11,3 6,7 11,11"/></svg>
@@ -517,22 +560,23 @@
     <!-- Viewer body: three panels -->
     <div class="viewer-body" id="viewer-body">
         <!-- Compilatio metadata sidebar -->
-        <aside class="meta-sidebar" id="meta-sidebar">
+        <aside class="meta-sidebar" id="meta-sidebar" aria-label="Manuscript details">
             <div id="meta-content">
                 <p class="meta-placeholder">Select a manuscript to view details.</p>
             </div>
         </aside>
 
         <!-- Thumbnail panel -->
-        <div class="thumb-panel" id="thumb-panel">
+        <nav class="thumb-panel" id="thumb-panel" aria-label="Pages">
             <div class="thumb-grid" id="thumb-grid"></div>
-        </div>
+        </nav>
 
-        <!-- Resizable divider -->
-        <div class="divider" id="divider"></div>
+        <!-- Resizable divider. Pointer-only for now, so it is hidden from
+             assistive tech rather than exposed as an inoperable control. -->
+        <div class="divider" id="divider" aria-hidden="true"></div>
 
         <!-- Image panel -->
-        <div class="image-panel" id="image-panel">
+        <section class="image-panel" id="image-panel" aria-label="Manuscript image">
             <div id="osd-viewer"></div>
             <!-- Custom OSD controls: vertical stack, top-left -->
             <div class="osd-controls" id="osd-controls">
@@ -551,8 +595,10 @@
             </div>
             <div class="viewer-placeholder" id="viewer-placeholder">Select a manuscript above to view it.</div>
             <div class="loading-overlay hidden" id="loading-overlay">Loading manifest...</div>
-        </div>
+        </section>
     </div>
+
+    </main>
 
     <script src="https://cdn.jsdelivr.net/npm/openseadragon@6.0.2/build/openseadragon/openseadragon.min.js"
             integrity="sha384-7CySh3EMRRN5r2E82ru4URZMpjhLMwArPSxxAwdtldDSsY3XQJIWwlMFR7L7ZGjl"
@@ -1224,11 +1270,24 @@
         async function selectManuscript(ms) {
             currentManuscript = ms;
             renderMetadata(ms);
+            setPageTitle(ms);
 
             if (ms.iiif_manifest_url) {
                 await loadManifest(ms.iiif_manifest_url);
                 updateUrl(ms.id);
             }
+        }
+
+        // The document title is the first thing a screen reader announces on
+        // arrival and the only label a user has in a tab strip or history list.
+        // A static "Manuscript Viewer" makes every manuscript indistinguishable
+        // (WCAG 2.4.2), so name the manuscript actually on screen.
+        const BASE_TITLE = 'Compilatio - Manuscript Viewer';
+
+        function setPageTitle(ms) {
+            document.title = (ms && ms.shelfmark)
+                ? `${ms.shelfmark} - ${BASE_TITLE}`
+                : BASE_TITLE;
         }
 
         // =============================================
@@ -1241,7 +1300,10 @@
                 return;
             }
 
-            let html = `<h3>${esc(ms.shelfmark || '')}</h3>`;
+            // <h2>, not <h3>: the site title is the <h1> and nothing sits between
+            // them, so an <h3> here skipped a level (WCAG 1.3.1). The shelfmark is
+            // the subject of the page, which is exactly what an <h2> should be.
+            let html = `<h2>${esc(ms.shelfmark || '')}</h2>`;
             if (ms.repository) html += `<p class="meta-repo">${esc(ms.repository)}</p>`;
             if (ms.date_display) html += `<p class="meta-date">${esc(ms.date_display)}</p>`;
 

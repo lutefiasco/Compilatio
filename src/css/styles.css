@@ -3,17 +3,39 @@
    Design: Elegant Serif with Ghosted Manuscript Border
    Fonts: Cormorant Garamond (headings) + Inter (body)
 
-   Color Palette:
+   Surfaces:
    - Background: #1a1a1a
    - Card/Panel: #232323
    - Card hover: #2a2a2a
-   - Primary text: #d8d8d8
-   - Heading text: #f5f3ef
-   - Secondary text: #888
-   - Muted text: #777
-   - Accent (ivory): #e8e4dc
-   - Borders: #2a2a2a
+   - Deep well:  #141414
+
+   Text and border tokens are defined in :root below. Use the tokens, not raw
+   hex, for any text or interactive border: the token values are the lowest
+   tones that still meet WCAG 2.1 AA contrast on EVERY surface in the palette,
+   so a literal #777 or #555 reintroduces a failure that is invisible in review.
    ======================================== */
+
+:root {
+    /* --- Text scale. Ratios below are the WORST case across all four
+       surfaces above (i.e. measured against the lightest, #2a2a2a). --- */
+    --text: #d8d8d8;            /* 10.07:1 - body copy                      */
+    --text-heading: #f5f3ef;    /* 12.95:1 - headings, shelfmarks           */
+    --text-secondary: #aaaaaa;  /*  6.18:1 - supporting prose               */
+    --text-muted: #969696;      /*  4.85:1 - labels, counts, captions.
+                                   THIS IS THE FLOOR for body-size text.
+                                   Anything dimmer fails 1.4.3 (needs 4.5).  */
+
+    --accent: #e8e4dc;          /* 11.32:1 - links, ivory accent            */
+
+    /* --- Borders --- */
+    --border-ui: #757575;       /*  3.12:1 - borders of inputs/selects and
+                                   other controls. Required by 1.4.11 (3:1). */
+    --border-subtle: #2a2a2a;   /* decorative rules only; carries no meaning,
+                                   so exempt from contrast minimums.         */
+
+    /* --- Focus --- */
+    --focus: #e8e4dc;           /* 11.3:1+ on every surface (2.4.7 / 2.4.11) */
+}
 
 * {
     margin: 0;
@@ -21,10 +43,21 @@
     box-sizing: border-box;
 }
 
+/* ============================================
+   FOCUS VISIBILITY  (WCAG 2.4.7)
+   ============================================
+   One ring for every focusable thing. Do not add `outline: none` anywhere
+   without providing an equally visible replacement in the same rule. */
+
+:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+}
+
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     line-height: 1.6;
-    color: #d8d8d8;
+    color: var(--text);
     background: #1a1a1a;
     min-height: 100vh;
     position: relative;
@@ -71,7 +104,7 @@ body::after {
 }
 
 a {
-    color: #e8e4dc;
+    color: var(--accent);
     text-decoration: none;
     transition: color 0.2s ease;
 }
@@ -106,7 +139,7 @@ header {
 h1 {
     font-family: 'Cormorant Garamond', Georgia, serif;
     font-size: 3.5rem;
-    color: #f5f3ef;
+    color: var(--text-heading);
     font-weight: 300;
     letter-spacing: 0.15em;
     margin-bottom: 0.5rem;
@@ -123,7 +156,7 @@ h1 a:hover {
 .subtitle {
     font-family: 'Inter', sans-serif;
     font-size: 0.85rem;
-    color: #888;
+    color: var(--text-muted);
     font-weight: 400;
     letter-spacing: 0.2em;
     text-transform: uppercase;
@@ -136,7 +169,7 @@ h1 a:hover {
 .section-title {
     font-family: 'Cormorant Garamond', Georgia, serif;
     font-size: 1.4rem;
-    color: #999;
+    color: var(--text-muted);
     font-weight: 400;
     letter-spacing: 0.08em;
     margin-bottom: 1.5rem;
@@ -181,7 +214,7 @@ h1 a:hover {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #444;
+    color: var(--text-muted);
     font-size: 0.85rem;
 }
 
@@ -195,7 +228,7 @@ h1 a:hover {
 .featured-label {
     font-family: 'Inter', sans-serif;
     font-size: 0.7rem;
-    color: #888;
+    color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.15em;
     margin-bottom: 1rem;
@@ -204,20 +237,20 @@ h1 a:hover {
 .featured-shelfmark {
     font-family: 'Cormorant Garamond', Georgia, serif;
     font-size: 1.8rem;
-    color: #f5f3ef;
+    color: var(--text-heading);
     font-weight: 400;
     margin-bottom: 0.75rem;
 }
 
 .featured-meta {
     font-size: 0.85rem;
-    color: #777;
+    color: var(--text-muted);
     margin-bottom: 1rem;
 }
 
 .featured-contents {
     font-size: 0.9rem;
-    color: #999;
+    color: var(--text-secondary);
     line-height: 1.7;
     margin-bottom: 1.5rem;
     display: -webkit-box;
@@ -230,7 +263,7 @@ h1 a:hover {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    color: #e8e4dc;
+    color: var(--accent);
     font-size: 0.85rem;
     font-weight: 400;
     letter-spacing: 0.05em;
@@ -271,18 +304,18 @@ h1 a:hover {
 .repo-name {
     font-family: 'Cormorant Garamond', Georgia, serif;
     font-size: 1.15rem;
-    color: #f5f3ef;
+    color: var(--text-heading);
     font-weight: 400;
     margin-bottom: 0.5rem;
 }
 
 .repo-count {
     font-size: 0.8rem;
-    color: #777;
+    color: var(--text-muted);
 }
 
 .repo-count strong {
-    color: #e8e4dc;
+    color: var(--accent);
     font-weight: 500;
 }
 
@@ -293,13 +326,13 @@ h1 a:hover {
 .site-footer {
     margin-top: 4rem;
     padding-top: 2rem;
-    border-top: 1px solid #2a2a2a;
+    border-top: 1px solid var(--border-subtle);
     text-align: center;
 }
 
 .footer-text {
     font-size: 0.8rem;
-    color: #555;
+    color: var(--text-muted);
     letter-spacing: 0.05em;
 }
 
@@ -316,28 +349,28 @@ h1 a:hover {
     align-items: center;
     gap: 0.5rem;
     font-size: 0.9rem;
-    color: #888;
+    color: var(--text-muted);
     margin-bottom: 1rem;
 }
 
 .breadcrumb a {
-    color: #e8e4dc;
+    color: var(--accent);
 }
 
 .breadcrumb-separator {
-    color: #555;
+    color: var(--text-muted);
 }
 
 .browse-title {
     font-family: 'Cormorant Garamond', Georgia, serif;
     font-size: 1.75rem;
-    color: #f5f3ef;
+    color: var(--text-heading);
     font-weight: 400;
 }
 
 .browse-subtitle {
     font-size: 0.95rem;
-    color: #888;
+    color: var(--text-muted);
     margin-top: 0.25rem;
 }
 
@@ -366,14 +399,14 @@ h1 a:hover {
 .collection-name {
     font-family: 'Cormorant Garamond', Georgia, serif;
     font-size: 1rem;
-    color: #f5f3ef;
+    color: var(--text-heading);
     font-weight: 400;
     margin-bottom: 0.25rem;
 }
 
 .collection-count {
     font-size: 0.8rem;
-    color: #777;
+    color: var(--text-muted);
 }
 
 /* Manuscript Grid */
@@ -412,7 +445,7 @@ h1 a:hover {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #444;
+    color: var(--text-muted);
     font-size: 0.8rem;
 }
 
@@ -423,7 +456,7 @@ h1 a:hover {
 .ms-shelfmark {
     font-family: 'Cormorant Garamond', Georgia, serif;
     font-size: 0.95rem;
-    color: #f5f3ef;
+    color: var(--text-heading);
     font-weight: 400;
     margin-bottom: 0.25rem;
     white-space: nowrap;
@@ -433,7 +466,7 @@ h1 a:hover {
 
 .ms-title {
     font-size: 0.8rem;
-    color: #aaa;
+    color: var(--text-secondary);
     margin: 0.25rem 0;
     line-height: 1.3;
     display: -webkit-box;
@@ -444,7 +477,7 @@ h1 a:hover {
 
 .ms-date {
     font-size: 0.8rem;
-    color: #777;
+    color: var(--text-muted);
 }
 
 /* Pagination */
@@ -461,7 +494,7 @@ h1 a:hover {
     background: #232323;
     border: none;
     border-radius: 2px;
-    color: #d8d8d8;
+    color: var(--text);
     font-family: inherit;
     font-size: 0.9rem;
     cursor: pointer;
@@ -480,7 +513,7 @@ h1 a:hover {
 
 .pagination-info {
     font-size: 0.85rem;
-    color: #888;
+    color: var(--text-muted);
     padding: 0 1rem;
 }
 
@@ -488,9 +521,9 @@ h1 a:hover {
     width: 3.5em;
     padding: 0.25rem 0.4rem;
     background: #232323;
-    border: 1px solid #444;
+    border: 1px solid var(--border-ui);
     border-radius: 2px;
-    color: #e8e4dc;
+    color: var(--accent);
     font-size: 0.85rem;
     text-align: center;
     -moz-appearance: textfield;
@@ -503,8 +536,7 @@ h1 a:hover {
 }
 
 .page-input:focus {
-    outline: none;
-    border-color: #666;
+    border-color: var(--focus);
     background: #2a2a2a;
 }
 
@@ -512,7 +544,7 @@ h1 a:hover {
 .loading {
     text-align: center;
     padding: 3rem;
-    color: #666;
+    color: var(--text-muted);
 }
 
 .loading-spinner {
@@ -520,7 +552,7 @@ h1 a:hover {
     width: 20px;
     height: 20px;
     border: 2px solid #333;
-    border-top-color: #888;
+    border-top-color: var(--text-muted);
     border-radius: 50%;
     animation: spin 1s linear infinite;
     margin-bottom: 0.5rem;
@@ -534,7 +566,7 @@ h1 a:hover {
 .empty-state {
     text-align: center;
     padding: 3rem;
-    color: #888;
+    color: var(--text-muted);
 }
 
 .empty-state p {
@@ -564,7 +596,7 @@ h1 a:hover {
 .viewer-header .viewer-title {
     font-family: 'Cormorant Garamond', Georgia, serif;
     font-size: 1.4rem;
-    color: #f5f3ef;
+    color: var(--text-heading);
     font-weight: 300;
     letter-spacing: 0.1em;
     text-decoration: none;
@@ -576,7 +608,7 @@ h1 a:hover {
 
 .nav-link-back {
     display: inline-block;
-    color: #888;
+    color: var(--text-muted);
     font-size: 0.8rem;
     transition: color 0.2s ease;
 }
@@ -613,17 +645,16 @@ h1 a:hover {
     padding: 0.35rem 0.5rem;
     font-family: inherit;
     font-size: 0.85rem;
-    color: #d8d8d8;
+    color: var(--text);
     background: #1a1a1a;
-    border: 1px solid #333;
+    border: 1px solid var(--border-ui);
     border-radius: 2px;
     cursor: pointer;
 }
 
 .repository-select:focus,
 .manuscript-select:focus {
-    outline: none;
-    border-color: #e8e4dc;
+    border-color: var(--focus);
 }
 
 .manuscript-select {
@@ -634,7 +665,7 @@ h1 a:hover {
 
 .manuscript-count {
     font-size: 0.8rem;
-    color: #888;
+    color: var(--text-muted);
 }
 
 .selector-info {
@@ -643,7 +674,7 @@ h1 a:hover {
 
 .selector-info p {
     font-size: 0.8rem;
-    color: #888;
+    color: var(--text-muted);
     margin: 0;
 }
 
@@ -745,24 +776,20 @@ h1 a:hover {
     font-size: 0.85rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: #888;
+    color: var(--text-muted);
     cursor: pointer;
     transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
 .sidebar-tab:hover {
     background: #2a2a2a;
-    color: #d8d8d8;
+    color: var(--text);
 }
 
 .sidebar-tab.active {
     background: #2a2a2a;
-    color: #d8d8d8;
+    color: var(--text);
     border-bottom-color: #e8e4dc;
-}
-
-.sidebar-tab:focus {
-    outline: none;
 }
 
 /* Sidebar Panels */
@@ -779,7 +806,7 @@ h1 a:hover {
 
 .panel-placeholder {
     font-size: 0.9rem;
-    color: #888;
+    color: var(--text-muted);
     text-align: center;
     padding: 2rem 1rem;
 }
@@ -798,7 +825,7 @@ h1 a:hover {
 .info-shelfmark {
     font-family: 'Cormorant Garamond', Georgia, serif;
     font-size: 1.1rem;
-    color: #f5f3ef;
+    color: var(--text-heading);
     font-weight: 400;
     margin-bottom: 0.25rem;
 }
@@ -806,7 +833,7 @@ h1 a:hover {
 .info-repo,
 .info-date {
     font-size: 0.85rem;
-    color: #888;
+    color: var(--text-muted);
     margin: 0.25rem 0;
 }
 
@@ -821,7 +848,7 @@ h1 a:hover {
     padding: 0.5rem 0.75rem;
     background: #2a2a2a;
     cursor: pointer;
-    color: #d8d8d8;
+    color: var(--text);
     font-size: 0.85rem;
     text-transform: uppercase;
     letter-spacing: 0.03em;
@@ -842,7 +869,7 @@ h1 a:hover {
 
 .info-list dt {
     font-weight: 600;
-    color: #888;
+    color: var(--text-muted);
     font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.03em;
@@ -855,7 +882,7 @@ h1 a:hover {
 
 .info-list dd {
     margin: 0.25rem 0 0 0;
-    color: #d8d8d8;
+    color: var(--text);
     font-size: 0.85rem;
     line-height: 1.5;
 }
@@ -863,7 +890,7 @@ h1 a:hover {
 .info-text {
     padding: 0.75rem;
     margin: 0;
-    color: #999;
+    color: var(--text-secondary);
     font-size: 0.85rem;
     line-height: 1.6;
 }
@@ -878,7 +905,7 @@ h1 a:hover {
 .info-link {
     display: inline-block;
     padding: 0.5rem 1rem;
-    background: #e8e4dc;
+    background: var(--accent);
     color: #1a1a1a;
     text-decoration: none;
     border-radius: 2px;
@@ -900,9 +927,9 @@ h1 a:hover {
     width: 28px;
     height: 28px;
     background: #2a2a2a;
-    border: 1px solid #333;
+    border: 1px solid var(--border-ui);
     border-radius: 2px;
-    color: #888;
+    color: var(--text-muted);
     font-size: 1rem;
     cursor: pointer;
     display: flex;
@@ -974,7 +1001,7 @@ h1 a:hover {
 }
 
 .viewer-placeholder p {
-    color: #555;
+    color: var(--text-muted);
     font-size: 0.95rem;
 }
 
@@ -1004,7 +1031,7 @@ code {
     border-radius: 2px;
     font-family: 'Monaco', 'Menlo', 'Courier New', monospace;
     font-size: 0.85em;
-    color: #e8e4dc;
+    color: var(--accent);
 }
 
 /* Mobile toggle - hidden by default */
@@ -1068,12 +1095,12 @@ code {
         width: 36px;
         height: 36px;
         background: #232323;
-        border: 1px solid #333;
+        border: 1px solid var(--border-ui);
         border-radius: 2px;
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        color: #888;
+        color: var(--text-muted);
         font-size: 1.2rem;
     }
 
@@ -1234,17 +1261,17 @@ code {
 }
 
 .about-text {
-    color: #aaa;
+    color: var(--text-secondary);
     line-height: 1.7;
     margin-bottom: 1rem;
 }
 
 .about-text a {
-    color: #e8e4dc;
+    color: var(--accent);
 }
 
 .about-text strong {
-    color: #e8e4dc;
+    color: var(--accent);
     font-weight: 500;
 }
 
@@ -1257,17 +1284,17 @@ code {
 }
 
 .source-list li {
-    color: #888;
+    color: var(--text-muted);
     padding: 0.3rem 0;
     break-inside: avoid;
 }
 
 .source-list a {
-    color: #e8e4dc;
+    color: var(--accent);
 }
 
 .source-count {
-    color: #666;
+    color: var(--text-muted);
     font-size: 0.85rem;
 }
 
@@ -1276,7 +1303,7 @@ code {
 }
 
 .changelog dt {
-    color: #e8e4dc;
+    color: var(--accent);
     font-weight: 500;
     margin-top: 1rem;
     font-size: 0.95rem;
@@ -1287,12 +1314,12 @@ code {
 }
 
 .changelog dd {
-    color: #888;
+    color: var(--text-muted);
     margin: 0.3rem 0 0.3rem 1rem;
     font-size: 0.9rem;
 }
 
 .footer-sep {
-    color: #444;
+    color: var(--text-muted);
     margin: 0 0.3rem;
 }
