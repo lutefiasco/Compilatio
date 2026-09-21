@@ -4,7 +4,7 @@ Forward-looking work items for the Compilatio IIIF manuscript aggregator. Newest
 For current production state (deployment, data summary, importer scripts, known issues)
 see `Feb04_2026_Status.md` at the repo root.
 
-Last updated: 2026-08-06.
+Last updated: 2026-09-21.
 
 ---
 
@@ -101,6 +101,18 @@ Not yet done, none blocked: skip links (2.4.1), SPA focus management on browse (
 Step 4a (viewer reflow) is committed but **not deployed**; the About changelog entry for it
 is deliberately unwritten pending that call.
 
+### Source standards — what to hold new repositories to  *(opened 2026-09-21)*
+
+A look at the newly announced manuscripta.se (Swedish national catalogue, 1,672 MSS)
+produced a short list of practices Compilatio should remember: manifests that cite their
+own TEI record via `seeAlso`, structured `notBefore`/`notAfter` dates kept beside the
+display string, per-record licences for images and text separately, and composite
+manuscripts modelled as codicological units. Each is noted against what Compilatio does
+today. Reference, not plan; nothing scheduled. See
+[`docs/source-standards.md`](source-standards.md). manuscripta.se itself is **not** an
+expansion candidate: it would move the aggregator from anglophone to European holdings,
+which is a separate decision.
+
 See **Pointers** below and `Feb04_2026_Status.md` for the near-term TODO and
 repository-expansion candidates.
 
@@ -120,6 +132,8 @@ place:
 
 ## Change record
 
+- **2026-09-21** — Added the source-standards item and `docs/source-standards.md`, from a
+  look at manuscripta.se. Parallel item filed in Scriptorium's planning doc.
 - **2026-08-06** — Added the design/CSS audit item and the steps 4b–6 accessibility
   summary. Prompted by step 4a (`0c7396d`), which found `styles.css`'s responsive viewer
   serving only archived Universal Viewer markup while the live viewer had no breakpoints
