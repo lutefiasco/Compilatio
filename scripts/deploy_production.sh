@@ -159,6 +159,15 @@ if [ "$DEPLOY_FILES" = true ]; then
     echo " root .htaccess uploaded separately with cPanel blocks merged)"
     echo ""
 
+    # public_html's own mode is cPanel's (750, group nobody). rsync -a
+    # would copy php_deploy/'s 755 onto it, so record it and put it back.
+    ROOT_MODE=$(ssh "${PROD_USER}@${PROD_HOST}" "stat -c %a ~/${PROD_PATH}")
+    case "$ROOT_MODE" in
+        [0-7][0-7][0-7]|[0-7][0-7][0-7][0-7]) ;;
+        *) echo -e "${RED}Could not read mode of ~/${PROD_PATH} (got '${ROOT_MODE}'). Deployment aborted.${NC}"; exit 1 ;;
+    esac
+    echo "  ~/${PROD_PATH} mode is ${ROOT_MODE}; will restore after sync"
+
     # .well-known/ belongs to the host's certificate renewal, not to us.
     rsync -avz --delete \
         --exclude='includes/config.php' \
@@ -173,6 +182,11 @@ if [ "$DEPLOY_FILES" = true ]; then
     chmod 644 "$HTACCESS_TMP/.htaccess"
     rsync -avz "$HTACCESS_TMP/.htaccess" \
         "${PROD_USER}@${PROD_HOST}:~/${PROD_PATH}/.htaccess"
+
+    # Restore cPanel's mode on public_html; keep config.php private (640 —
+    # PHP runs as the account owner under PHP-FPM, so it can still read it).
+    ssh "${PROD_USER}@${PROD_HOST}" \
+        "chmod ${ROOT_MODE} ~/${PROD_PATH} && chmod 640 ~/${PROD_PATH}/includes/config.php && stat -c '  %a %n' ~/${PROD_PATH} ~/${PROD_PATH}/includes/config.php"
 
     echo ""
     echo -e "${GREEN}[✓] Files deployed successfully${NC}"

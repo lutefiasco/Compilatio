@@ -13,6 +13,30 @@ Production deployment for Compilatio at https://oldbooks.humspace.ucla.edu.
 | Password | (see DevonThink) |
 | SSH | `oldbooks@oldbooks.humspace.ucla.edu` |
 
+> **NOTE — cPanel made us make these changes (2026-10-21).** Humspace manages
+> parts of `public_html/` through cPanel, and the deploy used to overwrite them.
+> On 2026-10-21 (14:26 PDT), after a PHP update on the host, cPanel appended a
+> `BEGIN/END cPanel-generated handler` block to `public_html/.htaccess` setting
+> `ea-php82` as the PHP handler. To avoid undoing Humspace's settings (and
+> having to argue with HumTech about them), `deploy_production.sh` was changed
+> the same day to:
+>
+> 1. **keep cPanel's blocks in the root `.htaccess`** — the live file's blocks
+>    are merged into the repo copy at deploy time (`scripts/merge_htaccess.sh`);
+>    never paste them into `php_deploy/.htaccess`;
+> 2. **leave `.well-known/` alone** — it is the host's certificate-renewal
+>    directory, now excluded from `rsync --delete`;
+> 3. **restore `public_html`'s own mode** — cPanel keeps it at `750`, group
+>    `nobody`; `rsync -a` would copy `php_deploy/`'s `755` over it, so the
+>    deploy records the mode first and puts it back after;
+> 4. **keep `includes/config.php` at `640`** — it had drifted to `644`
+>    (readable by every account on the host). Set back to `640` on 2026-10-21
+>    and re-applied by every deploy. Safe because PHP runs as `oldbooks` under
+>    cPanel's PHP-FPM; checked by API response immediately after the change.
+>
+> If cPanel starts managing something else here, the fix is the same: let the
+> server own it, and make the deploy keep it rather than overwrite it.
+
 ---
 
 ## Deploying
@@ -80,7 +104,7 @@ The first appeared on 2026-10-21 (setting `ea-php82` as the PHP handler). Those 
 scripts/merge_htaccess.sh php_deploy/.htaccess <live copy> > merged
 ```
 
-which prints the repo copy (minus any cPanel blocks) followed by the live file's cPanel blocks verbatim. The merged file is uploaded with mode 644. If either file has unbalanced BEGIN/END markers, the merge exits non-zero and the deploy aborts before touching production.
+which prints the repo copy (minus any cPanel blocks) followed by the live file's cPanel blocks verbatim. The merged file is uploaded with mode 644. After the sync the deploy restores `public_html`'s own mode (recorded before the sync; cPanel's `750`) and sets `includes/config.php` back to `640`. If either file has unbalanced BEGIN/END markers, the merge exits non-zero and the deploy aborts before touching production.
 
 Do not paste a cPanel block into `php_deploy/.htaccess`: it would go stale, and the next deploy would undo Humspace's next change.
 
@@ -182,7 +206,7 @@ ssh oldbooks@oldbooks.humspace.ucla.edu 'mysqldump oldbooks_compilatio > ~/backu
 
 These files exist only on the server and are excluded from rsync:
 
-**`public_html/includes/config.php`** (permissions: 640) -- MySQL credentials and PDO connection factory. See `php_deploy/includes/config.php.example` for the template.
+**`public_html/includes/config.php`** (permissions: 640, re-applied by every deploy; was found at 644 on 2026-10-21) -- MySQL credentials and PDO connection factory. See `php_deploy/includes/config.php.example` for the template.
 
 **`public_html/includes/.htaccess`** (permissions: 644) -- Denies direct HTTP access to the includes directory.
 

@@ -20,7 +20,7 @@ separately as the repo copy plus the live file's cPanel blocks
 (`scripts/merge_htaccess.sh`). Tested: merge of repo + live reproduces the live file byte
 for byte; no-block, already-merged and empty inputs pass through unchanged; an unbalanced
 block is refused. Dry-run against production: no deletions, `.htaccess` identical in
-content and mode. Detail: `docs/deployment.md` § Root .htaccess and cPanel.
+content and mode. Same day: `includes/config.php` found at 644 and set to 640 (API checked straight after), and the deploy now restores `public_html`'s cPanel mode (750) after the sync and re-applies 640. Detail: `docs/deployment.md` (NOTE at top, § Root .htaccess and cPanel).
 
 ### BL Charters & Rolls (Cotton / Harley) — ✅ LANDED 2026-06-29  *(opened 2026-06-27)*
 
