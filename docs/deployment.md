@@ -53,10 +53,36 @@ deploy_production.sh (orchestrator)
 rsync -avz --delete \
     --exclude='includes/config.php' \
     --exclude='includes/.htaccess' \
+    --exclude='/.htaccess' \
+    --exclude='/.well-known/' \
     php_deploy/ oldbooks@oldbooks.humspace.ucla.edu:~/public_html/
 ```
 
-The `--delete` flag removes files on production that don't exist locally. Two files are excluded because they contain production credentials and security rules that are created on the server.
+The `--delete` flag removes files on production that don't exist locally. Exclusions:
+
+- `includes/config.php`, `includes/.htaccess` — production credentials and security rules created on the server.
+- `.well-known/` — the host's certificate renewal (ACME challenge) directory; not ours (excluded since 2026-10-21).
+- `/.htaccess` — uploaded in a separate step so the server's cPanel blocks survive (below).
+
+### Root .htaccess and cPanel
+
+Humspace's cPanel writes fenced sections into `public_html/.htaccess`:
+
+```
+# php -- BEGIN cPanel-generated handler, do not edit
+...
+# php -- END cPanel-generated handler, do not edit
+```
+
+The first appeared on 2026-10-21 (setting `ea-php82` as the PHP handler). Those sections belong to Humspace. Before uploading anything, the deploy fetches the live `.htaccess` and runs
+
+```bash
+scripts/merge_htaccess.sh php_deploy/.htaccess <live copy> > merged
+```
+
+which prints the repo copy (minus any cPanel blocks) followed by the live file's cPanel blocks verbatim. The merged file is uploaded with mode 644. If either file has unbalanced BEGIN/END markers, the merge exits non-zero and the deploy aborts before touching production.
+
+Do not paste a cPanel block into `php_deploy/.htaccess`: it would go stale, and the next deploy would undo Humspace's next change.
 
 ### Database deployment
 
@@ -171,6 +197,7 @@ These files exist only on the server and are excluded from rsync:
 | `unistr does not exist` | Exported with SQLite's `.mode insert` | Use `python3 scripts/export_mysql.py` |
 | `Cannot truncate a table referenced in a foreign key` | FK constraints | Use `DELETE FROM` instead of `TRUNCATE TABLE` |
 | 500 Internal Server Error on all pages | `.htaccess` mod_rewrite issue | Temporarily rename `.htaccess` to restore site, then debug rules |
+| `merge_htaccess: ... refusing to merge` | Unbalanced cPanel BEGIN/END markers in live or repo `.htaccess` | Inspect the live file; production was not touched |
 | "Unable to load" on landing page | API errors | Check browser console; verify mod_rewrite is active |
 | `Duplicate entry for key PRIMARY` | Data not cleared before import | Run `DELETE FROM manuscripts; DELETE FROM repositories;` first |
 

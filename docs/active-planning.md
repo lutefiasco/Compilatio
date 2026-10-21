@@ -4,11 +4,23 @@ Forward-looking work items for the Compilatio IIIF manuscript aggregator. Newest
 For current production state (deployment, data summary, importer scripts, known issues)
 see `Feb04_2026_Status.md` at the repo root.
 
-Last updated: 2026-09-21.
+Last updated: 2026-10-21.
 
 ---
 
 ## Recently landed
+
+### Deploy leaves Humspace's managed files alone — ✅ LANDED 2026-10-21
+
+On 2026-10-21 (14:26 PDT) Humspace's cPanel appended a PHP-handler block (`ea-php82`)
+to `public_html/.htaccess`; the next `rsync --delete` deploy would have overwritten it,
+and would also have deleted `.well-known/` (certificate renewal). The file deploy now
+excludes `/.well-known/` and the root `.htaccess`, and uploads the root `.htaccess`
+separately as the repo copy plus the live file's cPanel blocks
+(`scripts/merge_htaccess.sh`). Tested: merge of repo + live reproduces the live file byte
+for byte; no-block, already-merged and empty inputs pass through unchanged; an unbalanced
+block is refused. Dry-run against production: no deletions, `.htaccess` identical in
+content and mode. Detail: `docs/deployment.md` § Root .htaccess and cPanel.
 
 ### BL Charters & Rolls (Cotton / Harley) — ✅ LANDED 2026-06-29  *(opened 2026-06-27)*
 

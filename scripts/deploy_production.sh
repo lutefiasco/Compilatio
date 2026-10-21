@@ -137,16 +137,42 @@ if [ "$DEPLOY_FILES" = true ]; then
     echo "----------------------------------------"
     echo ""
 
-    # Show what will be synced
-    echo "Syncing php_deploy/ -> ${PROD_USER}@${PROD_HOST}:~/${PROD_PATH}/"
-    echo "(Excluding: includes/config.php, includes/.htaccess)"
+    # Root .htaccess: repo copy plus whatever cPanel-managed blocks the
+    # server's copy carries (Humspace's PHP handler, 2026-10-21). Built
+    # before anything is uploaded, so a fetch or merge failure aborts the
+    # deploy with production untouched.
+    HTACCESS_TMP=$(mktemp -d)
+    trap 'rm -rf "$HTACCESS_TMP"' EXIT
+    echo "Fetching live .htaccess to keep cPanel-managed blocks..."
+    ssh "${PROD_USER}@${PROD_HOST}" \
+        "if [ -f ~/${PROD_PATH}/.htaccess ]; then cat ~/${PROD_PATH}/.htaccess; fi" \
+        > "$HTACCESS_TMP/live"
+    scripts/merge_htaccess.sh php_deploy/.htaccess "$HTACCESS_TMP/live" \
+        > "$HTACCESS_TMP/.htaccess"
+    KEPT=$(grep -c -E '^#.*BEGIN cPanel-generated' "$HTACCESS_TMP/.htaccess" || true)
+    echo "  Kept ${KEPT} cPanel block(s)"
     echo ""
 
+    # Show what will be synced
+    echo "Syncing php_deploy/ -> ${PROD_USER}@${PROD_HOST}:~/${PROD_PATH}/"
+    echo "(Excluding: includes/config.php, includes/.htaccess, .well-known/;"
+    echo " root .htaccess uploaded separately with cPanel blocks merged)"
+    echo ""
+
+    # .well-known/ belongs to the host's certificate renewal, not to us.
     rsync -avz --delete \
         --exclude='includes/config.php' \
         --exclude='includes/.htaccess' \
+        --exclude='/.htaccess' \
+        --exclude='/.well-known/' \
         php_deploy/ \
         "${PROD_USER}@${PROD_HOST}:~/${PROD_PATH}/"
+
+    # mktemp files are 0600; rsync -a carries mode over, and Apache must
+    # be able to read .htaccess.
+    chmod 644 "$HTACCESS_TMP/.htaccess"
+    rsync -avz "$HTACCESS_TMP/.htaccess" \
+        "${PROD_USER}@${PROD_HOST}:~/${PROD_PATH}/.htaccess"
 
     echo ""
     echo -e "${GREEN}[✓] Files deployed successfully${NC}"
