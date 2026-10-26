@@ -1,0 +1,25 @@
+# .venv exact state, 2026-10-25 17:51 PDT. Regenerate: uv pip freeze --python .venv/bin/python
+anyio==4.12.1
+beautifulsoup4==4.14.3
+certifi==2026.1.4
+charset-normalizer==3.4.7
+click==8.3.1
+greenlet==3.3.1
+h11==0.16.0
+httpcore==1.0.9
+httpx==0.28.1
+idna==3.11
+iniconfig==2.3.0
+packaging==26.2
+pip==26.0
+playwright==1.57.0
+pluggy==1.6.0
+pyee==13.0.0
+pygments==2.20.0
+pytest==9.1.1
+requests==2.33.1
+soupsieve==2.8.3
+starlette==0.52.1
+typing-extensions==4.15.0
+urllib3==2.6.3
+uvicorn==0.40.0

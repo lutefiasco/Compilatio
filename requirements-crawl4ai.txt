@@ -1,0 +1,8 @@
+# .venv-crawl4ai (Python 3.12): scripts/importers/nlw.py and parker.py.
+# Exact versions: requirements-crawl4ai.lock. Crawl4AI 0.8.0 carries 25 advisories
+# (10 high/critical) as of 2026-10-25; kept as is by the author's choice.
+crawl4ai==0.8.0
+beautifulsoup4>=4.12
+lxml>=5.0          # data/bodleian-medieval-mss/processing/
+requests>=2.31
+playwright>=1.40

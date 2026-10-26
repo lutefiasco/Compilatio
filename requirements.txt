@@ -1,4 +1,5 @@
-# Python dependencies for Compilatio project
+# Python dependencies for Compilatio (.venv). Exact versions: requirements.lock.
+# Crawl4AI importers (nlw.py, parker.py) use a separate venv: requirements-crawl4ai.txt.
 
 # ASGI server
 uvicorn>=0.24.0
@@ -7,6 +8,10 @@ starlette>=0.32.0
 # Importers
 beautifulsoup4>=4.12.0
 httpx>=0.25.0
+requests>=2.31     # fix_bl_thumbnails.py and two importers; installed, was undeclared
 
 # British Library importer (requires JavaScript rendering)
 playwright>=1.40.0
+
+# Test runner; installed, was undeclared
+pytest>=8.0
